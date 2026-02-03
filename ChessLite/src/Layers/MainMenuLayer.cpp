@@ -1,12 +1,12 @@
 #include "Layers/MainMenuLayer.h"
 #include "App.h"
 
-#include <CoreChessLib/ChessPiece.h>
+#include <CoreChessLib/ChessGame.h>
 
 namespace Layers {
 
 	void MainMenuLayer::OnStart(AppContext* ctx) {
-		CoreChess::Piece p;
+		CoreChess::ChessGame p;
 	}
 
 	void MainMenuLayer::OnUpdate(AppContext* ctx) {

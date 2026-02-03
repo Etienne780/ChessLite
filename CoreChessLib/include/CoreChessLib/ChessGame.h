@@ -1,14 +1,10 @@
 #pragma once
 #include <cstdint>
+#include <CoreLib/Math/Vector2.h>
 
-namespace ChessCore {
+#include "ChessTypes.h"
 
-	enum class ChessGameState : uint16_t {
-		IDLE = 0,	
-		PLAYING,
-		BLACK_WON,
-		WHITE_WON
-	};
+namespace CoreChess {
 
 	class ChessGame {
 	public:
@@ -19,7 +15,7 @@ namespace ChessCore {
 
 		bool IsGameEnd();
 
-		void MovePiece();
+		void MovePiece(int pieceIndex, const Vector2& to);
 
 	private:
 		ChessGameState m_gameState = ChessGameState::IDLE;
