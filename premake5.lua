@@ -64,6 +64,7 @@ end
 group "Libraries"
     include "CoreLib"
     include "SDLCoreLib"
+    include "CoreChessLib"
 -- Restore default group
 group ""
 ------------------------------------

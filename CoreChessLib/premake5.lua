@@ -1,9 +1,9 @@
-project "CoreLib"
+project "CoreChessLib"
     kind "StaticLib"
     language "C++"
     cppdialect "C++17"
     staticruntime "On"
-
+    
     SetTargetAndObjDirs("%{prj.name}")
 
     files {
@@ -13,7 +13,15 @@ project "CoreLib"
         "include/**.hpp"
     }
 
-    includedirs { "include", "include/%{prj.name}" }
+    includedirs { 
+        "include", 
+        "include/%{prj.name}",
+        "%{wks.location}/CoreLib/include"
+    }
+
+    links {
+        "CoreLib"
+    }
 
     filter "configurations:Debug"
         defines { "DEBUG" }

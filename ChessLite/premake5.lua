@@ -16,18 +16,19 @@ project "ChessLite"
     includedirs {
         "include",
         "include/%{prj.name}",
-        "../SDLCoreLib/include",
-        "../CoreLib/include"
+        "%{wks.location}/SDLCoreLib/include",
+        "%{wks.location}/CoreLib/include",
+        "%{wks.location}/CoreChessLib/include"
     }
 
     links {
         "CoreLib",
+        "CoreChessLib",
         "SDLCoreLib"
     }
     
     IncludeSDLCoreLib()
     -- copys the SDL DLLs in to the build path of this project
     CopySDLDLLs()
-
 
     ApplyCommonConfigs()
