@@ -8,6 +8,7 @@ namespace CoreChess::Internal {
 
 	class ChessBoard {
 	public:
+		ChessBoard() = default;
 		ChessBoard(int x, int y);
 		~ChessBoard() = default;
 
