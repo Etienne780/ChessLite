@@ -175,7 +175,7 @@ namespace CoreChess {
 	void ChessContext::ApplyBoardRow(const BoardCommand& cmd, bool isWhite, ChessBoard& outBoard) const {
 		for (size_t i = 0; i < cmd.pieces.size(); i++) {
 			int rowIndex = (isWhite) ? cmd.rowIndex : MirrorRow(cmd.rowIndex);
-			int columnIndex = (cmd.startRight) ? MirrorColumn(i) : i;
+			int columnIndex = (cmd.startRight) ? MirrorColumn(static_cast<int>(i)) : static_cast<int>(i);
 
 			ChessPieceID piece = cmd.pieces[i];
 			FieldType type = (isWhite) ? FieldType::WHITE : FieldType::BLACK;
