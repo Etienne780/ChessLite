@@ -43,7 +43,7 @@ namespace CoreChess {
 	bool ChessBoard::HasPieceAt(int x, int y) const {
 		size_t index = PosToIndex(x, y);
 		if (index >= m_board.size())
-			return;
+			return false;
 
 		const ChessField& f = m_board.at(index);
 		return !f.IsPieceNone();
@@ -56,7 +56,7 @@ namespace CoreChess {
 	bool ChessBoard::IsPieceAtEqual(int x, int y, FieldType type) const {
 		size_t index = PosToIndex(x, y);
 		if (index >= m_board.size())
-			return;
+			return false;
 
 		const ChessField& f = m_board.at(index);
 		return f.GetFieldType() == type;
@@ -69,7 +69,7 @@ namespace CoreChess {
 	ChessField ChessBoard::GetFieldAt(int x, int y) const {
 		size_t index = PosToIndex(x, y);
 		if (index >= m_board.size())
-			return;
+			return ChessField{};
 
 		return m_board.at(index);
 	}
