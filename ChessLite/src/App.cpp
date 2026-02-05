@@ -72,11 +72,14 @@ void App::ProcessLayerCommands() {
         switch (cmd.type) {
         case LayerCmdType::Push:
             m_layerStack.push_back(std::move(cmd.factory()));
+            m_layerStack.back()->OnStart(&m_context);
             break;
 
         case LayerCmdType::Pop:
-            if (!m_layerStack.empty())
+            if (!m_layerStack.empty()) {
+                m_layerStack.back()->OnQuit(&m_context);
                 m_layerStack.pop_back();
+            }
             break;
         }
     }
