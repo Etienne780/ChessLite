@@ -31,32 +31,69 @@ namespace CoreChess {
 		return *this;
 	}
 
+	ChessContext& ChessContext::AddBoardCommand(const BoardCommand& cmd) {
+		if (cmd.pieces.size() < 0)
+			return *this;
+
+		for (const auto& p : cmd.pieces) {
+			if (p.IsInvalid())
+				return *this;
+			else
+				AddUniquePiece(p);
+		}
+
+		m_boardCmds.push_back(cmd);
+		return *this;
+	}
+
+	ChessContext& ChessContext::AddBoardCommands(const std::vector<BoardCommand>& cmds) {
+		for (const auto& cmd : cmds) {
+			AddBoardCommand(cmd);
+		}
+		return *this;
+	}
+
 	ChessContext& ChessContext::BoardCmdFillRow(int rowIndex, ChessPieceID pieceID) {
 		BoardCommand cmd;
-		
+
+		if (pieceID.IsInvalid())
+			return *this;
+
 		cmd.rowIndex = rowIndex;
 		cmd.fill = true;
 		cmd.pieces.push_back(pieceID);
 
+		AddUniquePiece(pieceID);
 		m_boardCmds.push_back(cmd);
 		return *this;
 	}
 
 	ChessContext& ChessContext::BoardCmdSetPiece(int rowIndex, int columnIndex, ChessPieceID pieceID, bool startRight) {
 		BoardCommand cmd;
-		
+
+		if (pieceID.IsInvalid())
+			return *this;
+
 		cmd.rowIndex = rowIndex;
 		cmd.columnIndex = columnIndex;
 		cmd.startRight = startRight;
 		cmd.pieces.push_back(pieceID);
 
+		AddUniquePiece(pieceID);
 		m_boardCmds.push_back(cmd);
 		return *this;
 	}
 
-	ChessContext& ChessContext::BoardCmdSetRow(int rowIndex, std::vector<ChessPieceID> row, bool startRight) {
+	ChessContext& ChessContext::BoardCmdSetRow(int rowIndex, const std::vector<ChessPieceID>& row, bool startRight) {
 		BoardCommand cmd;
-		
+
+		for (const auto& p : row) {
+			if (p.IsInvalid())
+				return *this;
+			else
+				AddUniquePiece(p);
+		}
+
 		cmd.rowIndex = rowIndex;
 		cmd.startRight = startRight;
 		cmd.pieces = row;
@@ -69,6 +106,22 @@ namespace CoreChess {
 		m_boardWidth = width;
 		m_boardHeight = height;
 		return *this;
+	}
+
+	int ChessContext::GetBoardWidth() const {
+		return m_boardWidth;
+	}
+
+	int ChessContext::GetBoardHeight() const {
+		return m_boardHeight;
+	}
+
+	const std::vector<ChessPieceID>& ChessContext::GetPieces() const {
+		return m_pieces;
+	}
+
+	const std::vector<BoardCommand>& ChessContext::GetBoardCommands() const {
+		return m_boardCmds;
 	}
 
 	void ChessContext::AddUniquePiece(ChessPieceID pieceID) {

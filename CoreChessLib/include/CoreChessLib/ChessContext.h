@@ -9,6 +9,19 @@ namespace CoreChess {
 	class ChessBoard;
 
 	/**
+	* @brief Internal representation of a board setup command.
+	*/
+	struct BoardCommand {
+		int columnIndex = 0;				/**< Column index for single piece placement */
+		int rowIndex = 0;					/**< Row index */
+		bool fill = false;					/**< True if the command fills an entire row */
+		bool startRight = false;			/**< True if the placement starts from the right side */
+		std::vector<ChessPieceID> pieces;	/**< Pieces to place */
+
+		BoardCommand() = default;
+	};
+
+	/**
 	* @brief Stores data for a chess game, including pieces and board setup commands.
 	*
 	* This class is used to define the initial configuration of a chess game,
@@ -52,7 +65,33 @@ namespace CoreChess {
 		*/
 		ChessContext& ClearBoardSetupCommands();
 
+		/**
+		* @brief Pre-allocates memory for a number of board setup commands.
+		*
+		* @param amount Number of board commands to reserve space for.
+		* @return Reference to this context for chaining.
+		*/
 		ChessContext& ReserveBoardCommands(size_t amount);
+
+		/**
+		* @brief Adds a single board setup command to the context.
+		*
+		* Validates the pieces in the command before adding.
+		*
+		* @param cmd BoardCommand to add.
+		* @return Reference to this context for chaining.
+		*/
+		ChessContext& AddBoardCommand(const BoardCommand& cmd);
+
+		/**
+		* @brief Adds multiple board setup commands to the context.
+		*
+		* Internally calls AddBoardCommand for each entry.
+		*
+		* @param cmds Vector of BoardCommands to add.
+		* @return Reference to this context for chaining.
+		*/
+		ChessContext& AddBoardCommands(const std::vector<BoardCommand>& cmds);
 
 		/**
 		* @brief Fills an entire row with a single piece type.
@@ -82,7 +121,7 @@ namespace CoreChess {
 		* @param startRight If true, the row starts from the right side of the board.
 		* @return Reference to this context for chaining.
 		*/
-		ChessContext& BoardCmdSetRow(int rowIndex, std::vector<ChessPieceID> row, bool startRight = false);
+		ChessContext& BoardCmdSetRow(int rowIndex, const std::vector<ChessPieceID>& row, bool startRight = false);
 
 		/**
 		* @brief Sets the size of the board.
@@ -92,21 +131,36 @@ namespace CoreChess {
 		* @return Reference to this context for chaining.
 		*/
 		ChessContext& SetBoardSize(int width, int height);
+		
+		/**
+		* @brief Returns the width of the board for this context.
+		*
+		* @return Number of columns.
+		*/
+		int GetBoardWidth() const;
+
+		/**
+		* @brief Returns the height of the board for this context.
+		*
+		* @return Number of rows.
+		*/
+		int GetBoardHeight() const;
+
+		/**
+		* @brief Returns all pieces added to this context.
+		*
+		* @return Vector of ChessPieceID currently registered.
+		*/
+		const std::vector<ChessPieceID>& GetPieces() const;
+
+		/**
+		* @brief Returns all board setup commands currently stored in the context.
+		*
+		* @return Vector of BoardCommand.
+		*/
+		const std::vector<BoardCommand>& GetBoardCommands() const;
 
 	private:
-		/**
-		* @brief Internal representation of a board setup command.
-		*/
-		struct BoardCommand {
-			int columnIndex = 0;				/**< Column index for single piece placement */
-			int rowIndex = 0;					/**< Row index */
-			bool fill = false;					/**< True if the command fills an entire row */
-			bool startRight = false;			/**< True if the placement starts from the right side */
-			std::vector<ChessPieceID> pieces;	/**< Pieces to place */
-
-			BoardCommand() = default;
-		};
-
 		int m_boardWidth = 0;
 		int m_boardHeight = 0;
 		std::vector<ChessPieceID> m_pieces;
