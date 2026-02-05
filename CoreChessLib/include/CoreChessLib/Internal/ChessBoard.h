@@ -1,5 +1,7 @@
 #pragma once
-#include "ChessTypes.h"
+#include <CoreLib/Math/Vector2.h>
+
+#include "CoreChessLib/ChessTypes.h"
 
 namespace CoreChess::Internal {
 
@@ -13,13 +15,14 @@ namespace CoreChess::Internal {
 	public:
 		Field() = default;
 		Field(ChessPieceID piece, FieldType type);
-
-		ChessPieceID GetPieceID() const;
-		FieldType GetFieldType() const;
+		~Field() = default;
 
 		bool IsPieceNone() const;
 		bool IsPieceWhite() const;
 		bool IsPieceBlack() const;
+
+		ChessPieceID GetPieceID() const;
+		FieldType GetFieldType() const;
 
 	private:
 		ChessPieceID m_piece;
@@ -29,11 +32,20 @@ namespace CoreChess::Internal {
 	class ChessBoard {
 	public:
 		ChessBoard(int x, int y);
+		~ChessBoard() = default;
+
+		bool HasPieceAt(const Vector2& pos) const;
+		bool HasPieceAt(int x, int y) const;
+
+		Field GetFieldAt(const Vector2& pos) const;
+		Field GetFieldAt(int x, int y) const;
 
 	private:
 		int m_boardSizeX = 0;
 		int m_boardSizeY = 0;
 		std::vector<Field> m_board;
+
+		size_t PosToIndex(int x, int y) const;
 	};
 
 }
