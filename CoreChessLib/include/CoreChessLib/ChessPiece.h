@@ -10,44 +10,115 @@ namespace CoreChess {
 	class ChessBoard;
 	class ChessPieceRegistry;
 
+
+	/**
+	* @brief Defines a chess piece and its movement rules.
+	*
+	* A ChessPiece describes how a piece is allowed to move on the board.
+	* It does not store board state or position, only rule definitions
+	* such as movement directions, step limits, sliding behavior, and
+	* target constraints.
+	*
+	* Instances are created and managed by the ChessPieceRegistry.
+	*/
 	class ChessPiece {
 	public:
 		~ChessPiece() = default;
 
+		/**
+		* @brief Adds a movement rule using integer direction components.
+		*
+		* The direction defines the relative movement vector for this rule.
+		*
+		* @param x X-axis direction.
+		* @param y Y-axis direction.
+		*/
 		void AddMoveRule(int x, int y);
+		/**
+		* @brief Adds a movement rule using a direction vector.
+		*
+		* The direction defines the relative movement vector for this rule.
+		*
+		* @param direction Movement direction vector.
+		*/
 		void AddMoveRule(const Vector2& direction);
-
+		/**
+		* @brief Adds multiple movement rules at once.
+		*
+		* @param rules List of move rules to add.
+		*/
 		void AddMoveRules(const std::vector<ChessMoveRule>& rules);
+
+		/**
+		* @brief Removes all movement rules from this piece.
+		*/
 		void ClearMoveRules();
 
+		/**
+		* @brief Checks whether a move is valid according to this piece's rules.
+		*
+		* This function evaluates all registered movement rules and verifies
+		* movement pattern, path blocking, and target constraints.
+		*
+		* @param board Reference to the chess board.
+		* @param from  Source position.
+		* @param to    Target position.
+		* @return True if the move is valid, false otherwise.
+		*/
 		bool IsValidMove(const ChessBoard& board, const Vector2& from, const Vector2& to) const;
+
+		/**
+		* @brief Returns whether this piece uses sliding movement.
+		*/
 		bool IsSliding() const;
 
+		/**
+		* @brief Returns the unique identifier of this chess piece.
+		*/
 		ChessPieceID GetID() const;
+
+		/**
+		* @brief Returns the display name of this chess piece.
+		*/
 		const std::string& GetName() const;
 
+		/**
+		* @brief Returns the maximum number of steps per move.
+		*/
 		uint16_t GetMaxSteps() const;
+
+		/**
+		* @brief Returns the allowed target type for this piece.
+		*/
 		TargetType GetTargetType() const;
+
+		/**
+		* @brief Returns the path evaluation mode used by this piece.
+		*/
 		PathMode GetPathMode() const;
+
+		/**
+		* @brief Returns the priority axis for axis-ordered movement.
+		*/
 		PriorityAxis GetPriorityAxis() const;
+
+		/**
+		* @brief Returns all movement rules associated with this piece.
+		*/
 		const std::vector<ChessMoveRule>& GetMoveRules() const;
 
 		/**
 		* @brief Configures all movement-related properties of the chess piece at once.
 		*
-		* This function is a convenience wrapper that sets all move rule parameters
+		* This is a convenience function that updates all movement parameters
 		* in a single call. Internally, it forwards the values to the corresponding
 		* individual setter functions.
 		*
-		* @param maxSteps        Maximum number of steps the piece can move in its direction.
-		*                        A value of 0 means unlimited range.
-		* @param sliding         Whether the piece moves by sliding (e.g. rook, bishop, queen)
-		*                        or by jumping (e.g. knight).
-		* @param targetType      Defines what kind of target field is allowed
-		*                        (free, opponent, or any).
-		* @param pathMode        Defines how the path is evaluated when sliding is enabled.
-		* @param priorityAxis   Defines the movement order of axes when using
-		*                        PathMode::AXIS_ORDER.
+		* @param maxSteps      Maximum number of steps per move (0 = unlimited).
+		* @param sliding       Enables sliding movement if true.
+		* @param targetType    Defines which target fields are allowed.
+		* @param pathMode      Defines how paths are evaluated when sliding.
+		* @param priorityAxis Axis priority for PathMode::AXIS_ORDER.
 		*/
 		void SetMoveProperties(uint16_t maxSteps, bool sliding, TargetType targetType, 
 			PathMode pathMode = PathMode::LINEAR, PriorityAxis priorityAxis = PriorityAxis::X);
