@@ -14,7 +14,7 @@ namespace CoreChess {
 			return;
 
 		if (m_gameState == ChessGameState::PLAYING) {
-			Log::Error("CoreChess::StartGame: Faild to StartGame, a game is already running!");
+			Log::Error("CoreChess::ChessGame::StartGame: Faild to StartGame, a game is already running!");
 			return;
 		}
 	}
@@ -40,7 +40,7 @@ namespace CoreChess {
 
 	bool ChessGame::CheckContext(const std::string& funcName) const {
 		if (!m_isContextSet) {
-			Log::Error("CoreChess::{}: Faild to {}, Chess context was not set!", funcName);
+			Log::Error("CoreChess::ChessGame::{}: Faild to {}, Chess context was not set!", funcName);
 			return false;
 		}
 		return true;
