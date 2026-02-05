@@ -14,6 +14,9 @@ namespace CoreChess {
 
 	void ChessBoard::MovePieceFromTo(int fromX, int fromY, int toX, int toY) {
 		size_t fromIndex = PosToIndex(fromX, fromY);
+		if (fromIndex >= m_board.size())
+			return;
+
 		ChessField& f = m_board.at(fromIndex);
 		
 		SetFieldAt(toX, toY, f.GetFieldType(), f.GetPieceID());
@@ -26,6 +29,9 @@ namespace CoreChess {
 
 	void ChessBoard::SetFieldAt(int atX, int atY, FieldType type, ChessPieceID id) {
 		size_t index = PosToIndex(atX, atY);
+		if (index >= m_board.size())
+			return;
+
 		ChessField& f = m_board.at(index);
 		f = ChessField(id, type);
 	}
@@ -36,6 +42,9 @@ namespace CoreChess {
 
 	bool ChessBoard::HasPieceAt(int x, int y) const {
 		size_t index = PosToIndex(x, y);
+		if (index >= m_board.size())
+			return;
+
 		const ChessField& f = m_board.at(index);
 		return !f.IsPieceNone();
 	}
@@ -46,6 +55,9 @@ namespace CoreChess {
 
 	bool ChessBoard::IsPieceAtEqual(int x, int y, FieldType type) const {
 		size_t index = PosToIndex(x, y);
+		if (index >= m_board.size())
+			return;
+
 		const ChessField& f = m_board.at(index);
 		return f.GetFieldType() == type;
 	}
@@ -56,6 +68,9 @@ namespace CoreChess {
 
 	ChessField ChessBoard::GetFieldAt(int x, int y) const {
 		size_t index = PosToIndex(x, y);
+		if (index >= m_board.size())
+			return;
+
 		return m_board.at(index);
 	}
 
