@@ -57,6 +57,16 @@ namespace CoreChess {
 		return m_moveRules.GetRules();
 	}
 
+	void ChessPiece::SetMoveProperties(uint16_t maxSteps, bool sliding, TargetType targetType,
+		PathMode pathMode, PriorityAxis priorityAxis) 
+	{
+		SetMaxSteps(maxSteps);
+		SetSliding(sliding);
+		SetTargetType(targetType);
+		SetPathMode(pathMode);
+		SetPriorityAxis(priorityAxis);
+	}
+
 	void ChessPiece::SetMaxSteps(uint16_t maxSteps) {
 		m_maxSteps = maxSteps;
 	}

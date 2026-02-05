@@ -14,7 +14,12 @@ namespace Layers {
 		
 		ChessPieceID pawnID;
 		auto* pawnPtr = reg.AddChessPiece(pawnID, "pawn");
+		pawnPtr->SetMoveProperties(1, false, TargetType::FREE);
 		pawnPtr->AddMoveRule(0, 1);
+
+		pawnPtr->SetTargetType(TargetType::OPPONENT);
+		pawnPtr->AddMoveRule(1, 1);
+		pawnPtr->AddMoveRule(-1, 1);
 
 		ChessContext chessCTX;
 		chessCTX.AddPiece(pawnID);

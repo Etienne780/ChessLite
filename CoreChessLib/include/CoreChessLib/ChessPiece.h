@@ -13,7 +13,7 @@ namespace CoreChess {
 	class ChessPiece {
 	public:
 		~ChessPiece() = default;
-	
+
 		void AddMoveRule(int x, int y);
 		void AddMoveRule(const Vector2& direction);
 
@@ -32,29 +32,59 @@ namespace CoreChess {
 		PriorityAxis GetPriorityAxis() const;
 		const std::vector<ChessMoveRule>& GetMoveRules() const;
 
+		/**
+		* @brief Configures all movement-related properties of the chess piece at once.
+		*
+		* This function is a convenience wrapper that sets all move rule parameters
+		* in a single call. Internally, it forwards the values to the corresponding
+		* individual setter functions.
+		*
+		* @param maxSteps        Maximum number of steps the piece can move in its direction.
+		*                        A value of 0 means unlimited range.
+		* @param sliding         Whether the piece moves by sliding (e.g. rook, bishop, queen)
+		*                        or by jumping (e.g. knight).
+		* @param targetType      Defines what kind of target field is allowed
+		*                        (free, opponent, or any).
+		* @param pathMode        Defines how the path is evaluated when sliding is enabled.
+		* @param priorityAxis   Defines the movement order of axes when using
+		*                        PathMode::AXIS_ORDER.
+		*/
+		void SetMoveProperties(uint16_t maxSteps, bool sliding, TargetType targetType, 
+			PathMode pathMode = PathMode::LINEAR, PriorityAxis priorityAxis = PriorityAxis::X);
+
 		/*
-		* @brief Sets the max amount of steps a piece can move in its direction.
-		* 
-		* note: if maxStep = 0 -> infinite maxStep
+		* @brief Sets the maximum number of steps the piece can move in its direction.
+		*
+		* @note If maxSteps is 0, the piece can move infinitely in that direction.
 		*/
 		void SetMaxSteps(uint16_t maxSteps);
 
 		/*
-		* @brief Sets whether a piece can slide (queen, bishop) or jump like (knight)
+		* @brief Enables or disables sliding movement.
+		*
+		* Sliding pieces (e.g. rook, bishop, queen) are blocked by other pieces.
+		* Non-sliding pieces (e.g. knight) can jump over other pieces.
 		*/
 		void SetSliding(bool value);
 
+		/*
+		* @brief Defines what kind of target field this move rule allows.
+		*
+		* Example: free field only, opponent piece only, or both.
+		*/
 		void SetTargetType(TargetType type);
 
 		/*
-		* @brief Sets how the the pieces moves when sliding is turned on
+		* @brief Sets how the piece moves along its path when sliding is enabled.
+		*
+		* Example: linear movement or axis-ordered movement.
 		*/
 		void SetPathMode(PathMode pathMode);
 
 		/*
-		* @brief Sets in what order the piece should move.
-		* 
-		* note: only takes effect if path mode is PathMode::AXIS_ORDER
+		* @brief Sets the axis movement order for axis-ordered paths.
+		*
+		* @note Only used when path mode is PathMode::AXIS_ORDER.
 		*/
 		void SetPriorityAxis(PriorityAxis axis);
 
