@@ -23,6 +23,12 @@ namespace CoreChess {
 
 	ChessContext& ChessContext::ClearBoardSetupCommands() {
 		m_boardCmds.clear();
+		return *this;
+	}
+
+	ChessContext& ChessContext::ReserveBoardCommands(size_t amount) {
+		m_boardCmds.reserve(amount);
+		return *this;
 	}
 
 	ChessContext& ChessContext::BoardCmdFillRow(int rowIndex, ChessPieceID pieceID) {
@@ -33,6 +39,7 @@ namespace CoreChess {
 		cmd.pieces.push_back(pieceID);
 
 		m_boardCmds.push_back(cmd);
+		return *this;
 	}
 
 	ChessContext& ChessContext::BoardCmdSetPiece(int rowIndex, int columnIndex, ChessPieceID pieceID, bool startRight) {
@@ -44,6 +51,7 @@ namespace CoreChess {
 		cmd.pieces.push_back(pieceID);
 
 		m_boardCmds.push_back(cmd);
+		return *this;
 	}
 
 	ChessContext& ChessContext::BoardCmdSetRow(int rowIndex, std::vector<ChessPieceID> row, bool startRight) {
@@ -54,6 +62,7 @@ namespace CoreChess {
 		cmd.pieces = row;
 
 		m_boardCmds.push_back(cmd);
+		return *this;
 	}
 
 	ChessContext& ChessContext::SetBoardSize(int width, int height) {
