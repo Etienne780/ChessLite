@@ -78,8 +78,6 @@ namespace CoreChess {
 
 				if (cmd.rowIndex >= m_boardHeight || cmd.rowIndex < 0)
 					continue;
-				if (m_boardHeight - cmd.rowIndex < 0)
-					continue;
 
 				if (cmd.fill) {
 					ApplyFillBoardRow(cmd, isWhite, outBoard);
@@ -87,8 +85,6 @@ namespace CoreChess {
 				}
 
 				if (cmd.columnIndex >= m_boardWidth || cmd.columnIndex < 0)
-					continue;
-				if (m_boardWidth - cmd.columnIndex < 0)
 					continue;
 
 				if (cmd.pieces.size() > 1) {
@@ -106,34 +102,43 @@ namespace CoreChess {
 
 	void ChessContext::ApplyFillBoardRow(const BoardCommand& cmd, bool isWhite, ChessBoard& outBoard) const {
 		for (int i = 0; i < m_boardWidth; i++) {
-			int rowIndex = (isWhite) ? cmd.rowIndex : m_boardHeight - cmd.rowIndex;
+			int rowIndex = (isWhite) ? cmd.rowIndex : MirrorRow(cmd.rowIndex);
 			ChessPieceID piece = cmd.pieces[0];
 			FieldType type = (isWhite) ? FieldType::WHITE : FieldType::BLACK;
 
-			outBoard.SetFieldAt(rowIndex, i, type, piece);
+			outBoard.SetFieldAt(i, rowIndex, type, piece);
 		}
 	}
 
 	void ChessContext::ApplyBoardRow(const BoardCommand& cmd, bool isWhite, ChessBoard& outBoard) const {
 		for (size_t i = 0; i < cmd.pieces.size(); i++) {
-			int rowIndex = (isWhite) ? cmd.rowIndex : m_boardHeight - cmd.rowIndex;
-			int columnIndex = (cmd.startRight) ? m_boardWidth - i : i;
+			int rowIndex = (isWhite) ? cmd.rowIndex : MirrorRow(cmd.rowIndex);
+			int columnIndex = (cmd.startRight) ? MirrorColumn(i) : i;
 
 			ChessPieceID piece = cmd.pieces[i];
 			FieldType type = (isWhite) ? FieldType::WHITE : FieldType::BLACK;
 
-			outBoard.SetFieldAt(rowIndex, columnIndex, type, piece);
+			outBoard.SetFieldAt(columnIndex, rowIndex, type, piece);
 		}
 	}
 
 	void ChessContext::ApplySinglePiece(const BoardCommand& cmd, bool isWhite, ChessBoard& outBoard) const {
-		int rowIndex = (isWhite) ? cmd.rowIndex : m_boardHeight - cmd.rowIndex;
-		int columnIndex = (cmd.startRight) ? m_boardWidth - cmd.columnIndex: cmd.columnIndex;
+		int rowIndex = (isWhite) ? cmd.rowIndex : MirrorRow(cmd.rowIndex);
+		int columnIndex = (cmd.startRight) ? MirrorColumn(cmd.columnIndex) : cmd.columnIndex;
 
 		ChessPieceID piece = cmd.pieces[0];
 		FieldType type = (isWhite) ? FieldType::WHITE : FieldType::BLACK;
 
-		outBoard.SetFieldAt(rowIndex, columnIndex, type, piece);
+		outBoard.SetFieldAt(columnIndex, rowIndex, type, piece);
 	}
+
+	int ChessContext::MirrorRow(int row) const {
+		return m_boardHeight - 1 - row;
+	}
+
+	int ChessContext::MirrorColumn(int col) const {
+		return m_boardWidth - 1 - col;
+	}
+
 
 }

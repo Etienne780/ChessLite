@@ -51,6 +51,9 @@ namespace CoreChess {
 		void ApplyFillBoardRow(const BoardCommand& cmd, bool isWhite, ChessBoard& outBoard) const;
 		void ApplyBoardRow(const BoardCommand& cmd, bool isWhite, ChessBoard& outBoard) const;
 		void ApplySinglePiece(const BoardCommand& cmd, bool isWhite, ChessBoard& outBoard) const;
+	
+		int MirrorRow(int row) const;
+		int MirrorColumn(int col) const;
 	};
 
 }
