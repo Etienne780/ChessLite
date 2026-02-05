@@ -5,12 +5,9 @@
 #include "ChessTypes.h"
 #include "Internal/ChessPieceRuleSet.h"
 
-namespace CoreChess::Internal {
-	class ChessBoard;
-}
-
 namespace CoreChess {
 
+	class ChessBoard;
 	class ChessPieceRegistry;
 
 	class ChessPiece {
@@ -23,7 +20,7 @@ namespace CoreChess {
 		void AddMoveRules(const std::vector<ChessMoveRule>& rules);
 		void ClearMoveRules();
 
-		bool IsValidMove(const Internal::ChessBoard& board, const Vector2& from, const Vector2& to) const;
+		bool IsValidMove(const ChessBoard& board, const Vector2& from, const Vector2& to) const;
 		bool IsSliding() const;
 
 		ChessPieceID GetID() const;

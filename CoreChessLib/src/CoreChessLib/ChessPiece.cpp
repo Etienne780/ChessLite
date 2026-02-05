@@ -21,7 +21,7 @@ namespace CoreChess {
 		m_moveRules.ClearRules();
 	}
 
-	bool ChessPiece::IsValidMove(const Internal::ChessBoard& board, const Vector2& from, const Vector2& to) const {
+	bool ChessPiece::IsValidMove(const ChessBoard& board, const Vector2& from, const Vector2& to) const {
 		return m_moveRules.IsValidMove(board, from, to);
 	}
 

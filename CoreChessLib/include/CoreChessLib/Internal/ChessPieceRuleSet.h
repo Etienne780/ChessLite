@@ -4,10 +4,11 @@
 
 #include "ChessMoveRule.h"
 
+namespace CoreChess {
+	class ChessBoard;
+}
 
 namespace CoreChess::Internal {
-
-	class ChessBoard;
 
 	class ChessPieceRuleSet {
 	public:
@@ -18,7 +19,7 @@ namespace CoreChess::Internal {
 		void AddRule(const Vector2& direction, uint16_t maxSteps, bool slide, TargetType targetType, PathMode pathMode, PriorityAxis priorityAxis);
 		void ClearRules();
 
-		bool IsValidMove(const Internal::ChessBoard& board, const Vector2& from, const Vector2& to) const;
+		bool IsValidMove(const ChessBoard& board, const Vector2& from, const Vector2& to) const;
 
 		const std::vector<ChessMoveRule>& GetRules() const;
 

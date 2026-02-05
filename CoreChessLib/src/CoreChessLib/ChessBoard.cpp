@@ -1,15 +1,10 @@
-#include "Internal/ChessBoard.h"
+#include "ChessBoard.h"
 
-namespace CoreChess::Internal {
+namespace CoreChess {
 
-	ChessBoard::ChessBoard(int x, int y) 
-		: m_boardSizeX(x), m_boardSizeY(y) {
-
-		size_t count = static_cast<size_t>(x * y);
-		m_board.reserve(count);
-		for (size_t i = 0; i < count; i++) {
-			m_board.emplace_back(ChessPieceID(CORE_CHESS_INVALID_ID), FieldType::NONE);
-		}
+	ChessBoard::ChessBoard(int w, int h) 
+		: m_boardWidth(w), m_boardHeight(h) {
+		m_board = GenerateBoard(w, h);
 	}
 
 	bool ChessBoard::HasPieceAt(const Vector2& pos) const {
@@ -41,8 +36,18 @@ namespace CoreChess::Internal {
 		return m_board.at(index);
 	}
 
+	std::vector<ChessField> ChessBoard::GenerateBoard(int w, int h) {
+		size_t count = static_cast<size_t>(w * h);
+		std::vector<ChessField> result;
+		result.reserve(count);
+		for (size_t i = 0; i < count; i++) {
+			result.emplace_back(ChessPieceID(CORE_CHESS_INVALID_ID), FieldType::NONE);
+		}
+		return result;
+	}
+
 	size_t ChessBoard::PosToIndex(int x, int y) const {
-		return static_cast<size_t>(x + (m_boardSizeX * y));
+		return static_cast<size_t>(x + (m_boardWidth * y));
 	}
 
 }

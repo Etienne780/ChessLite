@@ -4,12 +4,12 @@
 #include "CoreChessLib/ChessTypes.h"
 #include "CoreChessLib/ChessField.h"
 
-namespace CoreChess::Internal {
+namespace CoreChess {
 
 	class ChessBoard {
 	public:
 		ChessBoard() = default;
-		ChessBoard(int x, int y);
+		ChessBoard(int w, int h);
 		~ChessBoard() = default;
 
 		bool HasPieceAt(const Vector2& pos) const;
@@ -22,10 +22,11 @@ namespace CoreChess::Internal {
 		ChessField GetFieldAt(int x, int y) const;
 
 	private:
-		int m_boardSizeX = 0;
-		int m_boardSizeY = 0;
+		int m_boardWidth = 0;
+		int m_boardHeight = 0;
 		std::vector<ChessField> m_board;
 
+		static std::vector<ChessField> GenerateBoard(int width, int height);
 		size_t PosToIndex(int x, int y) const;
 	};
 

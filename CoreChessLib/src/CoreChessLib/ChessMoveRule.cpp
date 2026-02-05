@@ -1,7 +1,7 @@
 #include <numeric>
 
 #include "ChessMoveRule.h"
-#include "Internal/ChessBoard.h"
+#include "ChessBoard.h"
 
 namespace CoreChess {
 
@@ -9,7 +9,7 @@ namespace CoreChess {
 		: m_direction(dir), m_maxSteps(maxSteps), m_slide(slide), m_targetType(targetType), m_pathMode(path), m_priorityAxis(axis) {
 	}
 
-	bool ChessMoveRule::IsValidMove(const Internal::ChessBoard& board, const Vector2& from, const Vector2& to) const {
+	bool ChessMoveRule::IsValidMove(const ChessBoard& board, const Vector2& from, const Vector2& to) const {
 		bool isWhite = board.IsPieceAtEqual(from, FieldType::WHITE);
 		Vector2 dir = (isWhite) ? to - from : from - to;
 
@@ -112,7 +112,7 @@ namespace CoreChess {
 		return m_maxSteps == 0 || k <= m_maxSteps;
 	}
 
-	bool ChessMoveRule::IsTargetValid(const Internal::ChessBoard& board, const Vector2& from, const Vector2& to) const {
+	bool ChessMoveRule::IsTargetValid(const ChessBoard& board, const Vector2& from, const Vector2& to) const {
 		ChessField target = board.GetFieldAt(to);
 		FieldType pieceType = board.GetFieldAt(from).GetFieldType();
 

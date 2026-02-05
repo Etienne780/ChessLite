@@ -26,6 +26,8 @@ namespace CoreChess {
 		ChessContext m_gameContext;
 		ChessGameState m_gameState = ChessGameState::IDLE;
 
+		ChessBoard m_board;
+
 		bool CheckContext(const std::string& funcName) const;
 	};
 

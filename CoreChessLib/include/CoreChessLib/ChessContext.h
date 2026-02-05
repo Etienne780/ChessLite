@@ -2,7 +2,7 @@
 #include <vector>
 
 #include "ChessTypes.h"
-#include "Internal/ChessBoard.h"
+#include "ChessBoard.h"
 
 namespace CoreChess {
 
@@ -18,7 +18,11 @@ namespace CoreChess {
 		ChessContext& ReservePiece(size_t amount);
 		ChessContext& AddPiece(ChessPieceID pieceID);
 
+		ChessContext& SetBoardSize(int width, int height);
+
 	private:
+		int m_boardWidth = 0;
+		int m_boardHeight = 0;
 		std::vector<ChessPieceID> m_pieces;
 	};
 

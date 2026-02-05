@@ -2,12 +2,9 @@
 #include <CoreLib/Math/Vector2.h>
 #include "ChessTypes.h"
 
-namespace CoreChess::Internal {
-	class ChessBoard;
-}
-
 namespace CoreChess {
 
+	class ChessBoard;
 	class ChessMoveRule {
 	public:
 		ChessMoveRule(const Vector2& dir, uint16_t maxSteps, bool slide, TargetType targetType, PathMode path = PathMode::LINEAR, PriorityAxis axis = PriorityAxis::X);
@@ -30,7 +27,7 @@ namespace CoreChess {
 		* @param to Target position of the move.
 		* @return true if the move is valid according to this rule, false otherwise.
 		*/
-		bool IsValidMove(const Internal::ChessBoard& board, const Vector2& from, const Vector2& to) const;
+		bool IsValidMove(const ChessBoard& board, const Vector2& from, const Vector2& to) const;
 
 		const Vector2& GetDirection() const;
 		uint16_t GetMaxSteps() const;
@@ -91,7 +88,7 @@ namespace CoreChess {
 		PriorityAxis m_priorityAxis = PriorityAxis::X;
 
 		bool IsMovePatternValid(const Vector2& dir) const;
-		bool IsTargetValid(const Internal::ChessBoard& board, const Vector2& from, const Vector2& to) const;
+		bool IsTargetValid(const ChessBoard& board, const Vector2& from, const Vector2& to) const;
 		std::vector<Vector2> ComputePath(const Vector2& from, const Vector2& to) const;
 
 		std::vector<Vector2> ComputeLinearPath(const Vector2& from, const Vector2& to) const;

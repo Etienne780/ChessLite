@@ -12,4 +12,10 @@ namespace CoreChess {
 		return *this;
 	}
 
+	ChessContext& ChessContext::SetBoardSize(int width, int height) {
+		m_boardWidth = width;
+		m_boardHeight = height;
+		return *this;
+	}
+
 }
