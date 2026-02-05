@@ -17,6 +17,15 @@ namespace CoreChess {
 		return m_regPieces.back().get();
 	}
 
+	const ChessPiece* ChessPieceRegistry::GetChessPiece(ChessPieceID id) const {
+		for (const auto& piece : m_regPieces) {
+			if (piece->GetID() == id) {
+				return piece.get();
+			}
+		}
+		return nullptr;
+	}
+
 	std::vector<ChessPiece*> ChessPieceRegistry::GetAllPieces() const {
 		std::vector<ChessPiece*> result;
 		result.reserve(m_regPieces.size());
@@ -27,9 +36,6 @@ namespace CoreChess {
 		}
 
 		return result;
-	}
-
-	ChessPieceRegistry::ChessPieceRegistry() {
 	}
 
 }
