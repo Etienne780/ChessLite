@@ -2,7 +2,7 @@
 #include <vector>
 #include <CoreLib/Math/Vector2.h>
 
-#include "Internal/ChessRule.h"
+#include "ChessMoveRule.h"
 
 
 namespace CoreChess::Internal {
@@ -11,11 +11,19 @@ namespace CoreChess::Internal {
 
 	class ChessPieceRuleSet {
 	public:
+		ChessPieceRuleSet() = default;
+		~ChessPieceRuleSet() = default;
+
+		void AddRule(const ChessMoveRule& rule);
+		void AddRule(const Vector2& direction, uint16_t maxSteps, bool slide, TargetType targetType, PathMode pathMode, PriorityAxis priorityAxis);
+		void ClearRules();
+
 		bool IsValidMove(const Internal::ChessBoard& board, const Vector2& from, const Vector2& to) const;
 
-	private:
+		const std::vector<ChessMoveRule>& GetRules() const;
 
-		std::vector<ChessRule> m_rules;
+	private:
+		std::vector<ChessMoveRule> m_rules;
 	};
 
 }

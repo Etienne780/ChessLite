@@ -10,13 +10,17 @@ namespace CoreChess {
 	
 	class ChessPieceRegistry {
 	public:
-		static ChessPieceRegistry& Instance();
+		ChessPieceRegistry(const ChessPieceRegistry&) = delete;
+		ChessPieceRegistry& operator=(const ChessPieceRegistry&) = delete;
+
+		static ChessPieceRegistry& GetInstance();
 
 		ChessPiece* AddChessPiece(ChessPieceID& outID, const std::string& name);
 
+		std::vector<ChessPiece*> GetAllPieces() const;
 	private:
 		CoreChessIDManager m_idManager;
-		std::vector<std::unique_ptr<ChessPiece>> m_pieces;
+		std::vector<std::unique_ptr<ChessPiece>> m_regPieces;
 
 		ChessPieceRegistry();
 	};

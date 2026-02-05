@@ -2,36 +2,6 @@
 
 namespace CoreChess::Internal {
 
-	#pragma region Field
-
-	Field::Field(ChessPieceID piece, FieldType type)
-		: m_piece(piece), m_type(type) {
-	}
-
-	bool Field::IsPieceNone() const {
-		return m_type == FieldType::NONE;
-	}
-
-	bool Field::IsPieceWhite() const {
-		return m_type == FieldType::WHITE;
-	}
-
-	bool Field::IsPieceBlack() const {
-		return m_type == FieldType::BLACK;
-	}
-
-	ChessPieceID Field::GetPieceID() const {
-		return m_piece;
-	}
-
-	FieldType Field::GetFieldType() const {
-		return m_type;
-	}
-
-	#pragma endregion
-
-	#pragma region ChessBoard
-
 	ChessBoard::ChessBoard(int x, int y) 
 		: m_boardSizeX(x), m_boardSizeY(y) {
 
@@ -48,15 +18,25 @@ namespace CoreChess::Internal {
 
 	bool ChessBoard::HasPieceAt(int x, int y) const {
 		size_t index = PosToIndex(x, y);
-		const Field& f = m_board.at(index);
+		const ChessField& f = m_board.at(index);
 		return !f.IsPieceNone();
 	}
 
-	Field ChessBoard::GetFieldAt(const Vector2& pos) const {
+	bool ChessBoard::IsPieceAtEqual(const Vector2& pos, FieldType type) const {
+		return IsPieceAtEqual(static_cast<int>(pos.x), static_cast<int>(pos.y), type);
+	}
+
+	bool ChessBoard::IsPieceAtEqual(int x, int y, FieldType type) const {
+		size_t index = PosToIndex(x, y);
+		const ChessField& f = m_board.at(index);
+		return f.GetFieldType() == type;
+	}
+
+	ChessField ChessBoard::GetFieldAt(const Vector2& pos) const {
 		return GetFieldAt(static_cast<int>(pos.x), static_cast<int>(pos.y));
 	}
 
-	Field ChessBoard::GetFieldAt(int x, int y) const {
+	ChessField ChessBoard::GetFieldAt(int x, int y) const {
 		size_t index = PosToIndex(x, y);
 		return m_board.at(index);
 	}
@@ -64,7 +44,5 @@ namespace CoreChess::Internal {
 	size_t ChessBoard::PosToIndex(int x, int y) const {
 		return static_cast<size_t>(x + (m_boardSizeX * y));
 	}
-
-	#pragma endregion
 
 }

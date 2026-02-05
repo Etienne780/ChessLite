@@ -1,9 +1,10 @@
 #include "ChessGame.h"
+#include "ChessContext.h"
 
 namespace CoreChess {
 
-	ChessGame::ChessGame() {
-		
+	ChessGame::ChessGame(const ChessContext& ctx) 
+		: m_gameContext(ctx), m_isContextSet(true) {
 	}
 
 	void ChessGame::StartGame() {
@@ -20,6 +21,11 @@ namespace CoreChess {
 
 	void ChessGame::MovePiece(int pieceIndex, const Vector2& to) {
 		
+	}
+
+	void ChessGame::SetGameContext(const ChessContext& ctx) {
+		m_isContextSet = true;
+		m_gameContext = ctx;
 	}
 
 }

@@ -1,12 +1,25 @@
 #include "Layers/MainMenuLayer.h"
 #include "App.h"
 
-#include <CoreChessLib/ChessGame.h>
+#include <CoreChessLib/CoreChess.h>
 
 namespace Layers {
 
 	void MainMenuLayer::OnStart(AppContext* ctx) {
-		CoreChess::ChessGame p;
+		using namespace CoreChess;
+		using namespace Internal;
+
+		// setup Chess piece
+		auto& reg = ChessPieceRegistry::GetInstance();
+		
+		ChessPieceID pawnID;
+		auto* pawnPtr = reg.AddChessPiece(pawnID, "pawn");
+		pawnPtr->AddMoveRule(0, 1);
+
+		ChessContext chessCTX;
+		chessCTX.AddPiece(pawnID);
+
+		ChessGame p;
 	}
 
 	void MainMenuLayer::OnUpdate(AppContext* ctx) {

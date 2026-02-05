@@ -13,7 +13,10 @@ namespace CoreChess {
 	*/
 	class ChessContext {
 	public:
-		
+		ChessContext() = default;
+
+		ChessContext& ReservePiece(size_t amount);
+		ChessContext& AddPiece(ChessPieceID pieceID);
 
 	private:
 		std::vector<ChessPieceID> m_pieces;

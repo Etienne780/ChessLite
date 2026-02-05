@@ -3,7 +3,7 @@
 
 namespace CoreChess {
 
-	ChessPieceRegistry& ChessPieceRegistry::Instance() {
+	ChessPieceRegistry& ChessPieceRegistry::GetInstance() {
 		static ChessPieceRegistry reg;
 		return reg;
 	}
@@ -13,8 +13,20 @@ namespace CoreChess {
 		ChessPiece piece(id, name);
 		auto ptr = std::make_unique<ChessPiece>(piece);
 
-		m_pieces.emplace_back(std::move(ptr));
-		return m_pieces.back().get();
+		m_regPieces.emplace_back(std::move(ptr));
+		return m_regPieces.back().get();
+	}
+
+	std::vector<ChessPiece*> ChessPieceRegistry::GetAllPieces() const {
+		std::vector<ChessPiece*> result;
+		result.reserve(m_regPieces.size());
+
+		for (const auto& piece : m_regPieces) {
+			if(piece.get())
+				result.push_back(piece.get());
+		}
+
+		return result;
 	}
 
 	ChessPieceRegistry::ChessPieceRegistry() {
