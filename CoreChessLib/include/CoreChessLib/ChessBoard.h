@@ -12,6 +12,11 @@ namespace CoreChess {
 		ChessBoard(int w, int h);
 		~ChessBoard() = default;
 
+		void MovePieceFromTo(const Vector2& from, const Vector2& to);
+		void MovePieceFromTo(int fromX, int fromY, int toX, int toY);
+		void SetFieldAt(const Vector2& at, FieldType type, ChessPieceID id = ChessPieceID(CORE_CHESS_INVALID_ID));
+		void SetFieldAt(int atX, int atY, FieldType type, ChessPieceID id = ChessPieceID(CORE_CHESS_INVALID_ID));
+
 		bool HasPieceAt(const Vector2& pos) const;
 		bool HasPieceAt(int x, int y) const;
 

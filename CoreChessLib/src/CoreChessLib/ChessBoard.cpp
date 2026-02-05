@@ -7,6 +7,29 @@ namespace CoreChess {
 		m_board = GenerateBoard(w, h);
 	}
 
+	void ChessBoard::MovePieceFromTo(const Vector2& from, const Vector2& to) {
+		return MovePieceFromTo(static_cast<int>(from.x), static_cast<int>(from.y),
+			static_cast<int>(to.x), static_cast<int>(to.y));
+	}
+
+	void ChessBoard::MovePieceFromTo(int fromX, int fromY, int toX, int toY) {
+		size_t fromIndex = PosToIndex(fromX, fromY);
+		ChessField& f = m_board.at(fromIndex);
+		
+		SetFieldAt(toX, toY, f.GetFieldType(), f.GetPieceID());
+		SetFieldAt(fromX, fromY, FieldType::NONE);
+	}
+
+	void ChessBoard::SetFieldAt(const Vector2& at, FieldType type, ChessPieceID id) {
+		return SetFieldAt(static_cast<int>(at.x), static_cast<int>(at.y), type, id);
+	}
+
+	void ChessBoard::SetFieldAt(int atX, int atY, FieldType type, ChessPieceID id) {
+		size_t index = PosToIndex(atX, atY);
+		ChessField& f = m_board.at(index);
+		f = ChessField(id, type);
+	}
+
 	bool ChessBoard::HasPieceAt(const Vector2& pos) const {
 		return HasPieceAt(static_cast<int>(pos.x), static_cast<int>(pos.y));
 	}
