@@ -4,6 +4,7 @@
 
 #include "ChessTypes.h"
 #include "ChessContext.h"
+#include "ChessBoard.h"
 
 namespace CoreChess {
 

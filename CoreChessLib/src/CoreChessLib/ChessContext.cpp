@@ -1,6 +1,15 @@
+#include <CoreLib/Log.h>
+
 #include "ChessContext.h"
+#include "ChessBoard.h"
 
 namespace CoreChess {
+
+	ChessBoard ChessContext::GenerateBoard() {
+		ChessBoard board{ m_boardWidth, m_boardHeight };
+		ApplyBoardCommands(board);
+		return board;
+	}
 
 	ChessContext& ChessContext::ReservePiece(size_t amount) {
 		m_pieces.reserve(amount);
@@ -8,14 +17,123 @@ namespace CoreChess {
 	}
 
 	ChessContext& ChessContext::AddPiece(ChessPieceID pieceID) {
-		m_pieces.push_back(pieceID);
+		AddUniquePiece(pieceID);
 		return *this;
+	}
+
+	ChessContext& ChessContext::ClearBoardSetupCommands() {
+		m_boardCmds.clear();
+	}
+
+	ChessContext& ChessContext::BoardCmdFillRow(int rowIndex, ChessPieceID pieceID) {
+		BoardCommand cmd;
+		
+		cmd.rowIndex = rowIndex;
+		cmd.fill = true;
+		cmd.pieces.push_back(pieceID);
+
+		m_boardCmds.push_back(cmd);
+	}
+
+	ChessContext& ChessContext::BoardCmdSetPiece(int rowIndex, int columnIndex, ChessPieceID pieceID, bool startRight) {
+		BoardCommand cmd;
+		
+		cmd.rowIndex = rowIndex;
+		cmd.columnIndex = columnIndex;
+		cmd.startRight = startRight;
+		cmd.pieces.push_back(pieceID);
+
+		m_boardCmds.push_back(cmd);
+	}
+
+	ChessContext& ChessContext::BoardCmdSetRow(int rowIndex, std::vector<ChessPieceID> row, bool startRight) {
+		BoardCommand cmd;
+		
+		cmd.rowIndex = rowIndex;
+		cmd.startRight = startRight;
+		cmd.pieces = row;
+
+		m_boardCmds.push_back(cmd);
 	}
 
 	ChessContext& ChessContext::SetBoardSize(int width, int height) {
 		m_boardWidth = width;
 		m_boardHeight = height;
 		return *this;
+	}
+
+	void ChessContext::AddUniquePiece(ChessPieceID pieceID) {
+		for (auto& p : m_pieces) {
+			if (p == pieceID)
+				return;
+		}
+		m_pieces.push_back(pieceID);
+	}
+
+	void ChessContext::ApplyBoardCommands(ChessBoard& outBoard) {
+		auto applyCmd = [&](bool isWhite) -> void {
+			for (const auto& cmd : m_boardCmds) {
+				if (cmd.pieces.empty())
+					continue;
+
+				if (cmd.rowIndex >= m_boardHeight || cmd.rowIndex < 0)
+					continue;
+				if (m_boardHeight - cmd.rowIndex < 0)
+					continue;
+
+				if (cmd.fill) {
+					ApplyFillBoardRow(cmd, isWhite, outBoard);
+					continue;
+				}
+
+				if (cmd.columnIndex >= m_boardWidth || cmd.columnIndex < 0)
+					continue;
+				if (m_boardWidth - cmd.columnIndex < 0)
+					continue;
+
+				if (cmd.pieces.size() > 1) {
+					ApplyBoardRow(cmd, isWhite, outBoard);
+				}
+				else {
+					ApplySinglePiece(cmd, isWhite, outBoard);
+				}
+			}
+		};
+
+		applyCmd(true);
+		applyCmd(false);
+	}
+
+	void ChessContext::ApplyFillBoardRow(const BoardCommand& cmd, bool isWhite, ChessBoard& outBoard) const {
+		for (int i = 0; i < m_boardWidth; i++) {
+			int rowIndex = (isWhite) ? cmd.rowIndex : m_boardHeight - cmd.rowIndex;
+			ChessPieceID piece = cmd.pieces[0];
+			FieldType type = (isWhite) ? FieldType::WHITE : FieldType::BLACK;
+
+			outBoard.SetFieldAt(rowIndex, i, type, piece);
+		}
+	}
+
+	void ChessContext::ApplyBoardRow(const BoardCommand& cmd, bool isWhite, ChessBoard& outBoard) const {
+		for (size_t i = 0; i < cmd.pieces.size(); i++) {
+			int rowIndex = (isWhite) ? cmd.rowIndex : m_boardHeight - cmd.rowIndex;
+			int columnIndex = (cmd.startRight) ? m_boardWidth - i : i;
+
+			ChessPieceID piece = cmd.pieces[i];
+			FieldType type = (isWhite) ? FieldType::WHITE : FieldType::BLACK;
+
+			outBoard.SetFieldAt(rowIndex, columnIndex, type, piece);
+		}
+	}
+
+	void ChessContext::ApplySinglePiece(const BoardCommand& cmd, bool isWhite, ChessBoard& outBoard) const {
+		int rowIndex = (isWhite) ? cmd.rowIndex : m_boardHeight - cmd.rowIndex;
+		int columnIndex = (cmd.startRight) ? m_boardWidth - cmd.columnIndex: cmd.columnIndex;
+
+		ChessPieceID piece = cmd.pieces[0];
+		FieldType type = (isWhite) ? FieldType::WHITE : FieldType::BLACK;
+
+		outBoard.SetFieldAt(rowIndex, columnIndex, type, piece);
 	}
 
 }

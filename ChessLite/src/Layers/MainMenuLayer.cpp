@@ -19,7 +19,7 @@ namespace Layers {
 		ChessContext chessCTX;
 		chessCTX.AddPiece(pawnID);
 
-		ChessGame p;
+		ChessGame p{ chessCTX };
 	}
 
 	void MainMenuLayer::OnUpdate(AppContext* ctx) {
