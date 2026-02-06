@@ -8,9 +8,9 @@ namespace CoreChess {
 		return reg;
 	}
 
-	ChessPiece* ChessPieceRegistry::AddChessPiece(ChessPieceID& outID, const std::string& name) {
+	ChessPiece* ChessPieceRegistry::AddChessPiece(ChessPieceID& outID, const std::string& name, int materialValue) {
 		ChessPieceID id(m_idManager.GetNewUniqueIdentifier());
-		ChessPiece piece(id, name);
+		ChessPiece piece(id, name, materialValue);
 		auto ptr = std::make_unique<ChessPiece>(piece);
 
 		outID = id;

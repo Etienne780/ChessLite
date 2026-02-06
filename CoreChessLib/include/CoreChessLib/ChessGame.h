@@ -32,6 +32,8 @@ namespace CoreChess {
 		size_t GetSelectedPieceIndex() const;
 		std::vector<Vector2> GetPossibleMovePosOf(size_t index) const;
 		std::vector<size_t> GetPossibleMoveIndicesOf(size_t index) const;
+		int GetWhiteMaterialValue() const;
+		int GetBlackMaterialValue() const;
 
 		void SetGameContext(const ChessContext& ctx);
 
@@ -46,6 +48,9 @@ namespace CoreChess {
 		bool m_isPieceSelected = false;
 		Vector2 m_selectedPiecePos = Vector2::zero;
 
+		int m_whiteMaterialValue = 0;
+		int m_blackMaterialValue = 0;
+
 		void InternalSelectPiece(const Vector2& piecePos);
 		void InternalDeselectPiece();
 
@@ -59,6 +64,8 @@ namespace CoreChess {
 		*/
 		bool CheckIfPieceCanPlay(FieldType type) const;
 		bool CheckContext(const std::string& funcName) const;
+
+		void PieceCaptured(FieldType capturedColor, ChessPieceID pieceID);
 
 		bool IsInBoardBounds(const Vector2& pos) const;
 		bool IsInBoardBounds(size_t index) const;

@@ -107,6 +107,8 @@ namespace CoreChess {
 		*/
 		const std::vector<ChessMoveRule>& GetMoveRules() const;
 
+		int GetMaterialValue() const;
+
 		/**
 		* @brief Configures all movement-related properties of the chess piece at once.
 		*
@@ -164,6 +166,7 @@ namespace CoreChess {
 
 		ChessPieceID m_id;
 		std::string m_name;
+		int m_materialValue = 0;
 
 		uint16_t m_maxSteps = 1;
 		bool m_sliding = false;
@@ -173,7 +176,7 @@ namespace CoreChess {
 
 		Internal::ChessPieceRuleSet m_moveRules;
 
-		ChessPiece(ChessPieceID id, const std::string& name);
+		ChessPiece(ChessPieceID id, const std::string& name, int materialValue);
 	};
 
 }

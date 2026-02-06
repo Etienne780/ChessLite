@@ -124,6 +124,7 @@ namespace CoreChess {
 
 	ChessContext& ChessContext::SetWinCondition(const ChessWinConditionFunc& func) {
 		m_winCondition = func;
+		return *this;
 	}
 
 	int ChessContext::GetBoardWidth() const {

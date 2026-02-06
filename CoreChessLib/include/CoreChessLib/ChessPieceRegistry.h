@@ -38,9 +38,10 @@ namespace CoreChess {
 		*
 		* @param outID Reference that will receive the generated piece ID.
 		* @param name  Human-readable name of the chess piece.
+		* @param materialValue value of the figure (default = 0)
 		* @return Pointer to the newly created ChessPiece. Should not be stored
 		*/
-		ChessPiece* AddChessPiece(ChessPieceID& outID, const std::string& name);
+		ChessPiece* AddChessPiece(ChessPieceID& outID, const std::string& name, int materialValue = 0);
 
 		/**
 		* @brief Returns a registered chess piece by its ID.

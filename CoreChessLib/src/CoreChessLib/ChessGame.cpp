@@ -26,6 +26,8 @@ namespace CoreChess {
 		m_isWhiteTurn = true;
 		m_board = m_gameContext.GenerateBoard();
 		m_winCondition = m_gameContext.GetWinCondition();
+		m_whiteMaterialValue = 0;
+		m_blackMaterialValue = 0;
 	}
 
 	void ChessGame::EndGame() {
@@ -80,16 +82,22 @@ namespace CoreChess {
 			return false;
 
 		const ChessPieceRegistry& reg = ChessPieceRegistry::GetInstance();
-		const ChessField field = m_board.GetFieldAt(m_selectedPiecePos);
-		const ChessPiece* piece = reg.GetChessPiece(field.GetPieceID());
+		const ChessField fromField = m_board.GetFieldAt(m_selectedPiecePos);
+		const ChessPiece* piece = reg.GetChessPiece(fromField.GetPieceID());
 
 		if (!piece) {
-			Log::Error("CoreChess::ChessGame::MovePiece: Faild to get piece, selected piece was invalid (PieceID: {})!", field.GetPieceID());
+			Log::Error("CoreChess::ChessGame::MovePiece: Faild to get piece, selected piece was invalid (PieceID: {})!", fromField.GetPieceID());
 			return false;
 		}
 
 		if (!piece->IsValidMove(m_board, m_selectedPiecePos, to))
 			return false;
+
+		const ChessField toField = m_board.GetFieldAt(to);
+		if (!toField.IsPieceNone()) {
+			// capture
+			PieceCaptured(toField.GetFieldType(), toField.GetPieceID());
+		}
 
 		m_board.MovePieceFromTo(m_selectedPiecePos, to);
 
@@ -168,6 +176,14 @@ namespace CoreChess {
 		return result;
 	}
 
+	int ChessGame::GetWhiteMaterialValue() const {
+		return m_whiteMaterialValue;
+	}
+
+	int ChessGame::GetBlackMaterialValue() const {
+		return m_blackMaterialValue;
+	}
+
 	void ChessGame::SetGameContext(const ChessContext& ctx) {
 		if (m_gameState == ChessGameState::PLAYING) {
 			Log::Error("CoreChess::ChessGame::SetGameContext: Failed to set context, game is running!");
@@ -208,6 +224,26 @@ namespace CoreChess {
 			return false;
 		}
 		return true;
+	}
+
+	void ChessGame::PieceCaptured(FieldType capturedColor, ChessPieceID pieceID) {
+		int* materialValue = nullptr;
+
+		if (capturedColor == FieldType::WHITE)
+			materialValue = &m_blackMaterialValue;
+		else if (capturedColor == FieldType::BLACK)
+			materialValue = &m_whiteMaterialValue;
+
+		if (!materialValue)
+			return;
+
+		const auto& reg = ChessPieceRegistry::GetInstance();
+		const ChessPiece* piece = reg.GetChessPiece(pieceID);
+
+		if (!piece)
+			return;
+
+		*materialValue += piece->GetMaterialValue();
 	}
 
 	bool ChessGame::IsInBoardBounds(const Vector2& pos) const {

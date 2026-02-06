@@ -57,6 +57,10 @@ namespace CoreChess {
 		return m_moveRules.GetRules();
 	}
 
+	int ChessPiece::GetMaterialValue() const {
+		return m_materialValue;
+	}
+
 	void ChessPiece::SetMoveProperties(uint16_t maxSteps, bool sliding, TargetType targetType,
 		PathMode pathMode, PriorityAxis priorityAxis) 
 	{
@@ -87,8 +91,8 @@ namespace CoreChess {
 		m_priorityAxis = axis;
 	}
 
-	ChessPiece::ChessPiece(ChessPieceID id, const std::string& name)
-		: m_id(id), m_name(name) {
+	ChessPiece::ChessPiece(ChessPieceID id, const std::string& name, int materialValue)
+		: m_id(id), m_name(name), m_materialValue(materialValue) {
 	}
 
 }

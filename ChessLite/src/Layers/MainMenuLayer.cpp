@@ -12,18 +12,18 @@ namespace Layers {
 		using namespace CoreChess;
 		using namespace Internal;
 
-		// setup Chess piece
 		auto& reg = ChessPieceRegistry::GetInstance();
-		
+
+		// --- Pawn Setup ---
 		ChessPieceID pawnID;
-		auto* pawnPtr = reg.AddChessPiece(pawnID, "pawn");
-		pawnPtr->SetMoveProperties(1, false, TargetType::FREE);
-		pawnPtr->AddMoveRule(0, 1);
+		auto* pawn = reg.AddChessPiece(pawnID, "pawn", 1);
+		pawn->SetMoveProperties(1, false, TargetType::FREE);
+		pawn->AddMoveRule(0, 1); // forward
+		pawn->SetTargetType(TargetType::OPPONENT);
+		pawn->AddMoveRule(1, 1); // capture
+		pawn->AddMoveRule(-1, 1);
 
-		pawnPtr->SetTargetType(TargetType::OPPONENT);
-		pawnPtr->AddMoveRule(1, 1);
-		pawnPtr->AddMoveRule(-1, 1);
-
+		// --- Chess Board Setup ---
 		ChessContext chessCTX;
 		chessCTX.SetBoardSize(3, 3);
 		chessCTX.BoardCmdFillRow(0, pawnID);
@@ -31,6 +31,7 @@ namespace Layers {
 		game.SetGameContext(chessCTX);
 		game.StartGame();
 	}
+
 
 	static void AppendField(const CoreChess::ChessField& field, std::string& str) {
 		auto type = field.GetFieldType();
@@ -83,8 +84,10 @@ namespace Layers {
 				if (pos == game.GetSelectedPiecePos()) {
 					game.DeselectPiece();
 				}
+				else if(game.MovePiece(pos)){
+				}
 				else {
-					game.MovePiece(pos);
+					game.SelectPiece(pos);
 				}
 			}
 			else {
