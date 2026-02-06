@@ -72,6 +72,8 @@ namespace CoreChess {
 		*/
 		bool IsSliding() const;
 
+		bool IsCriticalTarget() const;
+
 		/**
 		* @brief Returns the unique identifier of this chess piece.
 		*/
@@ -127,11 +129,12 @@ namespace CoreChess {
 		*
 		* @param maxSteps      Maximum number of steps per move (0 = unlimited).
 		* @param sliding       Enables sliding movement if true.
+		* @param isCriticalTarget 
 		* @param targetType    Defines which target fields are allowed.
 		* @param pathMode      Defines how paths are evaluated when sliding.
 		* @param priorityAxis Axis priority for PathMode::AXIS_ORDER.
 		*/
-		void SetMoveProperties(uint16_t maxSteps, bool sliding, TargetType targetType, 
+		void SetMoveProperties(uint16_t maxSteps, bool sliding, bool isCriticalTarget, TargetType targetType,
 			PathMode pathMode = PathMode::LINEAR, PriorityAxis priorityAxis = PriorityAxis::X);
 
 		/*
@@ -148,6 +151,8 @@ namespace CoreChess {
 		* Non-sliding pieces (e.g. knight) can jump over other pieces.
 		*/
 		void SetSliding(bool value);
+
+		void SetCriticalTarget(bool value);
 
 		/*
 		* @brief Defines what kind of target field this move rule allows.
@@ -179,6 +184,7 @@ namespace CoreChess {
 
 		uint16_t m_maxSteps = 1;
 		bool m_sliding = false;
+		bool m_isCriticalTarget = false;
 		TargetType m_targetType = TargetType::ANY;
 		PathMode m_pathMode = PathMode::LINEAR;
 		PriorityAxis m_priorityAxis = PriorityAxis::X;

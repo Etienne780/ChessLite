@@ -16,16 +16,18 @@ namespace CoreChess {
 		void StartGame();
 		void EndGame();
 
-		bool IsPieceSelected() const;
-		bool IsWhiteTurn() const;
-		ChessWinResult IsGameEnd();
-
 		void SelectPiece(const Vector2& from);
 		void DeselectPiece();
 		bool MovePiece(const Vector2& to);
 
 		size_t ConverToBoardIndex(const Vector2& pos) const;
 		Vector2 ConverToBoardPosition(size_t index) const;
+
+		bool HasAnyLegalMove(FieldType playerColor) const;
+
+		bool IsPieceSelected() const;
+		bool IsWhiteTurn() const;
+		bool IsGameEnd(ChessWinResult& outResult) const;
 
 		const ChessBoard& GetBoard() const;
 		const Vector2& GetSelectedPiecePos() const;
@@ -41,9 +43,10 @@ namespace CoreChess {
 		bool m_isContextSet = false;
 		ChessContext m_gameContext;
 		ChessGameState m_gameState = ChessGameState::IDLE;
-		ChessWinConditionFunc m_winCondition;
+		ChessWinConditionFunc m_winCondition = nullptr;
+		ChessWinResult m_winResult = ChessWinResult::NONE;
 
-		ChessBoard m_board;
+		mutable ChessBoard m_board;
 		bool m_isWhiteTurn = true;
 		bool m_isPieceSelected = false;
 		Vector2 m_selectedPiecePos = Vector2::zero;
@@ -67,6 +70,8 @@ namespace CoreChess {
 
 		void PieceCaptured(FieldType capturedColor, ChessPieceID pieceID);
 
+		bool IsAnyCriticalPieceAttacked(const ChessBoard& board,FieldType color) const;
+		bool IsFieldAttacked(const ChessBoard& board, const Vector2& pos, FieldType enemyColor) const;
 		bool IsInBoardBounds(const Vector2& pos) const;
 		bool IsInBoardBounds(size_t index) const;
 	};

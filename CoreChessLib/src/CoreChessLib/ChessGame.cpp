@@ -26,6 +26,7 @@ namespace CoreChess {
 		m_isWhiteTurn = true;
 		m_board = m_gameContext.GenerateBoard();
 		m_winCondition = m_gameContext.GetWinCondition();
+		m_winResult = ChessWinResult::NONE;
 		m_whiteMaterialValue = 0;
 		m_blackMaterialValue = 0;
 	}
@@ -35,22 +36,6 @@ namespace CoreChess {
 			return;
 
 		SetGameState(ChessGameState::IDLE);
-	}
-
-	bool ChessGame::IsPieceSelected() const {
-		return m_isPieceSelected;
-	}
-
-	bool ChessGame::IsWhiteTurn() const {
-		return m_isWhiteTurn;
-	}
-
-	ChessWinResult ChessGame::IsGameEnd() {
-		if (m_winCondition)
-			return m_winCondition(*this);
-
-		Log::Error("CoreChess::ChessGame::IsGameEnd: Faild to check if the game ended, win condition is nullptr!");
-		return ChessWinResult::NONE;
 	}
 
 	void ChessGame::SelectPiece(const Vector2& from) {
@@ -73,6 +58,9 @@ namespace CoreChess {
 
 	bool ChessGame::MovePiece(const Vector2& to) {
 		if (!CheckContext("MovePiece"))
+			return false;
+
+		if (m_winResult != ChessWinResult::NONE)
 			return false;
 
 		if (!m_isPieceSelected)
@@ -101,6 +89,13 @@ namespace CoreChess {
 
 		m_board.MovePieceFromTo(m_selectedPiecePos, to);
 
+		if (m_winCondition) {
+			m_winResult = m_winCondition(*this);
+		}
+		else {
+			Log::Error("CoreChess::ChessGame::MovePiece: Faild to check if the game ended, win condition is nullptr!");
+		}
+
 		m_isWhiteTurn = !m_isWhiteTurn;
 		InternalDeselectPiece();
 		return true;
@@ -111,9 +106,59 @@ namespace CoreChess {
 	}
 
 	Vector2 ChessGame::ConverToBoardPosition(size_t index) const {
-		int x = static_cast<int>(index % m_board.GetWidth());
-		int y = static_cast<int>(index / m_board.GetWidth());
-		return Vector2{ static_cast<float>(x), static_cast<float>(y) };
+		return m_board.IndexToPos(index);
+	}
+
+	bool ChessGame::HasAnyLegalMove(FieldType playerColor) const {
+		if (playerColor == FieldType::NONE)
+			return true;
+
+		const auto& reg = ChessPieceRegistry::GetInstance();
+
+		for (size_t i = 0; i < m_board.GetNumberOfFields(); i++) {
+			const ChessField& field = m_board.GetFieldAt(i);
+
+			if (field.GetFieldType() != playerColor)
+				continue;
+
+			const ChessPiece* piece = reg.GetChessPiece(field.GetPieceID());
+			if (!piece)
+				continue;
+
+			Vector2 from = ConverToBoardPosition(i);
+
+			for (size_t j = 0; j < m_board.GetNumberOfFields(); j++) {
+				Vector2 to = m_board.IndexToPos(j);
+				const ChessField& otherField = m_board.GetFieldAt(j);
+
+				if (!piece->IsValidMove(m_board, from, to))
+					continue;
+
+				m_board.MovePieceFromTo(from, to);
+
+				bool legal = !IsAnyCriticalPieceAttacked(m_board, playerColor);
+				m_board.SetFieldAt(from, field.GetFieldType(), field.GetPieceID());
+				m_board.SetFieldAt(to, otherField.GetFieldType(), otherField.GetPieceID());
+
+				if (legal)
+					return true;
+			}
+		}
+
+		return false;
+	}
+
+	bool ChessGame::IsPieceSelected() const {
+		return m_isPieceSelected;
+	}
+
+	bool ChessGame::IsWhiteTurn() const {
+		return m_isWhiteTurn;
+	}
+
+	bool ChessGame::IsGameEnd(ChessWinResult& outResult) const {
+		outResult = m_winResult;
+		return m_winResult != ChessWinResult::NONE;
 	}
 
 	const ChessBoard& ChessGame::GetBoard() const {
@@ -244,6 +289,56 @@ namespace CoreChess {
 			return;
 
 		*materialValue += piece->GetMaterialValue();
+	}
+
+	bool ChessGame::IsAnyCriticalPieceAttacked(const ChessBoard& board, FieldType color) const {
+		FieldType enemyColor = (color == FieldType::WHITE)
+			? FieldType::BLACK
+			: FieldType::WHITE;
+
+		const auto& reg = ChessPieceRegistry::GetInstance();
+
+		for (size_t i = 0; i < board.GetNumberOfFields(); i++) {
+			ChessField field = board.GetFieldAt(i);
+
+			if (field.GetFieldType() != color)
+				continue;
+
+			const ChessPiece* piece = reg.GetChessPiece(field.GetPieceID());
+
+			if (!piece || !piece->IsCriticalTarget())
+				continue;
+
+			Vector2 pos = ConverToBoardPosition(i);
+
+			if (IsFieldAttacked(board, pos, enemyColor))
+				return true;
+		}
+
+		return false;
+	}
+
+	bool ChessGame::IsFieldAttacked(const ChessBoard& board, const Vector2& pos, FieldType enemyColor) const {
+		const auto& reg = ChessPieceRegistry::GetInstance();
+		
+		for (size_t i = 0; i < board.GetNumberOfFields(); i++) {
+			ChessField field = board.GetFieldAt(i);
+			
+			if (field.GetFieldType() != enemyColor)
+				continue;
+
+			const ChessPiece* piece = reg.GetChessPiece(field.GetPieceID());
+
+			if (!piece)
+				continue;
+
+			Vector2 enemyPos = ConverToBoardPosition(i);
+
+			if (piece->IsValidMove(board, enemyPos, pos))
+				return true;
+		}
+
+		return false;
 	}
 
 	bool ChessGame::IsInBoardBounds(const Vector2& pos) const {

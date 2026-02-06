@@ -29,6 +29,10 @@ namespace CoreChess {
 		return m_sliding;
 	}
 
+	bool ChessPiece::IsCriticalTarget() const {
+		return m_isCriticalTarget;
+	}
+
 	ChessPieceID ChessPiece::GetID() const {
 		return m_id;
 	}
@@ -61,11 +65,12 @@ namespace CoreChess {
 		return m_materialValue;
 	}
 
-	void ChessPiece::SetMoveProperties(uint16_t maxSteps, bool sliding, TargetType targetType,
+	void ChessPiece::SetMoveProperties(uint16_t maxSteps, bool sliding, bool isCriticalTarget, TargetType targetType,
 		PathMode pathMode, PriorityAxis priorityAxis) 
 	{
 		SetMaxSteps(maxSteps);
 		SetSliding(sliding);
+		SetCriticalTarget(isCriticalTarget);
 		SetTargetType(targetType);
 		SetPathMode(pathMode);
 		SetPriorityAxis(priorityAxis);
@@ -77,6 +82,10 @@ namespace CoreChess {
 
 	void ChessPiece::SetSliding(bool value) {
 		m_sliding = value;
+	}
+
+	void ChessPiece::SetCriticalTarget(bool value) {
+		m_isCriticalTarget = value;
 	}
 
 	void ChessPiece::SetTargetType(TargetType type) {

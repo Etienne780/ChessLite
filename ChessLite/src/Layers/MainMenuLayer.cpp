@@ -7,17 +7,19 @@ namespace Layers {
 
 	static CoreChess::ChessGame game;
 	static Vector2 pos = Vector2::zero;
+	static bool gameEnded = false;
+	static CoreChess::ChessWinResult gameResult = CoreChess::ChessWinResult::NONE;
+
 
 	void MainMenuLayer::OnStart(AppContext* ctx) {
 		using namespace CoreChess;
-		using namespace Internal;
 
 		auto& reg = ChessPieceRegistry::GetInstance();
 
 		// --- Pawn Setup ---
 		ChessPieceID pawnID;
 		auto* pawn = reg.AddChessPiece(pawnID, "pawn", 1);
-		pawn->SetMoveProperties(1, false, TargetType::FREE);
+		pawn->SetMoveProperties(1, false, false, TargetType::FREE);
 		pawn->AddMoveRule(0, 1); // forward
 		pawn->SetTargetType(TargetType::OPPONENT);
 		pawn->AddMoveRule(1, 1); // capture
@@ -27,6 +29,38 @@ namespace Layers {
 		ChessContext chessCTX;
 		chessCTX.SetBoardSize(3, 3);
 		chessCTX.BoardCmdFillRow(0, pawnID);
+		chessCTX.SetWinCondition([pawnID](const ChessGame& game) -> ChessWinResult {
+			if (game.IsWhiteTurn()) {
+				if (!game.HasAnyLegalMove(FieldType::BLACK)) {
+					return ChessWinResult::WHITE_WON;
+				}
+			}
+			else {
+				if (!game.HasAnyLegalMove(FieldType::WHITE)) {
+					return ChessWinResult::BLACK_WON;
+				}
+			}
+
+			const auto& board = game.GetBoard();
+			int w = board.GetWidth();
+			int h = board.GetHeight();
+
+			// White reaches top row
+			for (size_t x = 0; x < w; ++x) {
+				ChessField f = board.GetFieldAt(static_cast<int>(x), 0);
+				if (f.GetFieldType() == FieldType::WHITE)
+					return ChessWinResult::WHITE_WON;
+			}
+
+			// Black reaches bottom row
+			for (size_t x = 0; x < w; ++x) {
+				ChessField f = board.GetFieldAt(static_cast<int>(x), h - 1);
+				if (f.GetFieldType() == FieldType::BLACK)
+					return ChessWinResult::BLACK_WON;
+			}
+
+			return ChessWinResult::NONE;
+		});
 
 		game.SetGameContext(chessCTX);
 		game.StartGame();
@@ -122,6 +156,15 @@ namespace Layers {
 				strBoard += "\n";
 			}
 		}
+
+		CoreChess::ChessWinResult result;
+		if (!gameEnded) {
+			CoreChess::ChessWinResult result;
+			if (game.IsGameEnd(result)) {
+				gameEnded = true;
+				gameResult = result;
+			}
+		}
 	}
 
 	void MainMenuLayer::OnRender(AppContext* ctx) {
@@ -131,6 +174,39 @@ namespace Layers {
 		RE::SetTextSize(36);
 		RE::SetTextAlign(SDLCore::Align::CENTER);
 		RE::Text(strBoard, 400, 400);
+
+		// --- Material display ---
+		RE::SetTextSize(24);
+		RE::SetTextAlign(SDLCore::Align::START);
+
+		int blackPoints = game.GetBlackMaterialValue();
+		int whitePoints = game.GetWhiteMaterialValue();
+
+		RE::TextF(20, 20, "Black: {}", blackPoints);
+		RE::TextF(20, 50, "White: {}", whitePoints);
+
+		// --- Game result display ---
+		if (gameEnded) {
+			RE::SetTextSize(40);
+			RE::SetTextAlign(SDLCore::Align::CENTER);
+
+			switch (gameResult) {
+			case CoreChess::ChessWinResult::WHITE_WON:
+				RE::Text("WHITE WINS", 400, 100);
+				break;
+
+			case CoreChess::ChessWinResult::BLACK_WON:
+				RE::Text("BLACK WINS", 400, 100);
+				break;
+
+			case CoreChess::ChessWinResult::DRAW:
+				RE::Text("DRAW", 400, 100);
+				break;
+
+			default:
+				break;
+			}
+		}
 	}
 
 	void MainMenuLayer::OnQuit(AppContext* ctx) {
