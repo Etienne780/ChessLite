@@ -13,6 +13,8 @@ App* App::GetInstance(){
 }
 
 void App::OnStart() {
+    SetFPSCap(10);
+
     auto* win = CreateWindow(&m_winID, "ChessLite", 800, 700);
     win->SetWindowMinSize(800, 700);
 
