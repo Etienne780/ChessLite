@@ -16,9 +16,22 @@ namespace CoreChess {
 		void StartGame();
 		void EndGame();
 
+		bool IsPieceSelected() const;
+		bool IsWhiteTurn() const;
 		bool IsGameEnd();
 
-		void MovePiece(int pieceIndex, const Vector2& to);
+		void SelectPiece(const Vector2& from);
+		void DeselectPiece();
+		bool MovePiece(const Vector2& to);
+
+		size_t ConverToBoardIndex(const Vector2& pos) const;
+		Vector2 ConverToBoardPosition(size_t index) const;
+
+		const ChessBoard& GetBoard() const;
+		const Vector2& GetSelectedPiecePos() const;
+		size_t GetSelectedPieceIndex() const;
+		std::vector<Vector2> GetPossibleMovePosOf(size_t index) const;
+		std::vector<size_t> GetPossibleMoveIndicesOf(size_t index) const;
 
 		void SetGameContext(const ChessContext& ctx);
 
@@ -28,8 +41,26 @@ namespace CoreChess {
 		ChessGameState m_gameState = ChessGameState::IDLE;
 
 		ChessBoard m_board;
+		bool m_isWhiteTurn = true;
+		bool m_isPieceSelected = false;
+		Vector2 m_selectedPiecePos = Vector2::zero;
 
+		void InternalSelectPiece(const Vector2& piecePos);
+		void InternalDeselectPiece();
+
+		void SetGameState(ChessGameState state);
+
+		/**
+		* @brief Checks whether a piece can be played by the current player.
+		* 
+		* @param type FieldType of the piece on the board.
+		* @return True if the piece belongs to the current player.
+		*/
+		bool CheckIfPieceCanPlay(FieldType type) const;
 		bool CheckContext(const std::string& funcName) const;
+
+		bool IsInBoardBounds(const Vector2& pos) const;
+		bool IsInBoardBounds(size_t index) const;
 	};
 
 }
