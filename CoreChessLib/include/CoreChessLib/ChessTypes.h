@@ -1,4 +1,6 @@
 #pragma once
+#include <functional>
+
 #include <CoreLib/FormatUtils.h>
 #include <CoreLib/CoreID.h>
 #include <CoreLib/IDManager.h>
@@ -7,11 +9,20 @@ static constexpr uint16_t CORE_CHESS_INVALID_ID = INT16_MAX;
 
 namespace CoreChess {
 
+	class ChessGame;
+
 	enum class ChessGameState : uint16_t {
 		IDLE = 0,
 		PLAYING,
 		BLACK_WON,
 		WHITE_WON
+	};
+
+	enum class ChessWinResult {
+		NONE,          // < Game is still running
+		WHITE_WON,
+		BLACK_WON,
+		DRAW           // < Optional: stalemate, repetition, etc.
 	};
 
 	enum class FieldType : uint32_t {
@@ -35,6 +46,8 @@ namespace CoreChess {
 		X = 0, // Moves along the x-axis first, then along the y-axis
 		Y      // Moves along the y-axis first, then along the x-axis
 	};
+
+	using ChessWinConditionFunc = std::function<ChessWinResult(const ChessGame&)>;
 
 	using CoreChessIDManager = IDManager<uint32_t, CORE_CHESS_INVALID_ID>;
 

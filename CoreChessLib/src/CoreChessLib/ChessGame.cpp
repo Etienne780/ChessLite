@@ -25,6 +25,7 @@ namespace CoreChess {
 		InternalDeselectPiece();
 		m_isWhiteTurn = true;
 		m_board = m_gameContext.GenerateBoard();
+		m_winCondition = m_gameContext.GetWinCondition();
 	}
 
 	void ChessGame::EndGame() {
@@ -42,8 +43,12 @@ namespace CoreChess {
 		return m_isWhiteTurn;
 	}
 
-	bool ChessGame::IsGameEnd() {
-		return false;
+	ChessWinResult ChessGame::IsGameEnd() {
+		if (m_winCondition)
+			return m_winCondition(*this);
+
+		Log::Error("CoreChess::ChessGame::IsGameEnd: Faild to check if the game ended, win condition is nullptr!");
+		return ChessWinResult::NONE;
 	}
 
 	void ChessGame::SelectPiece(const Vector2& from) {

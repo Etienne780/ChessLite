@@ -122,6 +122,10 @@ namespace CoreChess {
 		return *this;
 	}
 
+	ChessContext& ChessContext::SetWinCondition(const ChessWinConditionFunc& func) {
+		m_winCondition = func;
+	}
+
 	int ChessContext::GetBoardWidth() const {
 		return m_boardWidth;
 	}
@@ -136,6 +140,10 @@ namespace CoreChess {
 
 	const std::vector<BoardCommand>& ChessContext::GetBoardCommands() const {
 		return m_boardCmds;
+	}
+
+	const ChessWinConditionFunc& ChessContext::GetWinCondition() const {
+		return m_winCondition;
 	}
 
 	void ChessContext::AddUniquePiece(ChessPieceID pieceID) {

@@ -132,6 +132,8 @@ namespace CoreChess {
 		*/
 		ChessContext& SetBoardSize(int width, int height);
 		
+		ChessContext& SetWinCondition(const ChessWinConditionFunc& func);
+
 		/**
 		* @brief Returns the width of the board for this context.
 		*
@@ -160,11 +162,14 @@ namespace CoreChess {
 		*/
 		const std::vector<BoardCommand>& GetBoardCommands() const;
 
+		const ChessWinConditionFunc& GetWinCondition() const;
+
 	private:
 		int m_boardWidth = 0;
 		int m_boardHeight = 0;
 		std::vector<ChessPieceID> m_pieces;
 		std::vector<BoardCommand> m_boardCmds;
+		ChessWinConditionFunc m_winCondition = nullptr;
 
 		/**
 		* @brief Adds a piece ID to the list if it does not already exist.

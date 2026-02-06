@@ -18,7 +18,7 @@ namespace CoreChess {
 
 		bool IsPieceSelected() const;
 		bool IsWhiteTurn() const;
-		bool IsGameEnd();
+		ChessWinResult IsGameEnd();
 
 		void SelectPiece(const Vector2& from);
 		void DeselectPiece();
@@ -39,6 +39,7 @@ namespace CoreChess {
 		bool m_isContextSet = false;
 		ChessContext m_gameContext;
 		ChessGameState m_gameState = ChessGameState::IDLE;
+		ChessWinConditionFunc m_winCondition;
 
 		ChessBoard m_board;
 		bool m_isWhiteTurn = true;
