@@ -178,7 +178,7 @@ namespace CoreChess {
 
 	void ChessContext::ApplyFillBoardRow(const BoardCommand& cmd, bool isWhite, ChessBoard& outBoard) const {
 		for (int i = 0; i < m_boardWidth; i++) {
-			int rowIndex = (isWhite) ? cmd.rowIndex : MirrorRow(cmd.rowIndex);
+			int rowIndex = (isWhite) ? MirrorRow(cmd.rowIndex) : cmd.rowIndex;
 			ChessPieceID piece = cmd.pieces[0];
 			FieldType type = (isWhite) ? FieldType::WHITE : FieldType::BLACK;
 
@@ -188,7 +188,7 @@ namespace CoreChess {
 
 	void ChessContext::ApplyBoardRow(const BoardCommand& cmd, bool isWhite, ChessBoard& outBoard) const {
 		for (size_t i = 0; i < cmd.pieces.size(); i++) {
-			int rowIndex = (isWhite) ? cmd.rowIndex : MirrorRow(cmd.rowIndex);
+			int rowIndex = (isWhite) ? MirrorRow(cmd.rowIndex) : cmd.rowIndex;
 			int columnIndex = (cmd.startRight) ? MirrorColumn(static_cast<int>(i)) : static_cast<int>(i);
 
 			ChessPieceID piece = cmd.pieces[i];
@@ -199,7 +199,7 @@ namespace CoreChess {
 	}
 
 	void ChessContext::ApplySinglePiece(const BoardCommand& cmd, bool isWhite, ChessBoard& outBoard) const {
-		int rowIndex = (isWhite) ? cmd.rowIndex : MirrorRow(cmd.rowIndex);
+		int rowIndex = (isWhite) ? MirrorRow(cmd.rowIndex) : cmd.rowIndex;
 		int columnIndex = (cmd.startRight) ? MirrorColumn(cmd.columnIndex) : cmd.columnIndex;
 
 		ChessPieceID piece = cmd.pieces[0];
