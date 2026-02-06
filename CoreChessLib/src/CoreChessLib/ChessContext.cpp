@@ -35,11 +35,16 @@ namespace CoreChess {
 		if (cmd.pieces.size() < 0)
 			return *this;
 
+		size_t index = 0;
 		for (const auto& p : cmd.pieces) {
-			if (p.IsInvalid())
+			if (p.IsInvalid()) {
+				Log::Error("CoreChess::ChessContext::AddBoardCommand: Piece id of index '{}' is invalid!", index);
 				return *this;
-			else
+			}
+			else {
 				AddUniquePiece(p);
+			}
+			index++;
 		}
 
 		m_boardCmds.push_back(cmd);
@@ -56,8 +61,10 @@ namespace CoreChess {
 	ChessContext& ChessContext::BoardCmdFillRow(int rowIndex, ChessPieceID pieceID) {
 		BoardCommand cmd;
 
-		if (pieceID.IsInvalid())
+		if (pieceID.IsInvalid()) {
+			Log::Error("CoreChess::ChessContext::BoardCmdFillRow: piece id is invalid!");
 			return *this;
+		}
 
 		cmd.rowIndex = rowIndex;
 		cmd.fill = true;
@@ -71,8 +78,10 @@ namespace CoreChess {
 	ChessContext& ChessContext::BoardCmdSetPiece(int rowIndex, int columnIndex, ChessPieceID pieceID, bool startRight) {
 		BoardCommand cmd;
 
-		if (pieceID.IsInvalid())
+		if (pieceID.IsInvalid()) {
+			Log::Error("CoreChess::ChessContext::BoardCmdSetPiece: piece id is invalid!");
 			return *this;
+		}
 
 		cmd.rowIndex = rowIndex;
 		cmd.columnIndex = columnIndex;
@@ -87,11 +96,16 @@ namespace CoreChess {
 	ChessContext& ChessContext::BoardCmdSetRow(int rowIndex, const std::vector<ChessPieceID>& row, bool startRight) {
 		BoardCommand cmd;
 
+		size_t index = 0;
 		for (const auto& p : row) {
-			if (p.IsInvalid())
+			if (p.IsInvalid()) {
+				Log::Error("CoreChess::ChessContext::AddBoardCommand: Piece id of index '{}' is invalid!", index);
 				return *this;
-			else
+			}
+			else {
 				AddUniquePiece(p);
+			}
+			index++;
 		}
 
 		cmd.rowIndex = rowIndex;
