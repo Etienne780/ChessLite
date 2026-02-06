@@ -78,6 +78,13 @@ namespace CoreChess {
 		bool HasPieceAt(int x, int y) const;
 
 		/**
+		* @brief Converts board coordinates to a linear array index.
+		*
+		* @note Caller must ensure the coordinates are within bounds.
+		*/
+		size_t PosToIndex(int x, int y) const;
+
+		/**
 		* @brief Checks whether the field at the given position contains a piece
 		*        of the specified field type.
 		*
@@ -119,19 +126,36 @@ namespace CoreChess {
 		*/
 		ChessField GetFieldAt(int x, int y) const;
 
+		/**
+		* @brief Returns all fields on the board.
+		*
+		* The returned reference gives access to the underlying list of fields
+		* in row-major order.
+		*
+		* @return Const reference to the vector of ChessField objects.
+		*/
+		const std::vector<ChessField>& GetFields() const;
+
+		/**
+		* @brief Gets the width of the board.
+		*
+		* @return Number of columns on the board.
+		*/
+		int GetWidth() const;
+
+		/**
+		* @brief Gets the height of the board.
+		*
+		* @return Number of rows on the board.
+		*/
+		int GetHeight() const;
+
 	private:
 		int m_boardWidth = 0;
 		int m_boardHeight = 0;
 		std::vector<ChessField> m_board;
 
 		static std::vector<ChessField> GenerateBoard(int width, int height);
-
-		/**
-		* @brief Converts board coordinates to a linear array index.
-		*
-		* @note Caller must ensure the coordinates are within bounds.
-		*/
-		size_t PosToIndex(int x, int y) const;
 	};
 
 }

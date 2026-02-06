@@ -49,6 +49,10 @@ namespace CoreChess {
 		return !f.IsPieceNone();
 	}
 
+	size_t ChessBoard::PosToIndex(int x, int y) const {
+		return static_cast<size_t>(x + (m_boardWidth * y));
+	}
+
 	bool ChessBoard::IsPieceAtEqual(const Vector2& pos, FieldType type) const {
 		return IsPieceAtEqual(static_cast<int>(pos.x), static_cast<int>(pos.y), type);
 	}
@@ -74,6 +78,18 @@ namespace CoreChess {
 		return m_board.at(index);
 	}
 
+	const std::vector<ChessField>& ChessBoard::GetFields() const {
+		return m_board;
+	}
+
+	int ChessBoard::GetWidth() const {
+		return m_boardWidth;
+	}
+
+	int ChessBoard::GetHeight() const {
+		return m_boardHeight;
+	}
+
 	std::vector<ChessField> ChessBoard::GenerateBoard(int w, int h) {
 		size_t count = static_cast<size_t>(w * h);
 		std::vector<ChessField> result;
@@ -82,10 +98,6 @@ namespace CoreChess {
 			result.emplace_back(ChessPieceID(CORE_CHESS_INVALID_ID), FieldType::NONE);
 		}
 		return result;
-	}
-
-	size_t ChessBoard::PosToIndex(int x, int y) const {
-		return static_cast<size_t>(x + (m_boardWidth * y));
 	}
 
 }
