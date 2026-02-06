@@ -23,12 +23,26 @@ namespace CoreChess {
 		SetFieldAt(fromX, fromY, FieldType::NONE);
 	}
 
+	void ChessBoard::MovePieceFromTo(size_t fromIndex, size_t toIndex) {
+		if (fromIndex >= m_board.size())
+			return;
+
+		ChessField& f = m_board.at(fromIndex);
+
+		SetFieldAt(toIndex, f.GetFieldType(), f.GetPieceID());
+		SetFieldAt(fromIndex, FieldType::NONE);
+	}
+
 	void ChessBoard::SetFieldAt(const Vector2& at, FieldType type, ChessPieceID id) {
 		return SetFieldAt(static_cast<int>(at.x), static_cast<int>(at.y), type, id);
 	}
 
 	void ChessBoard::SetFieldAt(int atX, int atY, FieldType type, ChessPieceID id) {
 		size_t index = PosToIndex(atX, atY);
+		return SetFieldAt(index, type, id);
+	}
+
+	void ChessBoard::SetFieldAt(size_t index, FieldType type, ChessPieceID id) {
 		if (index >= m_board.size())
 			return;
 
@@ -42,6 +56,10 @@ namespace CoreChess {
 
 	bool ChessBoard::HasPieceAt(int x, int y) const {
 		size_t index = PosToIndex(x, y);
+		return HasPieceAt(index);
+	}
+
+	bool ChessBoard::HasPieceAt(size_t index) const {
 		if (index >= m_board.size())
 			return false;
 
@@ -59,6 +77,10 @@ namespace CoreChess {
 
 	bool ChessBoard::IsPieceAtEqual(int x, int y, FieldType type) const {
 		size_t index = PosToIndex(x, y);
+		return IsPieceAtEqual(index, type);
+	}
+
+	bool ChessBoard::IsPieceAtEqual(size_t index, FieldType type) const {
 		if (index >= m_board.size())
 			return false;
 
@@ -72,6 +94,10 @@ namespace CoreChess {
 
 	ChessField ChessBoard::GetFieldAt(int x, int y) const {
 		size_t index = PosToIndex(x, y);
+		return GetFieldAt(index);
+	}
+
+	ChessField ChessBoard::GetFieldAt(size_t index) const {
 		if (index >= m_board.size())
 			return ChessField{};
 
@@ -88,6 +114,10 @@ namespace CoreChess {
 
 	int ChessBoard::GetHeight() const {
 		return m_boardHeight;
+	}
+
+	size_t ChessBoard::GetNumberOfFields() const {
+		return static_cast<size_t>(m_boardWidth * m_boardHeight);
 	}
 
 	std::vector<ChessField> ChessBoard::GenerateBoard(int w, int h) {

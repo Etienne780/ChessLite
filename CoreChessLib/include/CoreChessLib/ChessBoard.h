@@ -42,13 +42,23 @@ namespace CoreChess {
 		* @param toY   Target y coordinate.
 		*/
 		void MovePieceFromTo(int fromX, int fromY, int toX, int toY);
+		/**
+		* @brief Moves a piece from one linear index to another.
+		*
+		* Overwrites the target field and clears the source field.
+		* No move validation is performed.
+		*
+		* @param fromIndex Source field index.
+		* @param toIndex   Target field index.
+		*/
+		void MovePieceFromTo(size_t fromIndex, size_t toIndex);
 		
 		/**
 		* @brief Sets the field content at a given position.
 		*
 		* @param at   Board position.
 		* @param type Field owner (e.g. white, black, none).
-		* @param id   Piece identifier.
+		* @param id   Piece identifier. (default is invalid).
 		*/
 		void SetFieldAt(const Vector2& at, FieldType type, ChessPieceID id = ChessPieceID(CORE_CHESS_INVALID_ID));
 		/**
@@ -57,9 +67,17 @@ namespace CoreChess {
 		* @param atX  X coordinate on the board.
 		* @param atY  Y coordinate on the board.
 		* @param type Field owner.
-		* @param id   Piece identifier.
+		* @param id   Piece identifier. (default is invalid).
 		*/
 		void SetFieldAt(int atX, int atY, FieldType type, ChessPieceID id = ChessPieceID(CORE_CHESS_INVALID_ID));
+		/**
+		* @brief Sets the field content at a given linear index.
+		*
+		* @param index Linear index of the field.
+		* @param type  Field owner.
+		* @param id    Piece identifier (default is invalid).
+		*/
+		void SetFieldAt(size_t index, FieldType type, ChessPieceID id = ChessPieceID(CORE_CHESS_INVALID_ID));
 
 		/**
 		* @brief Checks whether a piece exists at the given position.
@@ -76,6 +94,13 @@ namespace CoreChess {
 		* @return True if the field contains a piece.
 		*/
 		bool HasPieceAt(int x, int y) const;
+		/**
+		* @brief Checks whether a piece exists at the given linear index.
+		*
+		* @param index Linear index of the field.
+		* @return True if a piece exists at the given index.
+		*/
+		bool HasPieceAt(size_t index) const;
 
 		/**
 		* @brief Converts board coordinates to a linear array index.
@@ -105,6 +130,15 @@ namespace CoreChess {
 		* @return True if the field contains a piece of the given type.
 		*/
 		bool IsPieceAtEqual(int x, int y, FieldType type) const;
+		/**
+		* @brief Checks whether the field at the given linear index contains a piece
+		*        of the specified field type.
+		*
+		* @param index Linear index of the field.
+		* @param type  Expected field type.
+		* @return True if the field contains a piece of the given type.
+		*/
+		bool IsPieceAtEqual(size_t index, FieldType type) const;
 
 		/**
 		* @brief Returns the field data at the given position.
@@ -125,6 +159,13 @@ namespace CoreChess {
 		*         If the position is out of bounds, an empty field is returned.
 		*/
 		ChessField GetFieldAt(int x, int y) const;
+		/**
+		* @brief Returns the field data at the given linear index.
+		*
+		* @param index Linear index of the field.
+		* @return ChessField at the given index.
+		*/
+		ChessField GetFieldAt(size_t index) const;
 
 		/**
 		* @brief Returns all fields on the board.
@@ -150,11 +191,30 @@ namespace CoreChess {
 		*/
 		int GetHeight() const;
 
+		/**
+		* @brief Returns the total number of fields on the board.
+		*
+		* This is equivalent to width * height.
+		*
+		* @return Total number of fields as a size_t.
+		*/
+		size_t GetNumberOfFields() const;
+
+
 	private:
 		int m_boardWidth = 0;
 		int m_boardHeight = 0;
 		std::vector<ChessField> m_board;
 
+		/**
+		* @brief Generates a blank board with the given dimensions.
+		*
+		* All fields are initialized to FieldType::NONE and an invalid piece ID.
+		*
+		* @param width  Number of columns.
+		* @param height Number of rows.
+		* @return Vector of ChessField objects representing the empty board.
+		*/
 		static std::vector<ChessField> GenerateBoard(int width, int height);
 	};
 
