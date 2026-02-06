@@ -71,6 +71,12 @@ namespace CoreChess {
 		return static_cast<size_t>(x + (m_boardWidth * y));
 	}
 
+	Vector2 ChessBoard::IndexToPos(size_t index) const {
+		int x = static_cast<int>(index % m_boardWidth);
+		int y = static_cast<int>(index / m_boardWidth);
+		return Vector2{ static_cast<float>(x), static_cast<float>(y) };
+	}
+
 	bool ChessBoard::IsPieceAtEqual(const Vector2& pos, FieldType type) const {
 		return IsPieceAtEqual(static_cast<int>(pos.x), static_cast<int>(pos.y), type);
 	}

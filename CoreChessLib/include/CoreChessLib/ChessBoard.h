@@ -109,6 +109,8 @@ namespace CoreChess {
 		*/
 		size_t PosToIndex(int x, int y) const;
 
+		Vector2 IndexToPos(size_t index) const;
+
 		/**
 		* @brief Checks whether the field at the given position contains a piece
 		*        of the specified field type.
