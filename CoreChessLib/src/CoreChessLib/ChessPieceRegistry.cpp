@@ -8,11 +8,12 @@ namespace CoreChess {
 		return reg;
 	}
 
-	ChessPiece* ChessPieceRegistry::AddChessPiece(ChessPieceID & outID, const std::string& name) {
+	ChessPiece* ChessPieceRegistry::AddChessPiece(ChessPieceID& outID, const std::string& name) {
 		ChessPieceID id(m_idManager.GetNewUniqueIdentifier());
 		ChessPiece piece(id, name);
 		auto ptr = std::make_unique<ChessPiece>(piece);
 
+		outID = id;
 		m_regPieces.emplace_back(std::move(ptr));
 		return m_regPieces.back().get();
 	}
