@@ -11,7 +11,7 @@ namespace CoreChess {
 
 	bool ChessMoveRule::IsValidMove(const ChessBoard& board, const Vector2& from, const Vector2& to) const {
 		bool isWhite = board.IsPieceAtEqual(from, FieldType::WHITE);
-		Vector2 dir = (isWhite) ? to - from : from - to;
+		Vector2 dir = (isWhite) ? from - to : to - from;
 
 		if (!IsMovePatternValid(dir))
 			return false;
