@@ -72,6 +72,15 @@ namespace CoreChess {
 		*/
 		bool IsSliding() const;
 
+		/**
+		* @brief Checks whether this piece is marked as a critical target.
+		*
+		* If this function returns true, the piece is considered essential
+		* for the owning player. Any position where this piece is attacked
+		* by an opponent is treated as illegal.
+		*
+		* @return True if the piece is a critical target, false otherwise.
+		*/
 		bool IsCriticalTarget() const;
 
 		/**
@@ -127,12 +136,25 @@ namespace CoreChess {
 		* in a single call. Internally, it forwards the values to the corresponding
 		* individual setter functions.
 		*
-		* @param maxSteps      Maximum number of steps per move (0 = unlimited).
-		* @param sliding       Enables sliding movement if true.
-		* @param isCriticalTarget 
-		* @param targetType    Defines which target fields are allowed.
-		* @param pathMode      Defines how paths are evaluated when sliding.
-		* @param priorityAxis Axis priority for PathMode::AXIS_ORDER.
+		* @param maxSteps
+		*        Maximum number of steps per move (0 = unlimited).
+		*
+		* @param sliding
+		*        Enables sliding movement if true.
+		*
+		* @param isCriticalTarget
+		*        Marks the piece as a critical target. A critical target must not be
+		*        left under attack after a move. Any move that results in this piece
+		*        being attacked is considered illegal.
+		*
+		* @param targetType
+		*        Defines which target fields are allowed.
+		*
+		* @param pathMode
+		*        Defines how paths are evaluated when sliding.
+		*
+		* @param priorityAxis
+		*        Axis priority used when PathMode::AXIS_ORDER is active.
 		*/
 		void SetMoveProperties(uint16_t maxSteps, bool sliding, bool isCriticalTarget, TargetType targetType,
 			PathMode pathMode = PathMode::LINEAR, PriorityAxis priorityAxis = PriorityAxis::X);
@@ -152,6 +174,23 @@ namespace CoreChess {
 		*/
 		void SetSliding(bool value);
 
+		/**
+		* @brief Marks this chess piece as a critical target.
+		*
+		* A critical target is a piece whose safety is essential for the player.
+		* If a critical target of a player is under attack after a move,
+		* that move is considered illegal.
+		*
+		* This mechanism is used to model concepts such as:
+		* 
+		* - King safety (classical chess)
+		* 
+		* - Any custom "must-not-be-attacked" piece in variant rules
+		*
+		* @param value
+		*        True if the piece should be treated as a critical target,
+		*        false otherwise.
+		*/
 		void SetCriticalTarget(bool value);
 
 		/*

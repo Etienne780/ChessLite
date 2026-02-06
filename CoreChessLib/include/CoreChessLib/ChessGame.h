@@ -70,6 +70,19 @@ namespace CoreChess {
 
 		void PieceCaptured(FieldType capturedColor, ChessPieceID pieceID);
 
+		/**
+		* @brief Checks whether any critical piece of the given color is under attack.
+		*
+		* Iterates over all pieces of the specified color and evaluates whether
+		* any piece marked as a critical target is attacked by the opponent.
+		*
+		* This function is typically used to validate move legality.
+		*
+		* @param board The board state to evaluate.
+		* @param color The player color whose critical pieces are checked.
+		*
+		* @return True if at least one critical piece is attacked, false otherwise.
+		*/
 		bool IsAnyCriticalPieceAttacked(const ChessBoard& board,FieldType color) const;
 		bool IsFieldAttacked(const ChessBoard& board, const Vector2& pos, FieldType enemyColor) const;
 		bool IsInBoardBounds(const Vector2& pos) const;
