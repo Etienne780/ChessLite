@@ -134,7 +134,6 @@ namespace Layers {
 	}
 
 	void MainMenuLayer::OnQuit(AppContext* ctx) {
-		
 	}
 
 }

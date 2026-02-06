@@ -107,6 +107,15 @@ namespace CoreChess {
 		*/
 		const std::vector<ChessMoveRule>& GetMoveRules() const;
 
+		/**
+		* @brief Returns the accumulated material value.
+		*
+		* The material value represents the total value of all opponent pieces
+		* that have been captured so far and can be used for scoring or
+		* win-condition evaluation.
+		*
+		* @return Current material value.
+		*/
 		int GetMaterialValue() const;
 
 		/**

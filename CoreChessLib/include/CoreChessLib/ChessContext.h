@@ -132,6 +132,16 @@ namespace CoreChess {
 		*/
 		ChessContext& SetBoardSize(int width, int height);
 		
+		/**
+		* @brief Sets the win condition function for this chess context.
+		*
+		* The win condition function is responsible for evaluating the current
+		* game state and returning a ChessWinResult that indicates whether
+		* the game is still running or which side has won.
+		*
+		* @param func Win condition callback to be used.
+		* @return Reference to this context for chaining.
+		*/
 		ChessContext& SetWinCondition(const ChessWinConditionFunc& func);
 
 		/**
@@ -162,6 +172,14 @@ namespace CoreChess {
 		*/
 		const std::vector<BoardCommand>& GetBoardCommands() const;
 
+		/**
+		* @brief Returns the currently active win condition function.
+		*
+		* This function provides read-only access to the win condition callback
+		* that is used to evaluate the game outcome.
+		*
+		* @return Constant reference to the win condition function.
+		*/
 		const ChessWinConditionFunc& GetWinCondition() const;
 
 	private:
