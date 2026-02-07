@@ -1,8 +1,8 @@
-#include "Styles/Common/Space.h"
+#include "Styles/Comman/Space.h"
 
 namespace Style {
 
-	void Common_InitSpaces() {
+	void Comman_InitSpaces() {
 		typedef CoreUI::UIRegistry UIReg;
 
 		commanSpaceXS = UIReg::RegisterNumber(4.0f);

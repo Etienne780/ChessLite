@@ -1,8 +1,8 @@
-#include "Styles/Common/Color.h"
+#include "Styles/Comman/Color.h"
 
 namespace Style {
 
-	void Common_InitColors() {
+	void Comman_InitColors() {
 		typedef CoreUI::UIRegistry UIReg;
 
 		commanBoardLight = UIReg::RegisterColor(Vector4(240, 217, 181, 255));

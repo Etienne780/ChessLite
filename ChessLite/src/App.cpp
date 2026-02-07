@@ -1,5 +1,6 @@
 ﻿#include "App.h"
 #include "Layers.h"
+#include "Styles/Comman/Style.h"
 
 static App* g_appInstance;
 
@@ -15,6 +16,8 @@ App* App::GetInstance(){
 void App::OnStart() {
     auto* win = CreateWindow(&m_winID, "ChessLite", 800, 700);
     win->SetWindowMinSize(800, 700);
+
+    Style::Comman_InitStyles();
 
     // push start layer on to stack
     PushLayer<Layers::MainMenuLayer>();
