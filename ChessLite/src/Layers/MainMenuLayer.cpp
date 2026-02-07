@@ -157,10 +157,9 @@ namespace Layers {
 			}
 		}
 
-		CoreChess::ChessWinResult result;
 		if (!gameEnded) {
 			CoreChess::ChessWinResult result;
-			if (game.IsGameEnd(result)) {
+			if (game.IsGameEnd(&result)) {
 				gameEnded = true;
 				gameResult = result;
 			}

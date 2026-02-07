@@ -156,8 +156,9 @@ namespace CoreChess {
 		return m_isWhiteTurn;
 	}
 
-	bool ChessGame::IsGameEnd(ChessWinResult& outResult) const {
-		outResult = m_winResult;
+	bool ChessGame::IsGameEnd(ChessWinResult* outResult) const {
+		if(outResult)
+			*outResult = m_winResult;
 		return m_winResult != ChessWinResult::NONE;
 	}
 

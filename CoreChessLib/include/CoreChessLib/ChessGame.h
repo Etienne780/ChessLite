@@ -27,7 +27,7 @@ namespace CoreChess {
 
 		bool IsPieceSelected() const;
 		bool IsWhiteTurn() const;
-		bool IsGameEnd(ChessWinResult& outResult) const;
+		bool IsGameEnd(ChessWinResult* outResult = nullptr) const;
 
 		const ChessBoard& GetBoard() const;
 		const Vector2& GetSelectedPiecePos() const;
