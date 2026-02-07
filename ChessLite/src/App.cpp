@@ -33,7 +33,7 @@ void App::OnUpdate() {
 
         namespace RE = SDLCore::Render;
         RE::SetWindowRenderer(m_winID);
-        RE::SetColor(0);
+        RE::SetColor(50, 60, 140);
         RE::Clear();
         ForeachLayer([&](Layer& layer) { layer.OnRender(&m_context); });
         RE::Present();
