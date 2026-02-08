@@ -6,12 +6,12 @@ namespace Style {
 	namespace CoreUI = SDLCore::UI;
 
 	// Board colors
-	static inline CoreUI::UIColorID commanBoardLight;
-	static inline CoreUI::UIColorID commanBoardDark;
+	static inline CoreUI::UIColorID commanColorBoardLight;
+	static inline CoreUI::UIColorID commanColorBoardDark;
 
 	// UI base colors
-	static inline CoreUI::UIColorID commanUIBackground;
-	static inline CoreUI::UIColorID commanUIPanel;
+	static inline CoreUI::UIColorID commanColorUIBackground;
+	static inline CoreUI::UIColorID commanColorUIPanel;
 
 	// Button colors
 	static inline CoreUI::UIColorID commanBtnNormal;
