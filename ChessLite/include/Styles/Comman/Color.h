@@ -6,24 +6,28 @@ namespace Style {
 	namespace CoreUI = SDLCore::UI;
 
 	// Board colors
-	static inline CoreUI::UIColorID commanColorBoardLight;
-	static inline CoreUI::UIColorID commanColorBoardDark;
+	extern CoreUI::UIColorID commanColorBoardLight;
+	extern CoreUI::UIColorID commanColorBoardDark;
 
 	// UI base colors
-	static inline CoreUI::UIColorID commanColorUIBackground;
-	static inline CoreUI::UIColorID commanColorUIPanel;
+	extern CoreUI::UIColorID commanColorUIBackground;
+	extern CoreUI::UIColorID commanColorUIPanel;
+	extern CoreUI::UIColorID commanColorOverlay;
 
 	// Button colors
-	static inline CoreUI::UIColorID commanBtnNormal;
-	static inline CoreUI::UIColorID commanBtnHover;
-	static inline CoreUI::UIColorID commanBtnPressed;
-	static inline CoreUI::UIColorID commanBtnDisabled;
+	extern CoreUI::UIColorID commanColorBtnNormal;
+	extern CoreUI::UIColorID commanColorBtnHover;
+	extern CoreUI::UIColorID commanColorBtnPressed;
+	extern CoreUI::UIColorID commanColorBtnDisabled;
 
 	// Accent and highlights
-	static inline CoreUI::UIColorID commanAccent;
-	static inline CoreUI::UIColorID commanHighlightMove;
-	static inline CoreUI::UIColorID commanHighlightSelected;
-	static inline CoreUI::UIColorID commanHighlightCheck;
+	extern CoreUI::UIColorID commanColorAccent;
+	extern CoreUI::UIColorID commanColorHighlightMove;
+	extern CoreUI::UIColorID commanColorHighlightSelected;
+	extern CoreUI::UIColorID commanColorHighlightCheck;
+
+	// text
+	extern CoreUI::UIColorID commanColorTextPrimary;
 
 	void Comman_InitColors();
 }

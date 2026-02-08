@@ -5,20 +5,26 @@ namespace Style {
 
 	namespace CoreUI = SDLCore::UI;
 
-	static inline CoreUI::UIStyle commanRoot{ "comman_root" };
+	extern CoreUI::UIStyle commanRoot;
 
-	static inline CoreUI::UIStyle commanStretchX{ "comman_stretch_x" };
-	static inline CoreUI::UIStyle commanStretchY{ "comman_stretch_y" };
-	static inline CoreUI::UIStyle commanStretch{ "comman_stretch" };
+	extern CoreUI::UIStyle commanStretchX;
+	extern CoreUI::UIStyle commanStretchY;
+	extern CoreUI::UIStyle commanStretch;
 
-	static inline CoreUI::UIStyle commanContainer{ "comman_container" };
-	static inline CoreUI::UIStyle commanBox{ "comman_box" };
+	extern CoreUI::UIStyle commanBox;
+	extern CoreUI::UIStyle commanOverlay;
 
-	static inline CoreUI::UIStyle commanBTNBase{ "comman_btn_base" };
-	static inline CoreUI::UIStyle commanBTNTabNormal{ "comman_tab_normal" };
-	static inline CoreUI::UIStyle commanBTNTabActive{ "comman_tab_active" };
+	extern CoreUI::UIStyle commanBoardTileWhite;
+	extern CoreUI::UIStyle commanBoardTileBlack;
 
-	static inline CoreUI::UIStyle commanTextBase{ "comman_text_base" };
+	extern CoreUI::UIStyle commanBTNBase;
+	extern CoreUI::UIStyle commanBTNTabNormal;
+	extern CoreUI::UIStyle commanBTNTabActive;
+
+	extern CoreUI::UIStyle commanTextBase;
+	extern CoreUI::UIStyle commanTextSmall;
+	extern CoreUI::UIStyle commanTextTitle;
+
 
 	void Comman_InitStyles();
 	

@@ -2,6 +2,17 @@
 
 namespace Style {
 
+	// Common spacing values
+	CoreUI::UINumberID commanSpaceXS;
+	CoreUI::UINumberID commanSpaceS;
+	CoreUI::UINumberID commanSpaceM;
+	CoreUI::UINumberID commanSpaceL;
+	CoreUI::UINumberID commanSpaceXL;
+
+	// Common button spacing
+	CoreUI::UINumberID commanBtnPaddingX;
+	CoreUI::UINumberID commanBtnPaddingY;
+
 	void Comman_InitSpaces() {
 		typedef CoreUI::UIRegistry UIReg;
 

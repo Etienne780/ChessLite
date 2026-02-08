@@ -6,15 +6,15 @@ namespace Style {
 	namespace CoreUI = SDLCore::UI;
 
 	// Common spacing values
-	static inline CoreUI::UINumberID commanSpaceXS;
-	static inline CoreUI::UINumberID commanSpaceS;
-	static inline CoreUI::UINumberID commanSpaceM;
-	static inline CoreUI::UINumberID commanSpaceL;
-	static inline CoreUI::UINumberID commanSpaceXL;
+	extern CoreUI::UINumberID commanSpaceXS;
+	extern CoreUI::UINumberID commanSpaceS;
+	extern CoreUI::UINumberID commanSpaceM;
+	extern CoreUI::UINumberID commanSpaceL;
+	extern CoreUI::UINumberID commanSpaceXL;
 
 	// Common button spacing
-	static inline CoreUI::UINumberID commanBtnPaddingX;
-	static inline CoreUI::UINumberID commanBtnPaddingY;
+	extern CoreUI::UINumberID commanBtnPaddingX;
+	extern CoreUI::UINumberID commanBtnPaddingY;
 
 	void Comman_InitSpaces();
 }
