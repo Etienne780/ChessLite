@@ -260,8 +260,9 @@ namespace SDLCore::UI {
 		return outStyle;
 	}
 
-	void UINode::SetNodeStyleDirty() {
+	void UINode::SetNodeStyleDirty() const {
 		m_styleDirty = true;
+		SetChildStyleDirty(this);
 	}
 
 	void UINode::SetNodeActive() {
@@ -363,6 +364,16 @@ namespace SDLCore::UI {
 			return newID;
 		}
 		return it->second;
+	}
+
+	void UINode::SetChildStyleDirty(const UINode* parentNode) {
+		if (!parentNode)
+			return;
+
+		// lange c -> long c -> uint64_t c
+		for (const auto& cccc : parentNode->m_children) {
+			cccc->SetNodeStyleDirty();
+		}
 	}
 
 	void UINode::ApplyStyle(UIContext* ctx) {

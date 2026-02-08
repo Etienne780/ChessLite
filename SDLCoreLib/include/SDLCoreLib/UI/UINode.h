@@ -56,10 +56,14 @@ namespace SDLCore::UI {
         // sets override style changed to true if value is different
         template<typename... Args>
         UINode& SetOverride(UIPropertyID id, Args&&... args) {
+            // overrides get set when node actives (after first frame)
+            if (!m_isActive)
+                return *this;
+            
             auto values = std::forward_as_tuple(std::forward<Args>(args)...);
 
             if (std::apply([&](auto&&... v) {
-                return m_overrideState.IsDifferent(id, v...);
+                return m_renderedStyleState.IsDifferent(id, v...);
                 }, values))
             {
                 if (std::apply([&](auto&&... v) {
@@ -67,7 +71,7 @@ namespace SDLCore::UI {
                     }, values))
                 {
                     m_lastOverrideID = id;
-                    m_styleDirty = true;
+                    SetNodeStyleDirty();
                 }
             }
             return *this;
@@ -207,7 +211,7 @@ namespace SDLCore::UI {
         */
         UIStyle CreateStyle();
 
-        void SetNodeStyleDirty();
+        void SetNodeStyleDirty() const;
         void SetNodeActive();
         void SetState(UIState state);
         void SetResolvedState(UIState state);
@@ -308,11 +312,13 @@ namespace SDLCore::UI {
         float m_currentTransitionEnd = 0.0f;
         float m_currentTransition = 0.0f;
         bool m_transitionActive = false;
-        bool m_styleDirty = false;
+        mutable bool m_styleDirty = false;
         Vector4 m_clippingMask;
 
         static inline uint32_t m_typeIDCounter = 0;
         static uint32_t GetUITypeID(const std::string& name);
+
+        static void SetChildStyleDirty(const UINode* parentNode);
 
         /*
         * @brief Create and applys the style from all of the added styles
