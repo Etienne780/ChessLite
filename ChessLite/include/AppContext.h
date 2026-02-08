@@ -8,5 +8,5 @@ public:
 		: app(_app) {
 	}
 
-	const App* app;
+	App* app;
 };
