@@ -26,6 +26,16 @@ template<> struct IsUINumberTarget<Vector4> : std::true_type {};
 template<typename T>
 inline constexpr bool IsUINumberTarget_v = IsUINumberTarget<T>::value;
 
+template<typename T>
+struct IsNumericTarget : std::false_type {};
+
+template<> struct IsNumericTarget<int> : std::true_type {};
+template<> struct IsNumericTarget<float> : std::true_type {};
+template<> struct IsNumericTarget<double> : std::true_type {};
+
+template<typename T>
+inline constexpr bool IsNumericTarget_v = IsNumericTarget<T>::value;
+
 namespace SDLCore::UI {
 	class PropertyValue;
 }
@@ -117,32 +127,73 @@ namespace SDLCore::UI {
 				return true;
 			}
 
-			// UIColorID -> Vector4
+			// ---------- UIColorID -> Vector4 ----------
 			if constexpr (std::is_same_v<T, Vector4>) {
 				if (std::holds_alternative<UIColorID>(m_value)) {
-					return UIRegistry::TryResolve(
-						std::get<UIColorID>(m_value), out);
+					return UIRegistry::TryResolve(std::get<UIColorID>(m_value), out);
 				}
 			}
 
-			// UINumberID -> numeric (int/float/double only)
+			// ---------- UINumberID ----------
 			if constexpr (IsUINumberTarget_v<T>) {
 				if (std::holds_alternative<UINumberID>(m_value)) {
-					return UIRegistry::TryResolve(
-						std::get<UINumberID>(m_value), out);
+					return UIRegistry::TryResolve(std::get<UINumberID>(m_value), out);
 				}
 			}
 
+			// ---------- Numeric conversions ----------
+			if constexpr (IsNumericTarget_v<T>) {
+				if (std::holds_alternative<int>(m_value)) {
+					int value = std::get<int>(m_value);
+					out = static_cast<T>(value);
+					return true;
+				}
+
+				if (std::holds_alternative<float>(m_value)) {
+					float value = std::get<float>(m_value);
+					out = static_cast<T>(value);
+					return true;
+				}
+
+				if (std::holds_alternative<double>(m_value)) {
+					double value = std::get<double>(m_value);
+					out = static_cast<T>(value);
+					return true;
+				}
+			}
+
+			// ---------- Vector4 fallback for numeric types ----------
+			if constexpr (std::is_same_v<T, Vector4>) {
+				auto numericToVec4 = [&](float v) {
+					out = Vector4(v, v, v, v);
+					return true;
+				};
+
+				if (std::holds_alternative<int>(m_value)) {
+					return numericToVec4(static_cast<float>(std::get<int>(m_value)));
+				}
+
+				if (std::holds_alternative<float>(m_value)) {
+					return numericToVec4(std::get<float>(m_value));
+				}
+
+				if (std::holds_alternative<double>(m_value)) {
+					return numericToVec4(static_cast<float>(std::get<double>(m_value)));
+				}
+			}
+
+			// ---------- UITextureID ----------
 			if constexpr (IsUITextureTarget_v<T>) {
 				if (std::holds_alternative<UITextureID>(m_value)) {
-					return UIRegistry::TryResolve(
-						std::get<UITextureID>(m_value), out);
+					return UIRegistry::TryResolve(std::get<UITextureID>(m_value), out);
 				}
 			}
 
 			Log::Warn(
 				"SDLCore::UI::PropertyValue: Type mismatch, requested '{}', stored '{}'",
-				GetReadableTypeName(typeid(T)), m_valueType);
+				GetReadableTypeName(typeid(T)),
+				m_valueType
+			);
 
 			return false;
 		}
