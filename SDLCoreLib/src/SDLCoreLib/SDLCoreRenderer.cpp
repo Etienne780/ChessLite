@@ -428,7 +428,6 @@ namespace SDLCore::Render {
         if (!renderer)
             return;
 
-        Log::Print("DrawRect Internal");
         SDL_FRect rect{ x, y, w, h };
         if (!SDL_RenderFillRect(renderer, &rect)) {
             Log::Error("SDLCore::Renderer::FillRect: Failed to fill rect ({}, {}, {}, {}): {}", x, y, w, h, SDL_GetError());
