@@ -1,4 +1,7 @@
 ﻿#include "Layers/MainMenuLayer.h"
+#include "Layers/OptionsMenuLayer.h"
+#include "Layers/GameLayer.h"
+
 #include "App.h"
 #include "Styles/Comman/Style.h"
 #include "Styles/Comman/Space.h"
@@ -66,10 +69,13 @@ namespace Layers {
 
 				if (DrawButton("btn_play", "Play", m_StyleButton)) {
 					Log::Info("Play");
+					ctx->app->PopLayer();// main menu
+					ctx->app->PushLayer<GameLayer>();
 				}
 
 				if (DrawButton("btn_settings", "Settings", m_StyleButton)) {
 					Log::Info("Settings");
+					ctx->app->PushLayer<OptionsMenuLayer>();
 				}
 
 				if (DrawButton("btn_quit", "Quit", m_StyleButton)) {
