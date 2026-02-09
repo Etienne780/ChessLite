@@ -431,7 +431,9 @@ namespace SDLCore::UI {
     }
 
     void UIContext::RenderNodes(UIContext* ctx, UINode* rootNode) {
-        Rect r = SDLCore::Render::GetClipRect();
+        bool isClipEnabled = SDLCore::Render::IsClipRectEnabled();
+        Rect rect = SDLCore::Render::GetClipRect();
+
         ForEachNode(rootNode, [&](UINode* root) {
             root->Update(ctx, Time::GetDeltaTimeMSF());
 
@@ -445,7 +447,9 @@ namespace SDLCore::UI {
             SDLCore::Render::SetClipRect(clipRect);
             root->RenderNode(ctx);
         });
-        SDLCore::Render::SetClipRect(r);
+
+        if(isClipEnabled)
+            SDLCore::Render::SetClipRect(rect);
     }
 
     void UIContext::CalculateClippingMask(UINode* node) {
