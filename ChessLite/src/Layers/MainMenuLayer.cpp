@@ -5,23 +5,12 @@
 #include "App.h"
 #include "Styles/Comman/Style.h"
 #include "Styles/Comman/Space.h"
+#include "UIComponents/Button.h"
 
 namespace UI = SDLCore::UI;
+namespace UIComp = UIComponent;
 
 namespace Layers {
-
-	static bool DrawButton(
-		std::string key,
-		const char* text,
-		const UI::UIStyle& style
-	) {
-		UI::BeginFrame(UI::UIKey(key), style);
-		{
-			UI::Text(UI::UIKey("label"), text, Style::commanTextBase);
-		}
-		UI::UIEvent event = UI::EndFrame();
-		return event.IsClick();
-	}
 
 	void MainMenuLayer::OnStart(AppContext* ctx) {
 		m_UICtx = UI::CreateContext();
@@ -67,19 +56,19 @@ namespace Layers {
 			{
 				UI::Text(Key("title"), "Chess Lite", m_StyleTitle);
 
-				if (DrawButton("btn_play", "Play", m_StyleButton)) {
-					Log::Info("Play");
-					ctx->app->PopLayer();// main menu
+				if (UIComp::DrawButton("btn_play", "Play", m_StyleButton)) {
+					Log::Debug("MainMenu: Play");
+					ctx->app->ClearLayers();
 					ctx->app->PushLayer<GameLayer>();
 				}
 
-				if (DrawButton("btn_settings", "Settings", m_StyleButton)) {
-					Log::Info("Settings");
+				if (UIComp::DrawButton("btn_settings", "Settings", m_StyleButton)) {
+					Log::Debug("MainMenu: Settings");
 					ctx->app->PushLayer<OptionsMenuLayer>();
 				}
 
-				if (DrawButton("btn_quit", "Quit", m_StyleButton)) {
-					Log::Info("Quit");
+				if (UIComp::DrawButton("btn_quit", "Quit", m_StyleButton)) {
+					Log::Debug("MainMenu: Quit");
 					// ctx->app->Quit();
 				}
 			}

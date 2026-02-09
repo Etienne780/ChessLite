@@ -22,7 +22,6 @@ namespace Layers {
 		SDLCore::UI::UIStyle m_StyleMenu;
 		SDLCore::UI::UIStyle m_StyleButton;
 		SDLCore::UI::UIStyle m_StyleTitle;
-
 	};
 
 }

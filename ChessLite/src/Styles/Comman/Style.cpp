@@ -62,7 +62,9 @@ namespace Style {
 		commanOverlay
 			.Merge(commanStretch)
 			.SetValue(Prop::positionType, CoreUI::UIPositionType::ABSOLUTE)
+			.SetValue(Prop::topLeft, 0, 0)
 			.SetValue(Prop::backgroundColor, commanColorOverlay)
+			.SetValue(Prop::pointerEvents, true)
 			.SetValue(Prop::align, CoreUI::UIAlignment::CENTER, CoreUI::UIAlignment::CENTER);
 
 		// --- Chess board tiles ---
