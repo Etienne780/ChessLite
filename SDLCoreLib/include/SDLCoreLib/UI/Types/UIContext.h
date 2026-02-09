@@ -61,6 +61,7 @@ namespace SDLCore::UI {
 		std::vector<UINode*> m_nodeCreationStack;/*< is for creating nodes. if a node is this stack, than those nodes are currently created*/
 		std::vector<UINode*> m_lastNodeStack;
 		std::vector<UINode*> m_relativeStack;
+		std::vector<UINode*> m_flatDrawList;/*< is used in finalize UI, should not be used outside of FinalizeUI()*/
 
 		std::shared_ptr<FrameNode> m_rootNode = nullptr;
 		size_t m_currentNodeCount = 0;/* < changes while building nodeStack. Is used to update the stable node count */
@@ -107,7 +108,6 @@ namespace SDLCore::UI {
 				// element with id exists at position. set it as last position
 				// no stack increas cause add node has no end func
 				CalculateClippingMask(currentNode);
-				ProcessEvent(this, currentNode);
 				currentNode->SetNodeActive();
 				return reinterpret_cast<T*>(currentNode);
 			}
@@ -122,7 +122,6 @@ namespace SDLCore::UI {
 			// element does not exist. create element and create stack
 			T* childNode = parentNode->AddChild<T>(static_cast<int>(pos), id, std::forward<Args>(args)...);
 			CalculateClippingMask(reinterpret_cast<UINode*>(childNode));
-			ProcessEvent(this, childNode);
 			// no stack increas cause add node has no end func
 			return childNode;
 		}
@@ -171,8 +170,11 @@ namespace SDLCore::UI {
 		void UpdateNodeStylesWindowResize();
 		void UpdateInput();
 		void ResolveNodeState(UIContext* ctx, UINode* node);
-		UIEvent* ProcessEvent(UIContext* ctx, UINode* node);
-		void RenderNodes(UIContext* ctx, UINode* rootNode);
+
+		void FinalizeUI(UIContext* ctx, UINode* rootNode);
+		void BuildDrawOrderList(UINode* node, std::vector<UINode*>& outList);
+		void ProcessEventsFlat(UIContext* ctx, const std::vector<UINode*>& drawList);
+		void RenderNodesFlat(UIContext* ctx, const std::vector<UINode*>& drawList);
 		// gets called in begin, add element
 		void CalculateClippingMask(UINode* node);
 		Vector4 UIContext::GetWindowClip() const;

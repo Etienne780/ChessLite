@@ -263,17 +263,18 @@ namespace SDLCore::UI {
         }
 
         if (!m_lastNodeStack.empty()) {
-            UIEvent* uiEvent = ProcessEvent(this, m_lastNodeStack.back());
+            UIEvent* event = m_lastNodeStack.back()->GetEventPtr();
             m_lastNodeStack.pop_back();
+
             // last node poped
             if (m_lastNodeStack.empty()) {
                 m_nodeCount = m_currentNodeCount;
                 m_currentNodeCount = 0;
 
-                RenderNodes(this, m_rootNode.get());
+                FinalizeUI(this, m_rootNode.get());
             }
 
-            return *uiEvent;
+            return *event;
         }
 
 #ifndef NDEBUG
@@ -372,85 +373,93 @@ namespace SDLCore::UI {
         node->SetState(prev);
     }
 
-    UIEvent* UIContext::ProcessEvent(UIContext* ctx, UINode* node) {
-        static UIEvent dummy;
-        ctx->UpdateInput();
+    void UIContext::FinalizeUI(UIContext* ctx, UINode* rootNode) {
+        m_flatDrawList.clear();
+        m_flatDrawList.reserve(GetNodeCount());
 
-        // skip inactive nodes
-        if (!node || !node->IsActive())
-            return &dummy;
+        BuildDrawOrderList(rootNode, m_flatDrawList);
 
-        // reset child-event state for this traversal
-        node->SetChildHasEvent(false);
+        ProcessEventsFlat(ctx, m_flatDrawList);
+        RenderNodesFlat(ctx, m_flatDrawList);
+    }
 
-        // do not UI processing if cursor is locked
-        if (m_cursorLocked)
-            return &dummy;
+    void UIContext::BuildDrawOrderList(UINode* node, std::vector<UINode*>& outList) {
+        if (!node) 
+            return;
 
-        auto parent = node->GetParent();
-        if (parent && parent->GetResolvedState() != UIState::NORMAL) {
-            ctx->SetNodeState(node, parent->GetResolvedState());
-            return node->GetEventPtr();
+        outList.push_back(node);
+
+        for (const auto& child : node->GetChildren()) {
+            BuildDrawOrderList(child.get(), outList);
         }
+    }
 
-        // skip this element if a non-transparent child has an event
-        const auto& children = node->GetChildren();
-        for (const auto& child : children) {
-            if (!child || child->IsDisabled())
+    void UIContext::ProcessEventsFlat(
+        UIContext* ctx,
+        const std::vector<UINode*>& drawList) 
+    {
+        UpdateInput();
+
+        bool eventConsumed = false;
+
+        for (auto it = drawList.rbegin(); it != drawList.rend(); ++it) {
+            UINode* node = *it;
+
+            if (!node || !node->IsActive() || node->IsDisabled())
                 continue;
 
-            // child subtree already consumed an event (only if not hit-test transparent)
-            if (child->GetChildHasEvent() && !child->HasHitTestTransparent()) {
-                node->SetChildHasEvent(true);
-                node->ResetState(); // reset this node to normal
-                return node->GetEventPtr();
+            UIEvent* event = node->GetEventPtr();
+
+            // if a higher node already consumed the event,
+            // this node must stay in NORMAL state
+            if (eventConsumed) {
+                node->ResetState();
+                continue;
             }
 
-            // mouse is over child and child blocks hit testing
-            if (child->IsMouseInNode() && !child->HasHitTestTransparent()) {
-                node->SetChildHasEvent(true);
-                node->ResetState(); // reset this node to normal
-                return node->GetEventPtr();
+            // mouse not over  nothing to do
+            if (!node->IsMouseInNode()) {
+                node->ResetState();
+                continue;
             }
 
-            // explicit child event (hover etc.) that blocks parents
-            UIEvent* childEvent = child->GetEventPtr();
-            if (childEvent && childEvent->IsHover() && !child->HasHitTestTransparent()) {
-                node->SetChildHasEvent(true);
-                node->ResetState(); // reset this node to normal
-                return node->GetEventPtr();
+            node->ProcessEventInternal(ctx, event);
+
+            // node blocks everything below
+            if (
+                (event->IsHover() || event->IsClick()) &&
+                !node->HasHitTestTransparent()
+                ) {
+                eventConsumed = true;
             }
         }
-
-        // process this node
-        UIEvent* event = node->GetEventPtr();
-        node->ProcessEventInternal(ctx, event);
-        node->SetResolvedState(UIState::NORMAL);
-
-        return event;
     }
 
-    void UIContext::RenderNodes(UIContext* ctx, UINode* rootNode) {
-        bool isClipEnabled = SDLCore::Render::IsClipRectEnabled();
-        Rect rect = SDLCore::Render::GetClipRect();
+    void UIContext::RenderNodesFlat(
+        UIContext* ctx,
+        const std::vector<UINode*>& drawList) 
+    {
+        bool clipEnabled = SDLCore::Render::IsClipRectEnabled();
+        Rect prevClip = SDLCore::Render::GetClipRect();
 
-        ForEachNode(rootNode, [&](UINode* root) {
-            root->Update(ctx, Time::GetDeltaTimeMSF());
+        for (UINode* node : drawList) {
+            if (!node || !node->IsActive())
+                continue;
 
-            if (!root)
-                return;
+            node->Update(ctx, Time::GetDeltaTimeMSF());
 
-            Vector4 clipRect = root->GetClippingRect();
-            if (!root->IsActive() || clipRect.z == 0 || clipRect.w == 0)
-                return;
+            Vector4 clipRect = node->GetClippingRect();
+            if (clipRect.z == 0 || clipRect.w == 0)
+                continue;
 
             SDLCore::Render::SetClipRect(clipRect);
-            root->RenderNode(ctx);
-        });
+            node->RenderNode(ctx);
+        }
 
-        if(isClipEnabled)
-            SDLCore::Render::SetClipRect(rect);
+        if (clipEnabled)
+            SDLCore::Render::SetClipRect(prevClip);
     }
+
 
     void UIContext::CalculateClippingMask(UINode* node) {
         if (!node)
