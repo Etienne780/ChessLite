@@ -28,7 +28,7 @@ public:
 		auto argsTuple = std::make_shared<std::tuple<std::decay_t<Args>...>>(std::forward<Args>(args)...);
 
 		m_layerCommands.emplace_back(LayerCommand(
-			LayerCmdType::Push,
+			LayerCmdType::PUSH,
 			[argsTuple]() {
 				return std::apply([](auto&& ...innerArgs) {
 					return std::make_unique<T>(std::forward<decltype(innerArgs)>(innerArgs)...);

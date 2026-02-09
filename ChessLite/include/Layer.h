@@ -38,8 +38,9 @@ public:
 };
 
 enum class LayerCmdType {
-	Push,
-	Pop
+	PUSH,
+	POP,
+	CLEAR
 };
 
 struct LayerCommand {
