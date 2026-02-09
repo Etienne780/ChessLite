@@ -20,6 +20,7 @@ namespace SDLCore::Render {
     static SDL_Color s_activeColor { 255, 255, 255, 255 };
     static float s_strokeWidth = 1;
     static bool s_innerStroke = true;
+    static bool s_isClipRectEnabled = false;
 
     // ========== Text ==========
     std::shared_ptr<SDLCore::Font> s_font = std::make_shared<SDLCore::Font>(true);// loads the default font
@@ -295,11 +296,16 @@ namespace SDLCore::Render {
         return clipRect;
     }
 
+    bool IsClipRectEnabled() {
+        return s_isClipRectEnabled;
+    }
+
     void SetClipRect(int x, int y, int w, int h) {
         auto renderer = GetActiveRenderer("SetClipRect");
         if (!renderer)
             return;
 
+        s_isClipRectEnabled = true;
         SDL_Rect clipRect{ x, y, w, h };
         if (!SDL_SetRenderClipRect(renderer, &clipRect)) {
             Log::Error("SDLCore::Renderer::SetClipRect: Failed to set clipRect ({}, {}, {}, {}): {}",
@@ -334,6 +340,7 @@ namespace SDLCore::Render {
         if (!renderer)
             return;
 
+        s_isClipRectEnabled = false;
         if (!SDL_SetRenderClipRect(renderer, nullptr)) {
             Log::Error("SDLCore::Renderer::ResetClipRect: Failed to reset clipRect: {}", SDL_GetError());
         }
@@ -420,6 +427,8 @@ namespace SDLCore::Render {
         auto renderer = GetActiveRenderer("FillRect");
         if (!renderer)
             return;
+
+        Log::Print("DrawRect Internal");
         SDL_FRect rect{ x, y, w, h };
         if (!SDL_RenderFillRect(renderer, &rect)) {
             Log::Error("SDLCore::Renderer::FillRect: Failed to fill rect ({}, {}, {}, {}): {}", x, y, w, h, SDL_GetError());

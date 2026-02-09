@@ -164,6 +164,12 @@ namespace SDLCore::Render {
 	*/
 	SDLCore::Rect GetClipRect();
 
+	/*
+	* @brief Returns the current state of the clipping rect
+	* @return true if clip rect is enabled
+	*/
+	bool IsClipRectEnabled();
+
 	/**
 	* @brief Sets the clipping rectangle.
 	* @param x Position X in pixels.
