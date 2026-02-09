@@ -13,11 +13,10 @@ namespace Layers {
 		void OnStart(AppContext* ctx) override;
 		void OnUpdate(AppContext* ctx) override;
 		void OnRender(AppContext* ctx) override;
+		void OnUIRender(AppContext* ctx) override;
 		void OnQuit(AppContext* ctx) override;
 
 	private:
-		SDLCore::UI::UIContext* m_UICtx = nullptr;
-
 		SDLCore::UI::UIStyle m_StyleRoot;
 		SDLCore::UI::UIStyle m_StyleMenu;
 		SDLCore::UI::UIStyle m_StyleButton;

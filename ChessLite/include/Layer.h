@@ -26,6 +26,11 @@ public:
 	virtual void OnRender(AppContext* ctx) = 0;
 
 	/*
+	* @brief Gets called every frame of the application, after Render, Setups base UIctx
+	*/
+	virtual void OnUIRender(AppContext* ctx) {}
+
+	/*
 	* @brief Gets called when the layer closes quit (layers are being closed on application quit)
 	*/
 	virtual void OnQuit(AppContext* ctx) = 0;

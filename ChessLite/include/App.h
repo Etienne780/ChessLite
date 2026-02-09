@@ -55,6 +55,7 @@ private:
 	AppContext m_context{ this };
 	std::vector<std::unique_ptr<Layer>> m_layerStack;
 	std::vector<LayerCommand> m_layerCommands;
+	SDLCore::UI::UIContext* m_UICtx = nullptr;
 
 	bool m_clearLayers = false;
 

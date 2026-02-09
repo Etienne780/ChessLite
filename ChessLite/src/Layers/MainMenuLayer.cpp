@@ -13,8 +13,6 @@ namespace UIComp = UIComponent;
 namespace Layers {
 
 	void MainMenuLayer::OnStart(AppContext* ctx) {
-		m_UICtx = UI::CreateContext();
-
 		namespace Prop = UI::Properties;
 
 		m_StyleRoot
@@ -45,12 +43,13 @@ namespace Layers {
 	}
 
 	void MainMenuLayer::OnRender(AppContext* ctx) {
+		
+	}
+
+	void MainMenuLayer::OnUIRender(AppContext* ctx) {
 		typedef UI::UIKey Key;
 
-		UI::SetContextWindow(m_UICtx, ctx->app->GetWinID());
-		UI::BindContext(m_UICtx);
-
-		UI::BeginFrame(Key("root"), m_StyleRoot);
+		UI::BeginFrame(Key("main_menu_root"), m_StyleRoot);
 		{
 			UI::BeginFrame(Key("menu"), m_StyleMenu);
 			{
@@ -78,8 +77,7 @@ namespace Layers {
 	}
 
 	void MainMenuLayer::OnQuit(AppContext* ctx) {
-		UI::DestroyContext(m_UICtx);
-		m_UICtx = nullptr;
+
 	}
 
 }
