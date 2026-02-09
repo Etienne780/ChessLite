@@ -77,12 +77,14 @@ void App::ProcessLayerCommands() {
         case LayerCmdType::Push:
             m_layerStack.push_back(std::move(cmd.factory()));
             m_layerStack.back()->OnStart(&m_context);
+            Log::Debug("App::Layer::Push:  + new count {}", m_layerStack.size());
             break;
 
         case LayerCmdType::Pop:
             if (!m_layerStack.empty()) {
                 m_layerStack.back()->OnQuit(&m_context);
                 m_layerStack.pop_back();
+                Log::Debug("App::Layer::Pop: - new count {}", m_layerStack.size());
             }
             break;
         }
