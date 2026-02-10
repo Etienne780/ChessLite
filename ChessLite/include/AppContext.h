@@ -1,5 +1,6 @@
 #pragma once
 #include "App.h"
+#include "LayerEventBus.h"
 
 class App;
 class AppContext {
@@ -9,4 +10,5 @@ public:
 	}
 
 	App* app;
+	LayerEventBus eventBus;
 };

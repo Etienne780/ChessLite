@@ -29,6 +29,10 @@ namespace Layers {
 		m_game.EndGame();
 	}
 
+	LayerID GameLayer::GetLayerID() const {
+		return LayerID::GAME;
+	}
+
 	void GameLayer::SetupGame() {
 		using namespace CoreChess;
 

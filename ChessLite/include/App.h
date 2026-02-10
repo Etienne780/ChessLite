@@ -6,6 +6,7 @@
 
 #include "Layer.h"
 #include "AppContext.h"
+#include "LayerEventBus.h"
 
 class App : public SDLCore::Application {
 public:
@@ -37,12 +38,12 @@ public:
 		));
 	}
 
-	template<typename Func>
+	template<LayerEventType type, typename Func>
 	void SubscribeToLayerEvent(Func&& func) {
-		if (!func)
-			return;
+		static_assert(std::is_invocable_v<Func, const LayerEvent&>,
+			"Callback must be callable with const LayerEvent&");
 
-		m_layerCommands.emplace_back<LayerCommand>();
+		m_context.eventBus.Subscribe(type, std::forward<Func>(func));
 	}
 
 	/*
@@ -64,8 +65,6 @@ private:
 	std::vector<std::unique_ptr<Layer>> m_layerStack;
 	std::vector<LayerCommand> m_layerCommands;
 	SDLCore::UI::UIContext* m_UICtx = nullptr;
-
-	bool m_clearLayers = false;
 
 	void ProcessLayerCommands();
 

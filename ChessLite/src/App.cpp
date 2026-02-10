@@ -75,7 +75,6 @@ void App::PopLayer() {
 }
 
 void App::ClearLayers() {
-    ForeachLayer([&](Layer& layer) { layer.OnQuit(&m_context); });
     m_layerCommands.emplace_back<LayerCommand>(LayerCmdType::CLEAR);
 }
 
@@ -88,27 +87,40 @@ size_t App::GetLayerCount() const {
 }
 
 void App::ProcessLayerCommands() {
+    auto& eventBus = m_context.eventBus;
+
     for (auto& cmd : m_layerCommands) {
         switch (cmd.type) {
         case LayerCmdType::PUSH:
             m_layerStack.push_back(std::move(cmd.factory()));
-            m_layerStack.back()->OnStart(&m_context);
+            auto& layer = m_layerStack.back();
+            layer->OnStart(&m_context);
+
+            eventBus.Emit(LayerEventType::OPENED, layer->GetLayerID());
             Log::Debug("App::Layer::Push:  + new count {}", m_layerStack.size());
             break;
 
         case LayerCmdType::POP:
             if (!m_layerStack.empty()) {
-                m_layerStack.back()->OnQuit(&m_context);
+                auto& layer = m_layerStack.back();
+                eventBus.Emit(LayerEventType::CLOSED, layer->GetLayerID());
+                layer->OnQuit(&m_context);
+
                 m_layerStack.pop_back();
                 Log::Debug("App::Layer::Pop: - new count {}", m_layerStack.size());
             }
             break;
         case LayerCmdType::CLEAR:
+            ForeachLayer([&](Layer& layer) {
+                eventBus.Emit(LayerEventType::CLOSED, layer.GetLayerID());
+                layer.OnQuit(&m_context);
+            });
             m_layerStack.clear();
             Log::Debug("App::Layer::Clear: - Clear");
             break;
         }
     }
 
+    eventBus.Dispatch();
     m_layerCommands.clear();
 }

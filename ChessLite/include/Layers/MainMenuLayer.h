@@ -15,6 +15,7 @@ namespace Layers {
 		void OnRender(AppContext* ctx) override;
 		void OnUIRender(AppContext* ctx) override;
 		void OnQuit(AppContext* ctx) override;
+		LayerID GetLayerID() const override;
 
 	private:
 		SDLCore::UI::UIStyle m_styleRoot;

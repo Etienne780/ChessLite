@@ -5,6 +5,13 @@
 
 class AppContext;
 
+enum class LayerID {
+	MAIN_MENU = 0,
+	OPTIONS_MENU,
+	ESCAPE_MENU,
+	GAME
+};
+
 class Layer {
 public:
 	Layer() = default;
@@ -34,6 +41,11 @@ public:
 	* @brief Gets called when the layer closes quit (layers are being closed on application quit)
 	*/
 	virtual void OnQuit(AppContext* ctx) = 0;
+
+	/*
+	* @brief Needs to be override and set to the correct layer id
+	*/
+	virtual LayerID GetLayerID() const = 0;
 
 };
 

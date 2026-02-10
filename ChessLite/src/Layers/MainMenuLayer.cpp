@@ -75,4 +75,8 @@ namespace Layers {
 
 	}
 
+	LayerID MainMenuLayer::GetLayerID() const {
+		return LayerID::MAIN_MENU;
+	}
+
 }

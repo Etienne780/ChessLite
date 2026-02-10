@@ -51,4 +51,8 @@ namespace Layers {
 		
 	}
 
+	LayerID EscapeMenuLayer::GetLayerID() const {
+		return LayerID::ESCAPE_MENU;
+	}
+
 }

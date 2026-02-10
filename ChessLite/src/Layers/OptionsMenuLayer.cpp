@@ -46,4 +46,8 @@ namespace Layers {
 		
 	}
 
+	LayerID OptionsMenuLayer::GetLayerID() const {
+		return LayerID::OPTIONS_MENU;
+	}
+
 }
