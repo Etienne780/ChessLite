@@ -39,12 +39,16 @@ public:
 	}
 
 	template<LayerEventType type, typename Func>
-	void SubscribeToLayerEvent(Func&& func) {
+	LayerEventSubscriptionID SubscribeToLayerEvent(Func&& func) {
 		static_assert(std::is_invocable_v<Func, const LayerEvent&>,
 			"Callback must be callable with const LayerEvent&");
 
-		m_context.eventBus.Subscribe(type, std::forward<Func>(func));
+		return m_context.eventBus.Subscribe(type, std::forward<Func>(func));
 	}
+
+	bool UnsubscribeToLayerEvent(LayerEventSubscriptionID id);
+
+	bool UnsubscribeToLayerEvent(LayerEventType type, LayerEventSubscriptionID id);
 
 	/*
 	* @brief Pops the top most layer from the stack

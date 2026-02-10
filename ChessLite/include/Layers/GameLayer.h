@@ -20,7 +20,9 @@ namespace Layers {
 	private:
 		CoreChess::ChessGame m_game;
 		bool m_gameEnded = false;
+		bool m_isEscapeMenuOpen = false;
 		CoreChess::ChessWinResult m_gameResult = CoreChess::ChessWinResult::NONE;
+		LayerEventSubscriptionID m_escapeMenuCloseEventID;
 
 		Vector2 m_selectedPiecePos = Vector2::zero;
 

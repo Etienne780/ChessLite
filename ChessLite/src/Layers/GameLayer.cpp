@@ -5,6 +5,13 @@
 namespace Layers {
 
 	void GameLayer::OnStart(AppContext* ctx) {
+		m_escapeMenuCloseEventID = ctx->app->SubscribeToLayerEvent<LayerEventType::CLOSED>(
+		[&](const LayerEvent& e) -> void {
+			if (e.layerID == LayerID::ESCAPE_MENU) {
+				m_isEscapeMenuOpen = false;
+			}
+		});
+
 		SetupGame();
 	}
 
@@ -13,7 +20,6 @@ namespace Layers {
 		
 		if (Input::KeyJustPressed(KeyCode::ESCAPE)) {
 			ctx->app->PushLayer<EscapeMenuLayer>();
-			// ctx->app->SubscribeToLayerEvent();
 		}
 	}
 
@@ -27,6 +33,7 @@ namespace Layers {
 
 	void GameLayer::OnQuit(AppContext* ctx) {
 		m_game.EndGame();
+		ctx->app->UnsubscribeToLayerEvent(LayerEventType::CLOSED, m_escapeMenuCloseEventID);
 	}
 
 	LayerID GameLayer::GetLayerID() const {

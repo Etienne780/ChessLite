@@ -3,6 +3,8 @@
 #include <vector>
 #include <memory>
 
+#include "Type.h"
+
 class AppContext;
 
 enum class LayerID {

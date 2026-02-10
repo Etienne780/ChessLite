@@ -70,6 +70,14 @@ void App::OnQuit() {
     m_UICtx = nullptr;
 }
 
+bool App::UnsubscribeToLayerEvent(LayerEventSubscriptionID id) {
+    return m_context.eventBus.Unsubscribe(id);
+}
+
+bool App::UnsubscribeToLayerEvent(LayerEventType type, LayerEventSubscriptionID id) {
+    return m_context.eventBus.Unsubscribe(type, id);
+}
+
 void App::PopLayer() {
     m_layerCommands.emplace_back<LayerCommand>(LayerCmdType::POP);
 }
@@ -91,7 +99,7 @@ void App::ProcessLayerCommands() {
 
     for (auto& cmd : m_layerCommands) {
         switch (cmd.type) {
-        case LayerCmdType::PUSH:
+        case LayerCmdType::PUSH: {
             m_layerStack.push_back(std::move(cmd.factory()));
             auto& layer = m_layerStack.back();
             layer->OnStart(&m_context);
@@ -99,8 +107,8 @@ void App::ProcessLayerCommands() {
             eventBus.Emit(LayerEventType::OPENED, layer->GetLayerID());
             Log::Debug("App::Layer::Push:  + new count {}", m_layerStack.size());
             break;
-
-        case LayerCmdType::POP:
+        }
+        case LayerCmdType::POP: {
             if (!m_layerStack.empty()) {
                 auto& layer = m_layerStack.back();
                 eventBus.Emit(LayerEventType::CLOSED, layer->GetLayerID());
@@ -110,14 +118,16 @@ void App::ProcessLayerCommands() {
                 Log::Debug("App::Layer::Pop: - new count {}", m_layerStack.size());
             }
             break;
-        case LayerCmdType::CLEAR:
+        }
+        case LayerCmdType::CLEAR: {
             ForeachLayer([&](Layer& layer) {
                 eventBus.Emit(LayerEventType::CLOSED, layer.GetLayerID());
                 layer.OnQuit(&m_context);
-            });
+                });
             m_layerStack.clear();
             Log::Debug("App::Layer::Clear: - Clear");
             break;
+        }
         }
     }
 
