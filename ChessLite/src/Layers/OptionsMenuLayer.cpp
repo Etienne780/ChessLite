@@ -15,10 +15,10 @@ namespace Layers {
 	void OptionsMenuLayer::OnStart(AppContext* ctx) {
 		namespace Prop = UI::Properties;
 
-		m_StyleButton
-			.Merge(Style::commanBTNBase)
-			.SetValue(Prop::sizeUnit, UI::UISizeUnit::PX, UI::UISizeUnit::PX)
-			.SetValue(Prop::size, 250.0f, 75.0f);
+		m_styleRoot
+			.Merge(Style::commanRoot)
+			.SetValue(Prop::positionType, UI::UIPositionType::ABSOLUTE)
+			.SetValue(Prop::align, UI::UIAlignment::CENTER, UI::UIAlignment::CENTER);
 	}
 
 	void OptionsMenuLayer::OnUpdate(AppContext* ctx) {
@@ -32,9 +32,9 @@ namespace Layers {
 	void OptionsMenuLayer::OnUIRender(AppContext* ctx) {
 		typedef UI::UIKey Key;
 
-		UI::BeginFrame(Key("options_menu_overlay"), Style::commanOverlay);
+		UI::BeginFrame(Key("options_menu"), m_styleRoot);
 		{
-			if (UIComp::DrawButton("btn_back", "Back", m_StyleButton)) {
+			if (UIComp::DrawButton("btn_back", "Back", Style::commanBTNBase)) {
 				Log::Debug("OptinsMenu: Back");
 				ctx->app->PopLayer();
 			}

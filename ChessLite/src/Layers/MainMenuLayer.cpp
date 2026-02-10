@@ -15,11 +15,11 @@ namespace Layers {
 	void MainMenuLayer::OnStart(AppContext* ctx) {
 		namespace Prop = UI::Properties;
 
-		m_StyleRoot
+		m_styleRoot
 			.Merge(Style::commanRoot)
 			.SetValue(Prop::align, UI::UIAlignment::CENTER, UI::UIAlignment::CENTER);
 
-		m_StyleMenu
+		m_styleMenu
 			.Merge(Style::commanBox)
 			.Merge(Style::commanStretch)
 			.SetValue(Prop::layoutDirection, UI::UILayoutDir::COLUMN)
@@ -28,12 +28,7 @@ namespace Layers {
 			.SetValue(Prop::sizeUnit, UI::UISizeUnit::PX, UI::UISizeUnit::PX)
 			.SetValue(Prop::size, 550.0f, 400.0f);
 
-		m_StyleButton
-			.Merge(Style::commanBTNBase)
-			.SetValue(Prop::sizeUnit, UI::UISizeUnit::PX, UI::UISizeUnit::PX)
-			.SetValue(Prop::size, 250.0f, 75.0f);
-
-		m_StyleTitle
+		m_styleTitle
 			.Merge(Style::commanTextTitle)
 			.SetValue(Prop::margin, Vector4(0, 0, 20, 0));
 	}
@@ -49,32 +44,32 @@ namespace Layers {
 	void MainMenuLayer::OnUIRender(AppContext* ctx) {
 		typedef UI::UIKey Key;
 
-		UI::BeginFrame(Key("main_menu_root"), m_StyleRoot);
-		{
-			UI::BeginFrame(Key("menu"), m_StyleMenu);
+			UI::BeginFrame(Key("main_menu_root"), m_styleRoot);
 			{
-				UI::Text(Key("title"), "Chess Lite", m_StyleTitle);
+				UI::BeginFrame(Key("menu"), m_styleMenu);
+				{
+					UI::Text(Key("title"), "Chess Lite", m_styleTitle);
 
-				if (UIComp::DrawButton("btn_play", "Play", m_StyleButton)) {
-					Log::Debug("MainMenu: Play");
-					ctx->app->ClearLayers();
-					ctx->app->PushLayer<GameLayer>();
-				}
+					if (UIComp::DrawButton("btn_play", "Play", Style::commanBTNBase)) {
+						Log::Debug("MainMenu: Play");
+						ctx->app->ClearLayers();
+						ctx->app->PushLayer<GameLayer>();
+					}
 
-				if (UIComp::DrawButton("btn_settings", "Settings", m_StyleButton)) {
-					Log::Debug("MainMenu: Settings");
-					ctx->app->PushLayer<OptionsMenuLayer>();
-				}
+					if (UIComp::DrawButton("btn_settings", "Settings", Style::commanBTNBase)) {
+						Log::Debug("MainMenu: Settings");
+						ctx->app->PushLayer<OptionsMenuLayer>();
+					}
 
-				if (UIComp::DrawButton("btn_quit", "Quit", m_StyleButton)) {
-					Log::Debug("MainMenu: Quit");
-					// ctx->app->Quit();
+					if (UIComp::DrawButton("btn_quit", "Quit", Style::commanBTNBase)) {
+						Log::Debug("MainMenu: Quit");
+						// ctx->app->Quit();
+					}
 				}
+				UI::EndFrame();
 			}
 			UI::EndFrame();
 		}
-		UI::EndFrame();
-	}
 
 	void MainMenuLayer::OnQuit(AppContext* ctx) {
 

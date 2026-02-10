@@ -61,10 +61,6 @@ void App::OnUpdate() {
         RE::Present();
 
         ProcessLayerCommands();
-
-        // should be removed for final version
-        if (Input::KeyJustPressed(KeyCode::ESCAPE))
-            DeleteWindow(m_winID);
     }
 }
 

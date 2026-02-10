@@ -37,6 +37,14 @@ public:
 		));
 	}
 
+	template<typename Func>
+	void SubscribeToLayerEvent(Func&& func) {
+		if (!func)
+			return;
+
+		m_layerCommands.emplace_back<LayerCommand>();
+	}
+
 	/*
 	* @brief Pops the top most layer from the stack
 	*

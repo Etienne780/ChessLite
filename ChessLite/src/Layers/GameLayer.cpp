@@ -1,4 +1,5 @@
 #include "Layers/GameLayer.h"
+#include "Layers/EscapeMenuLayer.h"
 #include "App.h"
 
 namespace Layers {
@@ -8,12 +9,20 @@ namespace Layers {
 	}
 
 	void GameLayer::OnUpdate(AppContext* ctx) {
-
+		using namespace SDLCore;
+		
+		if (Input::KeyJustPressed(KeyCode::ESCAPE)) {
+			ctx->app->PushLayer<EscapeMenuLayer>();
+			// ctx->app->SubscribeToLayerEvent();
+		}
 	}
 
 	void GameLayer::OnRender(AppContext* ctx) {
 		RenderBoard();
-		RenderUI();
+	}
+
+	void GameLayer::OnUIRender(AppContext* ctx) {
+		
 	}
 
 	void GameLayer::OnQuit(AppContext* ctx) {
@@ -71,18 +80,14 @@ namespace Layers {
 			}
 
 			return ChessWinResult::NONE;
-			});
+		});
 
 		m_game.SetGameContext(chessCTX);
 		m_game.StartGame();
 	}
 
 	void GameLayer::RenderBoard() {
-
-	}
-
-	void GameLayer::RenderUI() {
-
+		
 	}
 
 }

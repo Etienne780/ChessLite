@@ -5,6 +5,7 @@
 namespace Style {
 
 	CoreUI::UIStyle commanRoot{ "comman_root" };
+	CoreUI::UIStyle commanRootAbsolute{ "comman_root_absolute" };
 
 	CoreUI::UIStyle commanStretchX{ "comman_stretch_x" };
 	CoreUI::UIStyle commanStretchY{ "comman_stretch_y" };
@@ -80,7 +81,8 @@ namespace Style {
 
 		// --- Button base ---
 		commanBTNBase
-			.Merge(commanStretch)
+			.SetValue(Prop::sizeUnit, CoreUI::UISizeUnit::PX, CoreUI::UISizeUnit::PX)
+			.SetValue(Prop::size, 250.0f, 75.0f)
 			.SetValue(Prop::align, CoreUI::UIAlignment::CENTER, CoreUI::UIAlignment::CENTER)
 			.SetValue(Prop::backgroundColor, commanColorBtnNormal)
 			.SetValue(Prop::padding, commanSpaceM)

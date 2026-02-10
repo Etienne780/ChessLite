@@ -17,7 +17,7 @@ namespace Layers {
 		void OnQuit(AppContext* ctx) override;
 
 	private:
-		SDLCore::UI::UIStyle m_StyleButton;
+		SDLCore::UI::UIStyle m_styleRoot;
 	};
 
 }

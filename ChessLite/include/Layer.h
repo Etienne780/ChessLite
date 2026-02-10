@@ -49,6 +49,7 @@ struct LayerCommand {
 	LayerCmdType type;
 	FactoryFunc factory = nullptr;
 
+
 	LayerCommand(LayerCmdType _type)
 		: type(_type) {
 	}

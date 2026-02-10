@@ -13,6 +13,7 @@ namespace Layers {
 		void OnStart(AppContext* ctx) override;
 		void OnUpdate(AppContext* ctx) override;
 		void OnRender(AppContext* ctx) override;
+		void OnUIRender(AppContext* ctx) override;
 		void OnQuit(AppContext* ctx) override;
 
 	private:
@@ -24,7 +25,6 @@ namespace Layers {
 
 		void SetupGame();
 		void RenderBoard();
-		void RenderUI();
 	};
 
 }
