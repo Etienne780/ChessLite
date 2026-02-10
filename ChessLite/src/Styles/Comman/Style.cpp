@@ -62,11 +62,12 @@ namespace Style {
 
 		commanOverlay
 			.Merge(commanStretch)
+			.SetValue(Prop::layoutDirection, CoreUI::UILayoutDir::COLUMN)
+			.SetValue(Prop::align, CoreUI::UIAlignment::CENTER, CoreUI::UIAlignment::CENTER)
 			.SetValue(Prop::positionType, CoreUI::UIPositionType::ABSOLUTE)
 			.SetValue(Prop::topLeft, 0, 0)
 			.SetValue(Prop::backgroundColor, commanColorOverlay)
-			.SetValue(Prop::pointerEvents, true)
-			.SetValue(Prop::align, CoreUI::UIAlignment::CENTER, CoreUI::UIAlignment::CENTER);
+			.SetValue(Prop::pointerEvents, true);
 
 		// --- Chess board tiles ---
 		commanBoardTileWhite
@@ -86,6 +87,7 @@ namespace Style {
 			.SetValue(Prop::align, CoreUI::UIAlignment::CENTER, CoreUI::UIAlignment::CENTER)
 			.SetValue(Prop::backgroundColor, commanColorBtnNormal)
 			.SetValue(Prop::padding, commanSpaceM)
+			.SetValue(Prop::margin, commanSpaceXS)
 			.SetValue(Prop::hideOverflow, true, true)
 			.SetValue(Prop::duration, 0.15f)
 			.SetValue(Prop::durationEasing, CoreUI::UIEasing::EaseInOutSine);
