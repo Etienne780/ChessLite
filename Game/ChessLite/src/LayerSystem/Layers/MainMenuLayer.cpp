@@ -34,7 +34,7 @@ namespace Layers {
 	}
 
 	void MainMenuLayer::OnUpdate(AppContext* ctx) {
-		
+
 	}
 
 	void MainMenuLayer::OnRender(AppContext* ctx) {

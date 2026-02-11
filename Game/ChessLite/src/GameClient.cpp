@@ -57,11 +57,18 @@ bool GameClient::Receive(std::string& out) {
 	char buffer[512];
 	int received = NET_ReadFromStreamSocket(m_socket, buffer, sizeof(buffer));
 
-	if (received <= 0)
-		return  false;
+	if (received > 0) {
+		out.assign(buffer, received);
+		return true;
+	}
 
-	out.assign(buffer, received);
-	return true;
+	if (received == 0) {
+		return false;
+	}
+
+	Disconnect();
+	AddError(SDL_GetError());
+	return false;
 }
 
 bool GameClient::IsConnected() const {

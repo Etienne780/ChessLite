@@ -37,7 +37,7 @@ void NetServer::Run() {
 	while (m_running) {
 		NET_StreamSocket* client = WaitForClient();
 		if (!client) {
-			SDL_Delay(1);
+			SDL_Delay(10);
 			continue;
 		}
 
@@ -63,18 +63,23 @@ NetServer::NetServer(const std::string& name)
 
 void NetServer::HandleClient(NET_StreamSocket* client) const {
 	char buffer[512];
-
 	while (true) {
 		int received = NET_ReadFromStreamSocket(client, buffer, sizeof(buffer));
-		if (received <= 0)
+
+		if (received > 0) {
+			std::string msg(buffer, received);
+			std::cout << "[" << m_name << "] Received: " << msg << "\n";
+
+			NET_WriteToStreamSocket(client, msg.c_str(), static_cast<int>(msg.size()));
+		}
+		else if (received == 0) {
+			SDL_Delay(1);
+			continue;
+		}
+		else {
 			break;
-
-		std::string msg(buffer, received);
-		std::cout << "[" << m_name << "] Received: " << msg << "\n";
-
-		NET_WriteToStreamSocket(client, msg.c_str(), static_cast<int>(msg.size()));
+		}
 	}
-
 	NET_DestroyStreamSocket(client);
 }
 
