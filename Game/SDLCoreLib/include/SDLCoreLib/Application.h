@@ -43,7 +43,7 @@ namespace SDLCore {
 		* @brief Starts the main loop of the application
 		* @return returns an error code or 0
 		*/
-		SDLResult Start();
+		ApplicationResult Start();
 
 		/**
 		* @brief Quits the application

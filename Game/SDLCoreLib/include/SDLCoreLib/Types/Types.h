@@ -15,7 +15,7 @@ inline constexpr int APPLICATION_FPS_VSYNC_ADAPTIVE_ON = -2;
 
 namespace SDLCore {
 
-	typedef int SDLResult;
+	typedef int ApplicationResult;
 	typedef SDL_Rect Rect;/**< Rect with int components (SDL_Rect) */
 	typedef SDL_FRect FRect;/**< Rect with float components (SDL_FRect) */
 	typedef SDL_Color Color;/**< Color with uint8 components (SDL_Color) */

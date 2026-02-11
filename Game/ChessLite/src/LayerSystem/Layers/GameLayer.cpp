@@ -1,5 +1,5 @@
-#include "Layers/GameLayer.h"
-#include "Layers/EscapeMenuLayer.h"
+#include "LayerSystem/Layers/GameLayer.h"
+#include "LayerSystem/Layers/EscapeMenuLayer.h"
 #include "App.h"
 
 namespace Layers {

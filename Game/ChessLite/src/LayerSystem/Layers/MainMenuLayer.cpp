@@ -1,6 +1,6 @@
-﻿#include "Layers/MainMenuLayer.h"
-#include "Layers/OptionsMenuLayer.h"
-#include "Layers/GameLayer.h"
+﻿#include "LayerSystem/Layers/MainMenuLayer.h"
+#include "LayerSystem/Layers/OptionsMenuLayer.h"
+#include "LayerSystem/Layers/GameLayer.h"
 
 #include "App.h"
 #include "Styles/Comman/Style.h"

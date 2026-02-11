@@ -1,5 +1,5 @@
-#include "Layers/OptionsMenuLayer.h"
-#include "Layers/MainMenuLayer.h"
+#include "LayerSystem/Layers/OptionsMenuLayer.h"
+#include "LayerSystem/Layers/MainMenuLayer.h"
 
 #include "App.h"
 #include "Styles/Comman/Style.h"

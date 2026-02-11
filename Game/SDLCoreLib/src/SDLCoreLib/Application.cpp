@@ -1,6 +1,7 @@
 #include <SDL3/SDL.h>
 #include <SDL3_ttf/SDL_ttf.h>
 #include <SDL3_mixer/SDL_mixer.h>
+#include <SDL3_net/SDL_net.h>
 #include <CoreLib/Log.h>
 #include <CoreLib/Algorithm.h>
 
@@ -73,25 +74,30 @@ namespace SDLCore {
     }
 
     void Application::Init() {
-        if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
+        if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS)) {
             SetError(Log::GetFormattedString("SDLCore::Application: {}", SDL_GetError()));
             cancelStart = 1;
         }
         SDL_SetAppMetadata(m_name.c_str(), m_version.ToString().c_str(), nullptr);
 
         if (!TTF_Init()) {
-            SetError(Log::GetFormattedString("SDLCore::Application: {}", SDL_GetError()));
+            SetErrorF("SDLCore::Application(SDL_TTF): {}", SDL_GetError());
             cancelStart = 2;
         }
 
         if (!MIX_Init()) {
-            SetError(Log::GetFormattedString("SDLCore::Application: {}", SDL_GetError()));
+            SetErrorF("SDLCore::Application(SDL_Mixer): {}", SDL_GetError());
             cancelStart = 3;
         }
 
         if (!SoundManager::Init()) {
             // SetError(GetError()); error is already set
             cancelStart = 4;
+        }
+
+        if (!NET_Init()) {
+            SetErrorF("SDLCore::Application(SDL_Net): {}", SDL_GetError());
+            cancelStart = 5;
         }
     }
 

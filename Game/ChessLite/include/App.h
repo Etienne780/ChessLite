@@ -4,9 +4,9 @@
 #include <SDLCoreLib/SDLCore.h>
 #include <SDLCoreLib/SDLCoreUI.h>
 
-#include "Layer.h"
+#include "LayerSystem/Layer.h"
 #include "AppContext.h"
-#include "LayerEventBus.h"
+#include "LayerSystem/LayerEventBus.h"
 
 class App : public SDLCore::Application {
 public:

@@ -1,14 +1,14 @@
 #pragma once
 #include <SDLCoreLib/SDLCoreUI.h>
 
-#include "Layer.h"
+#include "LayerSystem/Layer.h"
 
 namespace Layers {
 
-	class MainMenuLayer : public Layer {
+	class EscapeMenuLayer : public Layer {
 	public:
-		MainMenuLayer() = default;
-		~MainMenuLayer() override = default;
+		EscapeMenuLayer() = default;
+		~EscapeMenuLayer() override = default;
 
 		void OnStart(AppContext* ctx) override;
 		void OnUpdate(AppContext* ctx) override;
@@ -17,10 +17,6 @@ namespace Layers {
 		void OnQuit(AppContext* ctx) override;
 		LayerID GetLayerID() const override;
 
-	private:
-		SDLCore::UI::UIStyle m_styleRoot;
-		SDLCore::UI::UIStyle m_styleMenu;
-		SDLCore::UI::UIStyle m_styleTitle;
 	};
 
 }

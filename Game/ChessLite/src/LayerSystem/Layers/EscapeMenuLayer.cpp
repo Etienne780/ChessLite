@@ -1,6 +1,6 @@
-#include "Layers/EscapeMenuLayer.h"
-#include "Layers/MainMenuLayer.h"
-#include "Layers/OptionsMenuLayer.h"
+#include "LayerSystem/Layers/EscapeMenuLayer.h"
+#include "LayerSystem/Layers/MainMenuLayer.h"
+#include "LayerSystem/Layers/OptionsMenuLayer.h"
 
 #include "App.h"
 #include "Styles/Comman/Style.h"

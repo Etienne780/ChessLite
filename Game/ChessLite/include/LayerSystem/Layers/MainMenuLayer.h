@@ -1,14 +1,14 @@
 #pragma once
 #include <SDLCoreLib/SDLCoreUI.h>
 
-#include "Layer.h"
+#include "LayerSystem/Layer.h"
 
 namespace Layers {
 
-	class OptionsMenuLayer : public Layer {
+	class MainMenuLayer : public Layer {
 	public:
-		OptionsMenuLayer() = default;
-		~OptionsMenuLayer() override = default;
+		MainMenuLayer() = default;
+		~MainMenuLayer() override = default;
 
 		void OnStart(AppContext* ctx) override;
 		void OnUpdate(AppContext* ctx) override;
@@ -19,6 +19,8 @@ namespace Layers {
 
 	private:
 		SDLCore::UI::UIStyle m_styleRoot;
+		SDLCore::UI::UIStyle m_styleMenu;
+		SDLCore::UI::UIStyle m_styleTitle;
 	};
 
 }
