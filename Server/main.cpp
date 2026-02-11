@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "NetworkSystem.h"
 #include "NetServerManager.h"
 
@@ -9,6 +11,10 @@ int main(int argc, char* argv[]) {
 	server->Start(5000);
 
 	NetServerManager::StartAll();
+
+	std::cout << "-------------------------------------\n";
+	std::cout << "           Server Startup            \n";
+	std::cout << "-------------------------------------\n\n";
 
 	while (true) {
 	}
