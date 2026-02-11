@@ -1,5 +1,0 @@
-#include "Types/Font/Font.h"
-#include "Types/Texture.h"
-#include "Types/Version.h"
-#include "Types/Vertex.h"
-#include "Types/Types.h"

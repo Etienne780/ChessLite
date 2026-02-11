@@ -62,15 +62,16 @@ end
 -- Libraries Includes
 ------------------------------------
 group "Libraries"
-    include "CoreLib"
-    include "SDLCoreLib"
-    include "CoreChessLib"
+    include "Game/CoreLib"
+    include "Game/SDLCoreLib"
+    include "Game/CoreChessLib"
 -- Restore default group
 group ""
 ------------------------------------
 -- Examples Includes
 ------------------------------------
-include "ChessLite"
+include "Game/ChessLite"
+include "Server"
 
 --------------------------------------------------------
 -- Custom clean action
