@@ -2,9 +2,7 @@
 #include "LayerSystem/Layers.h"
 #include "Styles/Comman/Style.h"
 #include "UIComponents/Button.h"
-#include "Styles/Comman/Style.h"
 #include "Styles/Comman/Space.h"
-#include "UIComponents/Button.h"
 
 static App* g_appInstance;
 
