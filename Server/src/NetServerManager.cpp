@@ -26,6 +26,17 @@ bool NetServerManager::DestroyServer(NetServer* server) {
 	return true;
 }
 
+void NetServerManager::SendMessage(const std::string& serverName, const std::string& msg) {
+	for (auto* s : m_serverList) {
+		if (s->GetName() == serverName) {
+			if (s->IsInitialized()) {
+				s->m_logic->OnMessage(nullptr, msg);
+			}
+			break;
+		}
+	}
+}
+
 void NetServerManager::StartAll() {
 	for (auto* server : m_serverList) {
 		std::thread([server]() {

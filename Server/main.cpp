@@ -6,6 +6,7 @@
 #include "NetServerManager.h"
 
 #include "ServerLogic/SQLServerLogic.h"
+#include "ServerLogic/GameServerLogic.h"
 
 int main(int argc, char* argv[]) {
 	if (!NetworkSystem::Init())
@@ -13,9 +14,13 @@ int main(int argc, char* argv[]) {
 	
 	DBConfig config = LoadDBConfigRelative("config.otn");
 
-	NetServer* server = NetServerManager::CreateServer("testSQLServer");
+	NetServer* server = NetServerManager::CreateServer("sql_server");
 	server->SetLogic<SQLServerLogic>(config);
 	server->Start(5000);
+
+	NetServer* server = NetServerManager::CreateServer("game_server");
+	server->SetLogic<GameServerLogic>();
+	server->Start(5001);
 
 	NetServerManager::StartAll();
 

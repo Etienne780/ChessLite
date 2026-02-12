@@ -11,6 +11,8 @@ public:
 	static NetServer* CreateServer(const std::string& name);
 	static bool DestroyServer(NetServer* server);
 
+	static void SendMessage(const std::string& serverName, const std::string& msg);
+
 	static void StartAll();
 	static void StopAll();
 
