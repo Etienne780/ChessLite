@@ -5,6 +5,10 @@
 
 #include "NetworkSystem.h"
 
+NetServer::~NetServer() {
+	FreeServerLogic();
+}
+
 bool NetServer::Start(uint16_t port) {
 	NET_Address* addr = NetworkSystem::GetBindAddress();
 
@@ -62,6 +66,9 @@ NetServer::NetServer(const std::string& name)
 }
 
 void NetServer::HandleClient(NET_StreamSocket* client) const {
+	if (m_logic)
+		m_logic->OnClientConnected(client);
+
 	char buffer[512];
 	while (true) {
 		int received = NET_ReadFromStreamSocket(client, buffer, sizeof(buffer));
@@ -70,16 +77,21 @@ void NetServer::HandleClient(NET_StreamSocket* client) const {
 			std::string msg(buffer, received);
 			std::cout << "[" << m_name << "] Received: " << msg << "\n";
 
-			NET_WriteToStreamSocket(client, msg.c_str(), static_cast<int>(msg.size()));
+			if (m_logic)
+				m_logic->OnMessage(client, msg);
 		}
 		else if (received == 0) {
-			SDL_Delay(1);
+			SDL_Delay(10);
 			continue;
 		}
 		else {
 			break;
 		}
 	}
+
+	if (m_logic)
+		m_logic->OnClientDisconnected(client);
+
 	NET_DestroyStreamSocket(client);
 }
 
@@ -88,4 +100,8 @@ NET_StreamSocket* NetServer::WaitForClient() {
 	if (NET_AcceptClient(m_server, &client))
 		return client;
 	return nullptr;
+}
+
+void NetServer::FreeServerLogic() {
+	delete m_logic;
 }

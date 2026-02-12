@@ -4,12 +4,14 @@
 #include <SDL3/SDL.h>
 #include <SDL3_net/SDL_net.h>
 
+#include "IServerLogic.h"
+
 class NetServerManager;
 
 class NetServer {
 friend class NetServerManager;
 public:
-	~NetServer() = default;
+	~NetServer();
 
 	bool Start(uint16_t port);
 	void Stop();
@@ -20,6 +22,13 @@ public:
 	bool IsRunning() const;
 	const std::string& GetName() const;
 
+	template<typename T>
+	void SetLogic() {
+		static_assert(std::is_base_of_v<IServerLogic, T>, "T musst have IServerLogic as base class!");
+		FreeServerLogic();
+		m_logic = new T();
+	}
+
 private:
 	std::string m_name;
 	uint16_t m_port = 0;
@@ -27,8 +36,11 @@ private:
 	bool m_isInitialized = false;
 	bool m_running = false;
 
+	IServerLogic* m_logic = nullptr;
+
 	NetServer(const std::string& name);
 
 	void HandleClient(NET_StreamSocket* client) const;
 	NET_StreamSocket* WaitForClient();
+	void FreeServerLogic();
 };
