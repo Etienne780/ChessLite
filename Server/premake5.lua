@@ -38,9 +38,9 @@ project "Server"
 
     ApplyCommonConfigs()
 
-    -- Copy mysql dlls
     postbuildcommands {
         '{MKDIR} "%{cfg.targetdir}"',
+        '{COPY} "config.otn" "%{cfg.targetdir}"',
         '{COPY} "%{wks.location}/vendor/mysql/lib/x64/*.dll" "%{cfg.targetdir}"',
         '{COPY} "%{wks.location}/vendor/SDL3/lib/x64/*.dll" "%{cfg.targetdir}"',
         '{COPY} "%{wks.location}/vendor/SDL3_net/lib/x64/*.dll" "%{cfg.targetdir}"'

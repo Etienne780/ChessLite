@@ -1,0 +1,8 @@
+@version: 1;
+
+@object: {
+	database[1] {
+		String/host, int/port, String/user, String/password, String/schema
+	};
+	"127.0.0.1", 3306, "root", "root", "game";
+};
