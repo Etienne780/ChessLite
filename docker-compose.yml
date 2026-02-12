@@ -1,0 +1,15 @@
+services:
+  db:
+    image: mysql:8
+    container_name: game-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: game
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./Database:/docker-entrypoint-initdb.d
+
+volumes:
+  db_data:

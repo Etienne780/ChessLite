@@ -3,6 +3,10 @@
 IF "%~1" == "" GOTO PrintHelp
 IF "%~1" == "help" GOTO PrintHelp
 IF "%~1" == "compile" GOTO Compile
+IF "%~1" == "db-start" GOTO DbStart
+IF "%~1" == "db-stop" GOTO DbStop
+IF "%~1" == "db-status" GOTO DbStatus
+IF "%~1" == "db-restart" GOTO DbRestart
 
 vendor\premake5\premake5.exe %1
 GOTO Done
@@ -38,6 +42,27 @@ if not defined DevEnvDir (
 
 set solutionFile=Game.sln
 msbuild /t:Build /p:Configuration=Debug /p:Platform=x64 %solutionFile%
+GOTO Done
+
+:DbStart
+echo Starting Docker database...
+docker compose up -d
+GOTO Done
+
+:DbStop
+echo Stopping Docker database...
+docker compose down
+GOTO Done
+
+:DbStatus
+echo Docker container status:
+docker ps
+GOTO Done
+
+:DbRestart
+echo Restarting Docker database...
+docker compose down
+docker compose up -d
 GOTO Done
 
 :Done
