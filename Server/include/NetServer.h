@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <atomic>
 
 #include <SDL3/SDL.h>
 #include <SDL3_net/SDL_net.h>
@@ -35,7 +36,7 @@ private:
 	uint16_t m_port = 0;
 	NET_Server* m_server = nullptr;
 	bool m_isInitialized = false;
-	bool m_running = false;
+	std::atomic<bool> m_running = false;
 
 	IServerLogic* m_logic = nullptr;
 
