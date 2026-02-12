@@ -39,6 +39,9 @@ void NetServer::Run() {
 	m_running = true;
 
 	while (m_running) {
+		if (m_logic)
+			m_logic->OnRun();
+
 		NET_StreamSocket* client = WaitForClient();
 		if (!client) {
 			SDL_Delay(10);

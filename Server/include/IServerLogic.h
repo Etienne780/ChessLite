@@ -5,6 +5,10 @@
 class IServerLogic {
 public:
 	virtual ~IServerLogic() = default;
+
+	/*< called every tick */
+	virtual void OnRun() {};
+
 	virtual void OnClientConnected(NET_StreamSocket* client) {};
 	virtual void OnMessage(NET_StreamSocket* client, const std::string& msg) {};
 	virtual void OnClientDisconnected(NET_StreamSocket* client) {};
