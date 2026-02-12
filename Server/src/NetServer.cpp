@@ -61,6 +61,10 @@ const std::string& NetServer::GetName() const {
 	return m_name;
 }
 
+uint16_t NetServer::GetPort() const {
+	return m_port;
+}
+
 NetServer::NetServer(const std::string& name) 
 	: m_name(name) {
 }

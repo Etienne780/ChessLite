@@ -21,6 +21,7 @@ public:
 	bool IsInitialized() const;
 	bool IsRunning() const;
 	const std::string& GetName() const;
+	uint16_t GetPort() const;
 
 	template<typename T>
 	void SetLogic() {
