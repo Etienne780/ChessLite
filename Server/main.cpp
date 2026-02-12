@@ -1,16 +1,20 @@
 #include <iostream>
 
+#include "ConfigLoader.h"
+
 #include "NetworkSystem.h"
 #include "NetServerManager.h"
 
-#include "ServerLogic/LoopBackServerLogic.h"
+#include "ServerLogic/SQLServerLogic.h"
 
 int main(int argc, char* argv[]) {
 	if (!NetworkSystem::Init())
 		return 1;
 	
-	NetServer* server = NetServerManager::CreateServer("testSerer");
-	server->SetLogic<LoopBackServerLogic>();
+	DBConfig config = LoadDBConfigRelative("config.otn");
+
+	NetServer* server = NetServerManager::CreateServer("testSQLServer");
+	server->SetLogic<SQLServerLogic>(config);
 	server->Start(5000);
 
 	NetServerManager::StartAll();

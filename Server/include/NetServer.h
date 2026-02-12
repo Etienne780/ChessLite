@@ -24,11 +24,11 @@ public:
 	const std::string& GetName() const;
 	uint16_t GetPort() const;
 
-	template<typename T>
-	void SetLogic() {
+	template<typename T, typename ...Args>
+	void SetLogic(Args&& ...args) {
 		static_assert(std::is_base_of_v<IServerLogic, T>, "T musst have IServerLogic as base class!");
 		FreeServerLogic();
-		m_logic = new T();
+		m_logic = new T(std::forward<Args>(args)...);
 	}
 
 private:
