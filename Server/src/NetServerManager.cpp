@@ -3,7 +3,6 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
-#include <thread>
 
 NetServer* NetServerManager::CreateServer(const std::string& name) {
 	NetServer* server = new NetServer(name);
@@ -39,12 +38,21 @@ void NetServerManager::SendMessage(const std::string& serverName, const std::str
 
 void NetServerManager::StartAll() {
 	for (auto* server : m_serverList) {
-		std::thread([server]() {
+		m_threads.emplace_back([server]() {
 			server->Run();
-		}).detach();
+		});
 	}
 }
 
 void NetServerManager::StopAll() {
-	
+	for (auto* server : m_serverList) {
+		server->Stop();
+	}
+
+	for (auto& thread : m_threads) {
+		if (thread.joinable())
+			thread.join();
+	}
+
+	m_threads.clear();
 }

@@ -27,6 +27,7 @@ void NetServer::Stop() {
 	NET_DestroyServer(m_server);
 	m_server = nullptr;
 	m_isInitialized = false;
+	m_running = false;
 	m_port = 0;
 }
 

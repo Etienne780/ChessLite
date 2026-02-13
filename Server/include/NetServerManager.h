@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <thread>
 #include "NetServer.h"
 
 class NetServerManager {
@@ -17,5 +18,6 @@ public:
 	static void StopAll();
 
 private:
+	static inline std::vector<std::thread> m_threads;
 	static inline std::vector<NetServer*> m_serverList;
 };
