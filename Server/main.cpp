@@ -14,13 +14,13 @@ int main(int argc, char* argv[]) {
 	
 	DBConfig config = LoadDBConfigRelative("config.otn");
 
-	NetServer* server = NetServerManager::CreateServer("sql_server");
-	server->SetLogic<SQLServerLogic>(config);
-	server->Start(5000);
+	NetServer* sqlServer = NetServerManager::CreateServer("sql_server");
+	sqlServer->SetLogic<SQLServerLogic>(config);
+	sqlServer->Start(5000);
 
-	NetServer* server = NetServerManager::CreateServer("game_server");
-	server->SetLogic<GameServerLogic>();
-	server->Start(5001);
+	NetServer* gameServer = NetServerManager::CreateServer("game_server");
+	gameServer->SetLogic<GameServerLogic>();
+	gameServer->Start(5001);
 
 	NetServerManager::StartAll();
 
