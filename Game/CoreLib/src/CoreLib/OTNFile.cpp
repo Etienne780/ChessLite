@@ -16,6 +16,7 @@ namespace OTN {
 
 		static const std::unordered_map<std::string_view, OTNBaseType> table = {
 			{ SynTypes::INT,  OTNBaseType::INT },
+			{ SynTypes::INT64,  OTNBaseType::INT64 },
 			{ SynTypes::FLOAT, OTNBaseType::FLOAT },
 			{ SynTypes::DOUBLE, OTNBaseType::DOUBLE },
 			{ SynTypes::BOOL,   OTNBaseType::BOOL },
@@ -34,6 +35,7 @@ namespace OTN {
 		
 		switch (type) {
 		case OTN::OTNBaseType::INT:     return SynTypes::INT;
+		case OTN::OTNBaseType::INT64:     return SynTypes::INT64;
 		case OTN::OTNBaseType::FLOAT:   return SynTypes::FLOAT;
 		case OTN::OTNBaseType::DOUBLE:  return SynTypes::DOUBLE;
 		case OTN::OTNBaseType::BOOL:    return SynTypes::BOOL;
@@ -56,6 +58,7 @@ namespace OTN {
 		// Base type
 		switch (type.baseType) {
 		case OTNBaseType::INT:
+		case OTNBaseType::INT64:
 		case OTNBaseType::FLOAT:
 		case OTNBaseType::DOUBLE:
 		case OTNBaseType::BOOL:
@@ -922,6 +925,10 @@ namespace OTN {
 			HashCombine(hash, std::hash<int>{}(std::get<int>(value.value)));
 			break;
 
+		case OTNBaseType::INT64:
+			HashCombine(hash, std::hash<int64_t>{}(std::get<int64_t>(value.value)));
+			break;
+
 		case OTNBaseType::FLOAT:
 			HashCombine(hash, std::hash<float>{}(std::get<float>(value.value)));
 			break;
@@ -1473,6 +1480,9 @@ namespace OTN {
 		case OTNBaseType::INT:
 			WriteData(outStr, std::get<int>(data.value));
 			break;
+		case OTNBaseType::INT64:
+			WriteData(outStr, std::get<int64_t>(data.value));
+			break;
 		case OTNBaseType::FLOAT:
 			WriteData(outStr, std::get<float>(data.value));
 			break;
@@ -1515,20 +1525,25 @@ namespace OTN {
 
 	template<typename T>
 	void OTNWriter::WriteData(std::string& outStr, const T& data) {
-		if constexpr (std::is_same_v<T, int>) {
+		using DT = std::decay_t<T>;
+
+		if constexpr (std::is_same_v<DT, int>) {
 			outStr += ToString(data);
 		}
-		else if constexpr (std::is_same_v<T, float>) {
+		else if constexpr (std::is_same_v<DT, int64_t>) {
 			outStr += ToString(data);
 		}
-		else if constexpr (std::is_same_v<T, double>) {
+		else if constexpr (std::is_same_v<DT, float>) {
 			outStr += ToString(data);
 		}
-		else if constexpr (std::is_same_v<T, bool>) {
+		else if constexpr (std::is_same_v<DT, double>) {
+			outStr += ToString(data);
+		}
+		else if constexpr (std::is_same_v<DT, bool>) {
 			outStr += (data ? Keyword::TRUE_KW : Keyword::FALSE_KW);
 		}
 		else {
-			static_assert(otn_always_false_v<T>, "Unsupported type for WriteData");
+			static_assert(otn_always_false_v<DT>, "Unsupported type for WriteData");
 		}
 	}
 
@@ -1657,20 +1672,10 @@ namespace OTN {
 	}
 
 	bool OTNReader::OTNTokenizer::Tokenize() {
-		if (m_fileData) {
-			for (size_t i = 0; i < m_fileData->size(); i++) {
-				char c = (*m_fileData)[i];
-				if (!ProcessChar(c)) {
-					return false;
-				}
-			}
-		}
-		else {
-			char c;
-			while (m_stream.get(c)) {
-				if (!ProcessChar(c)) {
-					return false;
-				}
+		char c;
+		while (m_stream.get(c)) {
+			if (!ProcessChar(c)) {
+				return false;
 			}
 		}
 
@@ -2448,6 +2453,7 @@ namespace OTN {
 	OTNValue OTNReader::OTNReaderV1::TokenToOTNValue(const Token& token, const OTNTypeDesc& type) {
 		switch (type.baseType) {
 		case OTN::OTNBaseType::INT:
+		case OTN::OTNBaseType::INT64:
 		case OTN::OTNBaseType::FLOAT:
 		case OTN::OTNBaseType::DOUBLE:
 		case OTN::OTNBaseType::BOOL:
@@ -2546,6 +2552,8 @@ namespace OTN {
 		switch (expectedType) {
 		case OTNBaseType::INT:
 			return OTNValue(ParseNumericToken<int>(token, this));
+		case OTNBaseType::INT64:
+			return OTNValue(ParseNumericToken<int64_t>(token, this));
 		case OTNBaseType::FLOAT:
 			return OTNValue(ParseNumericToken<float>(token, this));
 		case OTNBaseType::DOUBLE:

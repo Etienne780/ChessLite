@@ -147,6 +147,7 @@ namespace OTN {
 
 		namespace Types {
 			inline constexpr std::string_view INT = "int";
+			inline constexpr std::string_view INT64 = "int64";
 			inline constexpr std::string_view FLOAT = "float";
 			inline constexpr std::string_view DOUBLE = "double";
 			inline constexpr std::string_view BOOL = "bool";
@@ -178,6 +179,7 @@ namespace OTN {
 	enum class OTNBaseType {
 		UNKNOWN = 0,
 		INT,
+		INT64,
 		FLOAT,
 		DOUBLE,
 		BOOL,
@@ -291,6 +293,7 @@ namespace OTN {
 	
 	using OTNValueVariant = std::variant<
 		int,
+		int64_t,
 		float,
 		double,
 		bool,
@@ -307,6 +310,10 @@ namespace OTN {
 
 	template<> struct OTNTypeOf<int> {
 		static constexpr OTNBaseType value = OTNBaseType::INT;
+	};
+
+	template<> struct OTNTypeOf<int64_t> {
+		static constexpr OTNBaseType value = OTNBaseType::INT64;
 	};
 
 	template<> struct OTNTypeOf<float> {
@@ -366,8 +373,34 @@ namespace OTN {
 		* @param v Value variant
 		*/
 		explicit OTNValue(OTNValueVariant v)
-			: value(std::move(v)),
-			type(GetTypeFromVariant(value)) {
+			: value(std::move(v)), type(GetTypeFromVariant(value)) {
+		}
+
+		OTNValue(const OTNValue& other)
+			: value(other.value), type(other.type) {
+		}
+
+		OTNValue(OTNValue&& other) noexcept
+			: value(std::move(other.value)), type(other.type)
+		{
+			other.type = OTNBaseType::UNKNOWN;
+		}
+
+		OTNValue& operator=(const OTNValue& other) {
+			if (this != &other) {
+				value = other.value;
+				type = other.type;
+			}
+			return *this;
+		}
+
+		OTNValue& operator=(OTNValue&& other) noexcept {
+			if (this != &other) {
+				value = std::move(other.value);
+				type = other.type;
+				other.type = OTNBaseType::UNKNOWN;
+			}
+			return *this;
 		}
 
 		bool operator==(const OTNValue& other) const {
@@ -383,7 +416,7 @@ namespace OTN {
 					}
 					else if constexpr (
 						std::is_same_v<T, OTNObjectPtr> ||
-						std::is_same_v<T, OTNArrayPtr>) 
+						std::is_same_v<T, OTNArrayPtr>)
 					{
 						return a.get() == b.get();
 					}
@@ -423,6 +456,7 @@ namespace OTN {
 	struct is_otn_base_type : std::false_type {};
 	
 	template<> struct is_otn_base_type<int> : std::true_type {};
+	template<> struct is_otn_base_type<int64_t> : std::true_type {};
 	template<> struct is_otn_base_type<float> : std::true_type {};
 	template<> struct is_otn_base_type<double> : std::true_type {};
 	template<> struct is_otn_base_type<bool> : std::true_type {};
@@ -545,7 +579,7 @@ namespace OTN {
 		* the first row of data added.
 		*
 		* Supported type strings include for example:
-		* "int", "float", "String", "objectName", "int[]".
+		* "int", "int64", "float", "String", "objectName", "int[]".
 		*
 		* Use "-", "", or "_" to indicate skip the definition of this type.
 		* Type will automaticly be deduced if a row is inserted.
@@ -1876,7 +1910,6 @@ namespace OTN {
 
 		private:
 			std::istream& m_stream;
-			const std::string* m_fileData = nullptr;
 			std::vector<Token> m_tokens;
 			std::string m_error;
 			bool m_valid = false;
@@ -1976,6 +2009,9 @@ namespace OTN {
 
 					if constexpr (std::is_same_v<T, int>) {
 						value = std::stoi(text);
+					}
+					else if constexpr (std::is_same_v<T, int64_t>) {
+						value = std::stoll(text);
 					}
 					else if constexpr (std::is_same_v<T, float>) {
 						value = std::stof(text);
