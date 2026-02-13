@@ -458,6 +458,8 @@ namespace SDLCore::UI {
 
         if (clipEnabled)
             SDLCore::Render::SetClipRect(prevClip);
+        else
+            SDLCore::Render::ResetClipRect();
     }
 
 
