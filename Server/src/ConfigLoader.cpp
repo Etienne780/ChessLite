@@ -27,7 +27,8 @@ DBConfig LoadDBConfig(const OTN::OTNFilePath& path) {
 
     OTN::OTNReader reader;
     if (!reader.ReadFile(path)) {
-        throw std::runtime_error("LoadDBConfig: Failed to read config file: " + path.string());
+        std::string errMsg = "LoadDBConfig: Failed to read config file: " + path.string() + "\n Reader error:" + reader.GetError();
+        throw std::runtime_error(errMsg);
     }
 
     if (auto objOpt = reader.TryGetObject("database")) {
