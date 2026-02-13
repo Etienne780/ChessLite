@@ -1731,6 +1731,16 @@ namespace OTN {
 		* @return True if saving succeeded, false otherwise. Retrieve more information via GetError() or TryGetError()
 		*/
 		bool ReadFile(const OTNFilePath& path);
+
+		/**
+		* @brief Read OTN data directly from a string buffer.
+		*
+		* Useful for tests, network payloads, or already-loaded text content.
+		*
+		* @param fileString OTN text data.
+		* @return True if parsing succeeded, false otherwise.
+		*/
+		bool ReadString(const std::string& fileString);
 		
 		/**
 		* @brief Returns the version of the OTN file.
@@ -1847,7 +1857,7 @@ namespace OTN {
 
 		class OTNTokenizer {
 		public:
-			explicit OTNTokenizer(std::ifstream& stream)
+			explicit OTNTokenizer(std::istream& stream)
 				: m_stream(stream) {
 			}
 
@@ -1856,13 +1866,16 @@ namespace OTN {
 			std::string GetError() const;
 
 		private:
-			std::ifstream& m_stream;
+			std::istream& m_stream;
+			const std::string* m_fileData = nullptr;
 			std::vector<Token> m_tokens;
 			std::string m_error;
 			bool m_valid = false;
 
 			uint32_t m_line = 1;
 			uint32_t m_column = 1;
+
+			bool ProcessChar(char c);
 
 			bool AddToken(TokenType type, char c);
 			bool AddToken(TokenType type, const std::string& text);
@@ -1987,7 +2000,7 @@ namespace OTN {
 		ReaderData m_readerData;
 
 		bool OpenFileStream(const OTNFilePath& path);
-		bool ReadData(const OTNFilePath& path, ReaderData& data);
+		bool ReadData(std::istream& input, ReaderData& data);
 		bool SetDataVersion(const std::vector<Token>& tokens, ReaderData& data);
 
 		void AddError(const std::string& error, bool linebreak = true);

@@ -1551,7 +1551,24 @@ namespace OTN {
 			return false;
 		}
 
-		if (!ReadData(newPath, m_readerData)) {
+		if (!ReadData(m_readerData.stream, m_readerData)) {
+			AddError("Data could not be read!");
+			return false;
+		}
+
+		return true;
+	}
+
+	bool OTNReader::ReadString(const std::string& fileString) {
+		if (!IsValid()) {
+			AddError("Reader object is invalid!");
+			return false;
+		}
+
+		m_readerData.Reset();
+		std::istringstream stream(fileString);
+
+		if (!ReadData(stream, m_readerData)) {
 			AddError("Data could not be read!");
 			return false;
 		}
@@ -1595,92 +1612,20 @@ namespace OTN {
 	}
 
 	bool OTNReader::OTNTokenizer::Tokenize() {
-		char c;
-
-		while (m_stream.get(c)) {
-			Advance(c);
-
-			// skip whitespace
-			if (std::isspace(static_cast<unsigned char>(c)))
-				continue;
-
-			switch (c) {
-			case Syntax::STATEMENT_TERMINATOR:
-				AddToken(TokenType::SEMICOLON, Syntax::STATEMENT_TERMINATOR);
-				break;
-
-			case Syntax::KEYWORD_PREFIX_CHAR:
-				AddToken(TokenType::KEYWORD_PREFIX, Syntax::KEYWORD_PREFIX_CHAR);
-				break;
-
-			case Syntax::KEYWORD_ASSIGN_CHAR:  
-				AddToken(TokenType::COLON, Syntax::KEYWORD_ASSIGN_CHAR);
-				break;
-
-			case Syntax::ASSIGNMENT_CHAR: 
-				AddToken(TokenType::EQUALS, Syntax::ASSIGNMENT_CHAR);
-				break;
-
-			case Syntax::SEPARATOR_CHAR:
-				AddToken(TokenType::COMMA, Syntax::SEPARATOR_CHAR);
-				break;
-
-			case Syntax::TYPE_SEPARATOR_CHAR:
-				AddToken(TokenType::SLASH, Syntax::TYPE_SEPARATOR_CHAR);
-				break;
-
-			case Syntax::BLOCK_BEGIN_CHAR:
-				AddToken(TokenType::BLOCK_BEGIN, Syntax::BLOCK_BEGIN_CHAR);
-				break;
-
-			case Syntax::BLOCK_END_CHAR:
-				AddToken(TokenType::BLOCK_END, Syntax::BLOCK_END_CHAR);
-				break;
-
-			case Syntax::LIST_BEGIN_CHAR:
-				AddToken(TokenType::LIST_BEGIN, Syntax::LIST_BEGIN_CHAR);
-				break;
-
-			case Syntax::LIST_END_CHAR:
-				AddToken(TokenType::LIST_END, Syntax::LIST_END_CHAR);
-				break;
-
-			case Syntax::REF_BEGIN_CHAR:
-				AddToken(TokenType::REF_BEGIN, Syntax::REF_BEGIN_CHAR);
-				break;
-
-			case Syntax::REF_END_CHAR:
-				AddToken(TokenType::REF_END, Syntax::REF_END_CHAR);
-				break;
-
-			case '"':
-				if (!ReadString())
-					return false;
-				break;
-
-			default:
-				if (c == '-') {
-					AddToken(TokenType::MINUS, "-", m_line, m_column);
-				}
-				else if (std::isdigit(static_cast<unsigned char>(c))) {
-					m_stream.unget();
-					m_column--;
-					if (!ReadNumber())
-						return false;
-				}
-				else if (std::isalpha(static_cast<unsigned char>(c)) || c == '_') {
-					m_stream.unget();
-					m_column--;
-					if (!ReadIdentifier())
-						return false;
-				}
-				else {
-					AddError("Unexpected characterat line "
-						+ std::to_string(m_line) + ", column "
-						+ std::to_string(m_column) + ": '" + std::string(1, c) + "' line");
+		if (m_fileData) {
+			for (size_t i = 0; i < m_fileData->size(); i++) {
+				char c = (*m_fileData)[i];
+				if (!ProcessChar(c)) {
 					return false;
 				}
-				break;
+			}
+		}
+		else {
+			char c;
+			while (m_stream.get(c)) {
+				if (!ProcessChar(c)) {
+					return false;
+				}
 			}
 		}
 
@@ -1694,6 +1639,93 @@ namespace OTN {
 
 	std::string OTNReader::OTNTokenizer::GetError() const {
 		return m_error;
+	}
+
+	bool OTNReader::OTNTokenizer::ProcessChar(char c) {
+		Advance(c);
+
+		// skip whitespace
+		if (std::isspace(static_cast<unsigned char>(c)))
+			return true;
+
+		switch (c) {
+		case Syntax::STATEMENT_TERMINATOR:
+			AddToken(TokenType::SEMICOLON, Syntax::STATEMENT_TERMINATOR);
+			break;
+
+		case Syntax::KEYWORD_PREFIX_CHAR:
+			AddToken(TokenType::KEYWORD_PREFIX, Syntax::KEYWORD_PREFIX_CHAR);
+			break;
+
+		case Syntax::KEYWORD_ASSIGN_CHAR:
+			AddToken(TokenType::COLON, Syntax::KEYWORD_ASSIGN_CHAR);
+			break;
+
+		case Syntax::ASSIGNMENT_CHAR:
+			AddToken(TokenType::EQUALS, Syntax::ASSIGNMENT_CHAR);
+			break;
+
+		case Syntax::SEPARATOR_CHAR:
+			AddToken(TokenType::COMMA, Syntax::SEPARATOR_CHAR);
+			break;
+
+		case Syntax::TYPE_SEPARATOR_CHAR:
+			AddToken(TokenType::SLASH, Syntax::TYPE_SEPARATOR_CHAR);
+			break;
+
+		case Syntax::BLOCK_BEGIN_CHAR:
+			AddToken(TokenType::BLOCK_BEGIN, Syntax::BLOCK_BEGIN_CHAR);
+			break;
+
+		case Syntax::BLOCK_END_CHAR:
+			AddToken(TokenType::BLOCK_END, Syntax::BLOCK_END_CHAR);
+			break;
+
+		case Syntax::LIST_BEGIN_CHAR:
+			AddToken(TokenType::LIST_BEGIN, Syntax::LIST_BEGIN_CHAR);
+			break;
+
+		case Syntax::LIST_END_CHAR:
+			AddToken(TokenType::LIST_END, Syntax::LIST_END_CHAR);
+			break;
+
+		case Syntax::REF_BEGIN_CHAR:
+			AddToken(TokenType::REF_BEGIN, Syntax::REF_BEGIN_CHAR);
+			break;
+
+		case Syntax::REF_END_CHAR:
+			AddToken(TokenType::REF_END, Syntax::REF_END_CHAR);
+			break;
+
+		case '"':
+			if (!ReadString())
+				return false;
+			break;
+
+		default:
+			if (c == '-') {
+				AddToken(TokenType::MINUS, "-", m_line, m_column);
+			}
+			else if (std::isdigit(static_cast<unsigned char>(c))) {
+				m_stream.unget();
+				m_column--;
+				if (!ReadNumber())
+					return false;
+			}
+			else if (std::isalpha(static_cast<unsigned char>(c)) || c == '_') {
+				m_stream.unget();
+				m_column--;
+				if (!ReadIdentifier())
+					return false;
+			}
+			else {
+				AddError("Unexpected characterat line "
+					+ std::to_string(m_line) + ", column "
+					+ std::to_string(m_column) + ": '" + std::string(1, c) + "' line");
+				return false;
+			}
+			break;
+		}
 	}
 
 	bool OTNReader::OTNTokenizer::AddToken(TokenType type, char c) {
@@ -2575,8 +2607,8 @@ namespace OTN {
 		return stream.is_open();
 	}
 
-	bool OTNReader::ReadData(const OTNFilePath& path, ReaderData& data) {
-		OTNTokenizer tokenizer{ data.stream };
+	bool OTNReader::ReadData(std::istream& input, ReaderData& data) {
+		OTNTokenizer tokenizer{ input };
 
 		if (!tokenizer.Tokenize()) {
 			AddError("Failed to convert data to tokens!");
