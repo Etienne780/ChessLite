@@ -34,10 +34,14 @@ end
 -- Helper for common configuration settings
 --------------------------------------------------------
 function ApplyCommonConfigs()
+    filter "system:windows"
+        filter "action:vs*"
+            flags { "MultiProcessorCompile" }
+
     filter "configurations:Debug"
         defines { "DEBUG" }
         runtime "Debug"
-        symbols "On"    
+        symbols "On"
         buildoptions { "/MDd" }
 
     filter "configurations:Release"
@@ -52,7 +56,7 @@ function ApplyCommonConfigs()
         optimize "Full"
         buildoptions { "/MD" }
 
-    filter {} -- reset filter
+    filter {}
 end
 
 ------------------------------------
