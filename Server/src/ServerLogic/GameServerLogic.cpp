@@ -14,7 +14,7 @@ void GameServerLogic::OnMessage(NET_StreamSocket* client, const std::string& msg
 
 void GameServerLogic::OnServerMessage(const std::string& serverName, const std::string& msg) {
     if (serverName == "sql_server") {
-        std::cout << "received data from sql server:";
+        std::cout << "received data from sql server:\n";
         std::cout << msg;
     }
 

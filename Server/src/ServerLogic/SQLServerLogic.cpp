@@ -1,4 +1,4 @@
-#include <memory>
+﻿#include <memory>
 #include <iostream>
 #include <stdexcept>
 
@@ -31,29 +31,34 @@ void SQLServerLogic::OnServerMessage(const std::string& serverName, const std::s
     }
     
     if (msg == "sql_test") {
-        FetchStatement("SELECT * FROM testGame");
+        auto out = FetchStatement("SELECT * FROM test_game");
 
         std::string output;
-        OTN::OTNWriter writer;
-        if (!writer.SaveToString(output)) {
+        if (out) {
+            OTN::OTNWriter writer;
+            writer.AppendObject(*out);
+            if (!writer.SaveToString(output)) {
+                output = "failed";
+            }
+        }
+        else {
             output = "failed";
         }
 
         NetServerManager::SendMessage(m_server, serverName, output);
     }
-
 }
 
 void SQLServerLogic::Connect() {
     m_connected = false;
 
     try {
-        std::string hostString = "tcp://" + std::string(m_config.host) + ":" + std::to_string(m_config.port);
-        std::cout << "Connecting to: " << hostString << std::endl;
+       std::string hostString = "tcp://" + m_config.host + ":" + std::to_string(m_config.port);
+       std::cout << "Connecting to: " << hostString << std::endl;
 
         sql::mysql::MySQL_Driver* driver = sql::mysql::get_mysql_driver_instance();
         std::unique_ptr<sql::Connection> conn(
-            driver->connect(hostString, m_config.user, m_config.password)
+            driver->connect(hostString, "root", "root")
         );
 
         conn->setSchema(m_config.schema);
@@ -68,75 +73,71 @@ void SQLServerLogic::Connect() {
             << e.getErrorCode() << ")" << '\n';
     }
 }
-
-std::optional<OTN::OTNObject> SQLServerLogic::FetchStatment(const std::string& query) {
+std::optional<OTN::OTNObject> SQLServerLogic::FetchStatement(const std::string& query) {
     if (!m_connection) {
         std::cerr << "Query error: not connected\n";
         return std::nullopt;
     }
-
     try {
-        std::unique_ptr<sql::Statement> stmt(m_connection->createStatement());
-        std::unique_ptr<sql::ResultSet> res(stmt->executeQuery(query));
+        sql::Statement* stmt = m_connection->createStatement();
+        sql::ResultSet* res = stmt->executeQuery("SELECT * FROM test_game");
         sql::ResultSetMetaData* metaData = res->getMetaData();
 
         if (!metaData) {
             std::cerr << "Query error: metadata is nullptr for query: " << query << "\n";
+            delete res;
+            delete stmt;
             return std::nullopt;
         }
 
         uint32_t columnCount = metaData->getColumnCount();
+
         std::vector<std::string> columnNames;
+        std::vector<int> columnTypes;
         columnNames.reserve(columnCount);
-        for (uint32_t i = 1; i <= columnCount; i++) {
+        columnTypes.reserve(columnCount);
+
+        for (uint32_t i = 1; i <= columnCount; ++i) {
             columnNames.push_back(metaData->getColumnName(i));
+            columnTypes.push_back(metaData->getColumnType(i));
         }
 
         OTN::OTNObject obj("Result");
         obj.SetNamesList(columnNames);
 
         while (res->next()) {
-            OTN::OTNRow  rowValues;
+            OTN::OTNRow rowValues;
             rowValues.reserve(columnCount);
 
-            while (res->next()) {
-                OTN::OTNRow rowValues;
-                rowValues.reserve(columnCount);
-
-                for (uint32_t i = 1; i <= columnCount; ++i) {
-                    switch (metaData->getColumnType(i)) {
-                    case sql::DataType::INTEGER:
-                        rowValues.emplace_back(static_cast<int>(res->getInt(i)));
-                        break;
-
-                    case sql::DataType::BIGINT:
-                        rowValues.emplace_back(static_cast<int64_t>(res->getInt64(i)));
-                        break;
-
-                    case sql::DataType::DOUBLE:
-                        rowValues.emplace_back(static_cast<double>(res->getDouble(i)));
-                        break;
-                    
-                    case sql::DataType::BIT:
-                        rowValues.emplace_back(res->getBoolean(i));
-                        break;
-                    
-                    case sql::DataType::VARCHAR:
-                        rowValues.emplace_back(res->getString(i));
-                        break;
-                    
-                    default:
-                        rowValues.emplace_back();
-                        break;
-                    }
+            for (uint32_t i = 0; i < columnCount; ++i) {
+                switch (columnTypes[i]) {
+                case sql::DataType::INTEGER:
+                    rowValues.emplace_back(static_cast<int>(res->getInt(i + 1)));
+                    break;
+                case sql::DataType::BIGINT:
+                    rowValues.emplace_back(static_cast<int64_t>(res->getInt64(i + 1)));
+                    break;
+                case sql::DataType::DOUBLE:
+                    rowValues.emplace_back(static_cast<double>(res->getDouble(i + 1)));
+                    break;
+                case sql::DataType::BIT:
+                    rowValues.emplace_back(res->getBoolean(i + 1));
+                    break;
+                case sql::DataType::VARCHAR: {
+                    std::string strValue(res->getString(i + 1).c_str());
+                    rowValues.emplace_back(strValue);
+                    break;
                 }
-
-                obj.AddDataRowList(rowValues);
+                default:
+                    rowValues.emplace_back();
+                    break;
+                }
             }
-
-
             obj.AddDataRowList(rowValues);
         }
+
+        delete res;
+        delete stmt;
 
         return obj;
     }

@@ -41,7 +41,7 @@ private:
     * @param query The SQL query string to execute.
     * @return std::optional<OTN::OTNObject> containing column names if successful, std::nullopt on error.
     */
-    std::optional<OTN::OTNObject> FetchStatment(const std::string& query);
+    std::optional<OTN::OTNObject> FetchStatement(const std::string& query);
 
     /**
     * @brief Executes a parameterized SQL query and fetches results as an OTNObject.
@@ -79,14 +79,46 @@ private:
             size_t columnCount = static_cast<size_t>(metaData->getColumnCount());
             std::vector<std::string> columnNames;
             columnNames.reserve(columnCount);
-            for (size_t i = 1; i <= columnCount; i++) {
-                columnNames.push_back(metaData->getColumnName(i));
+            for (uint32_t i = 1; i <= columnCount; i++) {
+                columnNames.push_back(static_cast<std::string>(metaData->getColumnName(i)));
             }
 
             OTN::OTNObject obj("Result");
             obj.SetNamesList(columnNames);
 
-        
+            std::vector<int> columnTypes(columnCount);
+            for (uint32_t i = 1; i <= columnCount; ++i)
+                columnTypes[i - 1] = metaData->getColumnType(i);
+
+            while (res->next()) {
+                OTN::OTNRow rowValues;
+                rowValues.reserve(columnCount);
+
+                for (uint32_t i = 0; i < columnCount; ++i) {
+                    switch (columnTypes[i]) {
+                    case sql::DataType::INTEGER:
+                        rowValues.emplace_back(static_cast<int>(res->getInt(i + 1)));
+                        break;
+                    case sql::DataType::BIGINT:
+                        rowValues.emplace_back(static_cast<int64_t>(res->getInt64(i + 1)));
+                        break;
+                    case sql::DataType::DOUBLE:
+                        rowValues.emplace_back(static_cast<double>(res->getDouble(i + 1)));
+                        break;
+                    case sql::DataType::BIT:
+                        rowValues.emplace_back(res->getBoolean(i + 1));
+                        break;
+                    case sql::DataType::VARCHAR:
+                        rowValues.emplace_back(static_cast<std::string>(res->getString(i + 1)));
+                        break;
+                    default:
+                        rowValues.emplace_back();
+                        break;
+                    }
+                }
+
+                obj.AddDataRowList(rowValues);
+            }
 
             return obj;
         }

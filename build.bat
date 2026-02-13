@@ -36,7 +36,7 @@ echo   DB:
 echo   db-start	         Starts the MySQL DB
 echo   db-stop           Stops the MySQL DB
 echo   db-status         Returns the status of the DB
-echo   db-restart        Stops and Starts the DB
+echo   db-reset          Stops, removes volumes, and starts the DB fresh
 GOTO Done
 
 :Compile

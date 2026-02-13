@@ -17,21 +17,18 @@ project "Server"
     includedirs {
         "include",
         "include/%{prj.name}",
-        "%{wks.location}/vendor/mysql/include",
         "%{wks.location}/vendor/SDL3/include",
         "%{wks.location}/vendor/SDL3_net/include",
         "%{wks.location}/vendor/whereami/include"
     }
 
     libdirs {
-        "%{wks.location}/vendor/mysql/lib/x64/vs14",
         "%{wks.location}/vendor/SDL3/lib/x64",
         "%{wks.location}/vendor/SDL3_net/lib/x64",
         "%{wks.location}/vendor/whereami/lib/x64"
     }
 
     links {
-        "mysqlcppconn",
         "libssl",
         "libcrypto",
         "SDL3",
@@ -41,11 +38,42 @@ project "Server"
 
     ApplyCommonConfigs()
 
-    postbuildcommands {
-        '{MKDIR} "%{cfg.targetdir}"',
-        '{COPY} "config.otn" "%{cfg.targetdir}"',
-        '{COPY} "%{wks.location}/vendor/mysql/lib/x64/*.dll" "%{cfg.targetdir}"',
-        '{COPY} "%{wks.location}/vendor/SDL3/lib/x64/*.dll" "%{cfg.targetdir}"',
-        '{COPY} "%{wks.location}/vendor/SDL3_net/lib/x64/*.dll" "%{cfg.targetdir}"',
-        '{COPY} "%{wks.location}/vendor/whereami/lib/x64/*.dll" "%{cfg.targetdir}"'
-    }
+    filter "configurations:Debug"
+        includedirs {
+            "%{wks.location}/vendor/mysql-debug/include"
+        }
+        libdirs {
+            "%{wks.location}/vendor/mysql-debug/lib/x64/vs14"
+        }
+        links {
+            "mysqlcppconn"
+        }
+        postbuildcommands {
+            '{MKDIR} "%{cfg.targetdir}"',
+            '{COPY} "config.otn" "%{cfg.targetdir}"',
+            '{COPY} "%{wks.location}/vendor/mysql-debug/lib/x64/*.dll" "%{cfg.targetdir}"',
+            '{COPY} "%{wks.location}/vendor/SDL3/lib/x64/*.dll" "%{cfg.targetdir}"',
+            '{COPY} "%{wks.location}/vendor/SDL3_net/lib/x64/*.dll" "%{cfg.targetdir}"',
+            '{COPY} "%{wks.location}/vendor/whereami/lib/x64/*.dll" "%{cfg.targetdir}"'
+        }
+
+    filter "configurations:Release"
+        includedirs {
+            "%{wks.location}/vendor/mysql/include"
+        }
+        libdirs {
+            "%{wks.location}/vendor/mysql/lib/x64/vs14"
+        }
+        links {
+            "mysqlcppconn"
+        }
+        postbuildcommands {
+            '{MKDIR} "%{cfg.targetdir}"',
+            '{COPY} "config.otn" "%{cfg.targetdir}"',
+            '{COPY} "%{wks.location}/vendor/mysql/lib/x64/*.dll" "%{cfg.targetdir}"',
+            '{COPY} "%{wks.location}/vendor/SDL3/lib/x64/*.dll" "%{cfg.targetdir}"',
+            '{COPY} "%{wks.location}/vendor/SDL3_net/lib/x64/*.dll" "%{cfg.targetdir}"',
+            '{COPY} "%{wks.location}/vendor/whereami/lib/x64/*.dll" "%{cfg.targetdir}"'
+        }
+
+    filter {}
