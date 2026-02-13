@@ -72,7 +72,7 @@ namespace Layers {
 		}
 
 	void MainMenuLayer::OnQuit(AppContext* ctx) {
-		client.Disconnect();
+		
 	}
 
 	LayerID MainMenuLayer::GetLayerID() const {
