@@ -7,14 +7,10 @@
 #include "Styles/Comman/Space.h"
 #include "UIComponents/Button.h"
 
-#include "GameClient.h"
-
 namespace UI = SDLCore::UI;
 namespace UIComp = UIComponent;
 
 namespace Layers {
-
-	static GameClient client;
 
 	void MainMenuLayer::OnStart(AppContext* ctx) {
 		namespace Prop = UI::Properties;
@@ -35,28 +31,10 @@ namespace Layers {
 		m_styleTitle
 			.Merge(Style::commanTextTitle)
 			.SetValue(Prop::margin, Vector4(0, 0, 20, 0));
-
-		while (!client.IsConnected()) {
-			if (!client.Connect("127.0.0.1", 5000)) {
-				Log::Info("Connecting to server");
-				SDL_Delay(1000);
-			}
-		}
-		Log::Info("Server connected :)");
-		client.Send("Hi Server!");
 	}
 
 	void MainMenuLayer::OnUpdate(AppContext* ctx) {
-		Vector2 mPos = SDLCore::Input::GetMousePosition();
-
-		if (SDLCore::Time::GetFrameCount() % 1000 == 0) {
-			client.Send("Mouse Pos: " + mPos.ToString());
-
-			std::string out;
-			if (client.Receive(out)) {
-				Log::Info("Received data from server: {}", out);
-			}
-		}
+		
 	}
 
 	void MainMenuLayer::OnRender(AppContext* ctx) {
