@@ -64,72 +64,63 @@ bool SQLServerLogic::RunQuery(const std::string& query) {
     }
 }
 
+template<typename T, typename Setter>
+void BindParamHelper(
+    sql::PreparedStatement* stmt,
+    int index,
+    const T* value,
+    int sqlType,
+    Setter setter)
+{
+    if (!value) {
+        stmt->setNull(index, sqlType);
+        return;
+    }
+
+    (stmt->*setter)(index, *value);
+}
+
 template<>
 void SQLServerLogic::BindParam<std::string>(
     sql::PreparedStatement* stmt,
     int index,
-    const std::string* value
-) {
-    if (!value) {
-        stmt->setNull(index, sql::DataType::VARCHAR);
-        return;
-    }
-
-    stmt->setString(index, *value);
+    const std::string* value)
+{
+    BindParamHelper(stmt, index, value, sql::DataType::VARCHAR, &sql::PreparedStatement::setString);
 }
 
 template<>
 void SQLServerLogic::BindParam<int>(
     sql::PreparedStatement* stmt,
     int index,
-    const int* value
-) {
-    if (!value) {
-        stmt->setNull(index, sql::DataType::INTEGER);
-        return;
-    }
-
-    stmt->setInt(index, *value);
+    const int* value)
+{
+    BindParamHelper(stmt, index, value, sql::DataType::INTEGER, &sql::PreparedStatement::setInt);
 }
 
 template<>
 void SQLServerLogic::BindParam<int64_t>(
     sql::PreparedStatement* stmt,
     int index,
-    const int64_t* value
-) {
-    if (!value) {
-        stmt->setNull(index, sql::DataType::BIGINT);
-        return;
-    }
-
-    stmt->setInt64(index, *value);
+    const int64_t* value)
+{
+    BindParamHelper(stmt, index, value, sql::DataType::BIGINT, &sql::PreparedStatement::setInt64);
 }
 
 template<>
 void SQLServerLogic::BindParam<double>(
     sql::PreparedStatement* stmt,
     int index,
-    const double* value
-) {
-    if (!value) {
-        stmt->setNull(index, sql::DataType::DOUBLE);
-        return;
-    }
-
-    stmt->setDouble(index, *value);
+    const double* value)
+{
+    BindParamHelper(stmt, index, value, sql::DataType::DOUBLE, &sql::PreparedStatement::setDouble);
 }
 
 template<>
 void SQLServerLogic::BindParam<bool>(
     sql::PreparedStatement* stmt,
     int index,
-    const bool* value
-) {
-    if (!value) {
-        stmt->setNull(index, sql::DataType::BIT);
-        return;
-    }
-
-    stmt->setBoolean(index, *value);
+    const bool* value)
+{
+    BindParamHelper(stmt, index, value, sql::DataType::BIT, &sql::PreparedStatement::setBoolean);
 }
