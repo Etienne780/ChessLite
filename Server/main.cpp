@@ -28,6 +28,8 @@ int main(int argc, char* argv[]) {
 	std::cout << "           Server Startup            \n";
 	std::cout << "-------------------------------------\n\n";
 
+	NetServerManager::SendMessage("-", "game_server", "test");
+
 	while (true) {
 	}
 

@@ -28,7 +28,7 @@ public:
 	void SetLogic(Args&& ...args) {
 		static_assert(std::is_base_of_v<IServerLogic, T>, "T musst have IServerLogic as base class!");
 		FreeServerLogic();
-		m_logic = new T(std::forward<Args>(args)...);
+		m_logic = new T(this, std::forward<Args>(args)...);
 	}
 
 private:

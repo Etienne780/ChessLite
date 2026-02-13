@@ -25,11 +25,27 @@ bool NetServerManager::DestroyServer(NetServer* server) {
 	return true;
 }
 
-void NetServerManager::SendMessage(const std::string& serverName, const std::string& msg) {
+void NetServerManager::SendMessage(const NetServer* srcServer, const std::string& dstServerName, const std::string& msg) {
+	if (!srcServer) {
+		std::cerr << "NetServerManager: Failed to Send server message, src server was nullptr!";
+		return;
+	}
+	
 	for (auto* s : m_serverList) {
-		if (s->GetName() == serverName) {
+		if (s->GetName() == dstServerName) {
 			if (s->IsInitialized()) {
-				s->m_logic->OnMessage(nullptr, msg);
+				s->m_logic->OnServerMessage(srcServer->GetName(), msg);
+			}
+			break;
+		}
+	}
+}
+
+void NetServerManager::SendMessage(const std::string& srcServer, const std::string& dstServerName, const std::string& msg) {
+	for (auto* s : m_serverList) {
+		if (s->GetName() == dstServerName) {
+			if (s->IsInitialized()) {
+				s->m_logic->OnServerMessage(srcServer, msg);
 			}
 			break;
 		}
