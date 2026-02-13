@@ -5,7 +5,7 @@
 namespace Style {
 
 	CoreUI::UIStyle commanRoot{ "comman_root" };
-	CoreUI::UIStyle commanRootAbsolute{ "comman_root_absolute" };
+	CoreUI::UIStyle commanRootTransparent{ "comman_root_transparent" };
 
 	CoreUI::UIStyle commanStretchX{ "comman_stretch_x" };
 	CoreUI::UIStyle commanStretchY{ "comman_stretch_y" };
@@ -53,6 +53,10 @@ namespace Style {
 			.SetValue(Prop::layoutDirection, CoreUI::UILayoutDir::COLUMN)
 			.SetValue(Prop::positionType, CoreUI::UIPositionType::RELATIVE)
 			.SetValue(Prop::backgroundColor, commanColorUIBackground);
+
+		commanRootTransparent
+			.Merge(commanRoot)
+			.SetValue(Prop::backgroundColor, Vector4(0));
 
 		// --- Box / Panel ---
 		commanBox

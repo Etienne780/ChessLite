@@ -40,15 +40,14 @@ void App::OnUpdate() {
         namespace RE = SDLCore::Render;
         RE::SetWindowRenderer(m_winID);
         RE::SetBlendMode(SDLCore::Render::BlendMode::BLEND);
-        RE::SetColor(0);
+        RE::SetColor(40, 75, 150);
         RE::Clear();
         ForeachLayer([&](Layer& layer) { layer.OnRender(&m_context); });
         
         UI::SetContextWindow(m_UICtx, m_winID);
         UI::BindContext(m_UICtx);
 
-
-        UI::BeginFrame(SDLCore::UI::UIKey("root"), Style::commanRoot);
+        UI::BeginFrame(SDLCore::UI::UIKey("root"), Style::commanRootTransparent);
         {
             ForeachLayer([&](Layer& layer) {
                 layer.OnUIRender(&m_context);
