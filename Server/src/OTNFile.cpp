@@ -811,6 +811,30 @@ namespace OTN {
 		return true;
 	}
 
+	bool OTNWriter::SaveToString(std::string& outText) {
+		if (!IsValid()) {
+			AddError("Writer object is invalid!");
+			return false;
+		}
+
+		if (!DebugValidateObjects()) {
+			AddError("[Debug] Validation of objects failed!");
+			return false;
+		}
+
+		if (!WriteToString(outText)) {
+			AddError("Write to string failed!");
+			return false;
+		}
+
+		if (!IsValid()) {
+			AddError("Writer object is invalid!");
+			return false;
+		}
+
+		return true;
+	}
+
 	bool OTNWriter::GetUseDefName() const {
 		return m_useDefName;
 	}
@@ -1014,6 +1038,27 @@ namespace OTN {
 
 		m_writerData.stream.Flush();
 		stream.close();
+		return true;
+	}
+
+	bool OTNWriter::WriteToString(std::string& outText) {
+		m_writerData.Reset();
+		outText.clear();
+
+		if (!CreateWriteData(m_writerData)) {
+			return false;
+		}
+
+		if (!WriteHeader()) {
+			return false;
+		}
+
+		if (!WriteBody()) {
+			return false;
+		}
+
+		outText = m_writerData.stream.buffer;
+		m_writerData.stream.buffer.clear();
 		return true;
 	}
 

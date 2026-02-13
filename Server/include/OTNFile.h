@@ -1500,6 +1500,14 @@ namespace OTN {
 		bool Save(const OTNFilePath& path);
 	
 		/**
+		* @brief Serialize all appended objects into an OTN string.
+		*
+		* @param outText Receives the serialized OTN text on success.
+		* @return True if serialization succeeded, false otherwise.
+		*/
+		bool SaveToString(std::string& outText);
+
+		/**
 		* @brief Returns whether default names are used.
 		*/
 		bool GetUseDefName() const;
@@ -1627,6 +1635,7 @@ namespace OTN {
 		bool DebugValidateObjects();
 
 		bool WriteToFile(const OTNFilePath& path);
+		bool WriteToString(std::string& outText);
 		bool CreateWriteData(WriterData& data);
 		size_t AddObject(WriterData& data, OTNObject& object);
 		void ConvertToSerValue(WriterData& data, OTNValue& result, const OTNTypeDesc& colType, const OTNValue& val);
