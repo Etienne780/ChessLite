@@ -1,5 +1,6 @@
 #include "LayerSystem/Layers/GameLayer.h"
 #include "LayerSystem/Layers/EscapeMenuLayer.h"
+#include "Styles/Comman/Color.h"
 #include "App.h"
 
 namespace Layers {
@@ -11,6 +12,18 @@ namespace Layers {
 				m_isEscapeMenuOpen = false;
 			}
 		});
+
+		auto winID = ctx->app->GetWinID();
+		auto* win = ctx->app->GetWindow(winID);
+		if (win) {
+			m_windowSize = win->GetSize();
+			m_windowResizeCBID = win->AddOnWindowResize([this](const SDLCore::Window& win) {
+				m_windowSize = win.GetSize();
+			});
+		}
+		else {
+			Log::Error("GameLayer: Failed to get window!");
+		}
 
 		SetupGame();
 	}
@@ -35,6 +48,12 @@ namespace Layers {
 	void GameLayer::OnQuit(AppContext* ctx) {
 		m_game.EndGame();
 		ctx->app->UnsubscribeToLayerEvent(LayerEventType::CLOSED, m_escapeMenuCloseEventID);
+
+		auto winID = ctx->app->GetWinID();
+		auto* win = ctx->app->GetWindow(winID);
+		if (win) {
+			win->RemoveOnWindowResize(m_windowResizeCBID);
+		}
 	}
 
 	LayerID GameLayer::GetLayerID() const {
@@ -99,7 +118,49 @@ namespace Layers {
 	}
 
 	void GameLayer::RenderBoard() {
+		namespace RE = SDLCore::Render;
+		typedef SDLCore::UI::UIRegistry UIReg;
+
+		Vector4 colorBoardDark;
+		Vector4 colorBoardLight;
+
+		UIReg::TryGetRegisteredColor(Style::commanColorBoardDark, colorBoardDark);
+		UIReg::TryGetRegisteredColor(Style::commanColorBoardLight, colorBoardLight);
+
+		const auto& board = m_game.GetBoard();
+		int boardWidth = board.GetWidth();
+		int boardHeight = board.GetHeight();
+
+		Vector2 topLeftBoard{
+			(m_windowSize.x * 0.5f) - (static_cast<float>(boardWidth) * m_boardTileSize * 0.5f),
+			(m_windowSize.y * 0.5f) - (static_cast<float>(boardHeight) * m_boardTileSize * 0.5f)
+		};
 		
+		RE::SetColor(colorBoardDark);
+		for (int i = 0; i < boardHeight * boardWidth; i++) {
+			if (i % 2 == 0) {
+				int localX = i % boardWidth;
+				int localY = static_cast<int>(i / boardHeight);
+
+				float x = topLeftBoard.x + (static_cast<float>(localX) * m_boardTileSize);
+				float y = topLeftBoard.y + (static_cast<float>(localY) * m_boardTileSize);
+
+				RE::FillRect(x, y, m_boardTileSize, m_boardTileSize);
+			}
+		}
+
+		RE::SetColor(colorBoardLight);
+		for (int i = 0; i < boardHeight * boardWidth; i++) {
+			if (i % 2 == 1) {
+				int localX = i % boardWidth;
+				int localY = static_cast<int>(i / boardHeight);
+
+				float x = topLeftBoard.x + (static_cast<float>(localX) * m_boardTileSize);
+				float y = topLeftBoard.y + (static_cast<float>(localY) * m_boardTileSize);
+
+				RE::FillRect(x, y, m_boardTileSize, m_boardTileSize);
+			}
+		}
 	}
 
 }

@@ -6,6 +6,7 @@ namespace Style {
 	namespace CoreUI = SDLCore::UI;
 
 	extern CoreUI::UIStyle commanRoot;
+	extern CoreUI::UIStyle commanRootTransparent;
 
 	extern CoreUI::UIStyle commanStretchX;
 	extern CoreUI::UIStyle commanStretchY;

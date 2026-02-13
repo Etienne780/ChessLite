@@ -23,7 +23,11 @@ namespace Layers {
 		bool m_isEscapeMenuOpen = false;
 		CoreChess::ChessWinResult m_gameResult = CoreChess::ChessWinResult::NONE;
 		LayerEventSubscriptionID m_escapeMenuCloseEventID;
+		SDLCore::WindowCallbackID m_windowResizeCBID;
 
+		Vector2 m_windowSize;
+
+		float m_boardTileSize = 128;
 		Vector2 m_selectedPiecePos = Vector2::zero;
 
 		void SetupGame();
