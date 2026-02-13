@@ -127,6 +127,6 @@ namespace Style {
 
 		commanTextTitle
 			.Merge(commanTextBase)
-			.SetValue(Prop::textSize, 48.0f);
+			.SetValue(Prop::textSize, 64.0f);
 	}
 }

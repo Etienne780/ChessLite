@@ -27,7 +27,7 @@ namespace Layers {
 
 		Vector2 m_windowSize;
 
-		float m_boardTileSize = 128;
+		float m_boardTileSize = 128.0f;
 		Vector2 m_selectedPiecePos = Vector2::zero;
 
 		void SetupGame();

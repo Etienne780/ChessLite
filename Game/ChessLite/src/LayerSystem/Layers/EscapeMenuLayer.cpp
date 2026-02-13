@@ -12,7 +12,11 @@ namespace UIComp = UIComponent;
 namespace Layers {
 
 	void EscapeMenuLayer::OnStart(AppContext* ctx) {
-		
+		namespace Prop = UI::Properties;
+
+		m_styleTitle
+			.Merge(Style::commanTextTitle)
+			.SetValue(Prop::margin, Vector4(0, 0, 20, 0));
 	}
 
 	void EscapeMenuLayer::OnUpdate(AppContext* ctx) {
@@ -32,6 +36,8 @@ namespace Layers {
 
 		UI::BeginFrame(Key("escape_menu_overlay"), Style::commanOverlay);
 		{
+			UI::Text(Key("title"), "Paused", m_styleTitle);
+
 			if (UIComp::DrawButton("btn_resume", "Resume", Style::commanBTNBase)) {
 				Log::Debug("EscapeMenu: Resume");
 				ctx->app->PopLayer();

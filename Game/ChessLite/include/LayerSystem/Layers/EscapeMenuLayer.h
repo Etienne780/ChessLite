@@ -17,6 +17,8 @@ namespace Layers {
 		void OnQuit(AppContext* ctx) override;
 		LayerID GetLayerID() const override;
 
+	private:
+		SDLCore::UI::UIStyle m_styleTitle;
 	};
 
 }
