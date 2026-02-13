@@ -1,7 +1,6 @@
 project "ChessLite"
     language "C++"
     cppdialect "C++17"
-    staticruntime "On"
 
     SetTargetAndObjDirs("%{prj.name}")
 
@@ -32,3 +31,14 @@ project "ChessLite"
     CopySDLDLLs()
 
     ApplyCommonConfigs()
+
+    filter "configurations:Debug"
+        kind "ConsoleApp"
+
+    filter "configurations:Release"
+        kind "ConsoleApp"
+
+    filter "configurations:Distribution"
+        kind "WindowedApp"
+
+    filter {}

@@ -2,7 +2,6 @@ project "Server"
     kind "ConsoleApp"
     language "C++"
     cppdialect "C++17"
-    staticruntime "On"
 
     SetTargetAndObjDirs("%{prj.name}")
 

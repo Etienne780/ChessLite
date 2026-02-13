@@ -2,7 +2,6 @@ project "SDLCoreLib"
     kind "StaticLib"
     language "C++"
     cppdialect "C++17"
-    staticruntime "On"
 
     SetTargetAndObjDirs("%{prj.name}")
 
@@ -48,17 +47,7 @@ project "SDLCoreLib"
         systemversion "latest"
         defines { "SDL_MAIN_HANDLED" }
 
-    filter "configurations:Debug"
-        defines { "DEBUG" }
-        runtime "Debug"
-        symbols "On"
-        buildoptions { "/MTd" }
-
-    filter "configurations:Release"
-        defines { "NDEBUG" }
-        runtime "Release"
-        optimize "On"
-        buildoptions { "/MT" }
+    ApplyCommonConfigs();
 
 function IncludeSDLCoreLib()
     includedirs {

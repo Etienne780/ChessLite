@@ -39,21 +39,18 @@ function ApplyCommonConfigs()
         runtime "Debug"
         symbols "On"    
         buildoptions { "/MDd" }
-        kind "ConsoleApp"
 
     filter "configurations:Release"
         defines { "NDEBUG" }
         runtime "Release"
         optimize "Full"
         buildoptions { "/MD" }
-        kind "ConsoleApp"
 
     filter "configurations:Distribution"
         defines { "NDEBUG" }
         runtime "Release"
         optimize "Full"
         buildoptions { "/MD" }
-        kind "WindowedApp"
 
     filter {} -- reset filter
 end
