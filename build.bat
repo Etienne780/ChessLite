@@ -31,6 +31,12 @@ echo   vs2017            Generate Visual Studio 2017 project files
 echo   vs2019            Generate Visual Studio 2019 project files
 echo   vs2022            Generate Visual Studio 2022 project files
 echo   xcode4            Generate Apple Xcode 4 project files
+echo   -----------------------------------------------------------
+echo   DB:
+echo   db-start	         Starts the MySQL DB
+echo   db-stop           Stops the MySQL DB
+echo   db-status         Returns the status of the DB
+echo   db-restart        Stops and Starts the DB
 GOTO Done
 
 :Compile
