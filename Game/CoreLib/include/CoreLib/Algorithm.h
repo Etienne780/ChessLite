@@ -537,327 +537,386 @@ namespace Algorithm {
 	}
 
 	namespace Easing {
-		
+
 		/// Constant for π
 		constexpr double ALGORITHM_PI = 3.14159265358979323846;
 
 		/**
 		* @brief Ease-in sine function
+		* @tparam T Numeric type (float, double, etc.)
 		* @param t Normalized time [0,1]
 		* @return Eased value
 		*/
-		double EaseInSine(double t) {
-			return 1.0 - std::cos((t * ALGORITHM_PI) / 2.0);
+		template<typename T>
+		T EaseInSine(T t) {
+			return static_cast<T>(1.0) - std::cos((t * static_cast<T>(ALGORITHM_PI)) / static_cast<T>(2.0));
 		}
 
 		/**
 		* @brief Ease-out sine function
+		* @tparam T Numeric type (float, double, etc.)
 		* @param t Normalized time [0,1]
 		* @return Eased value
 		*/
-		double EaseOutSine(double t) {
-			return std::sin((t * ALGORITHM_PI) / 2.0);
+		template<typename T>
+		T EaseOutSine(T t) {
+			return std::sin((t * static_cast<T>(ALGORITHM_PI)) / static_cast<T>(2.0));
 		}
 
 		/**
 		* @brief Ease-in-out sine function
+		* @tparam T Numeric type (float, double, etc.)
 		* @param t Normalized time [0,1]
 		* @return Eased value
 		*/
-		double EaseInOutSine(double t) {
-			return -(std::cos(ALGORITHM_PI * t) - 1.0) / 2.0;
+		template<typename T>
+		T EaseInOutSine(T t) {
+			return -(std::cos(static_cast<T>(ALGORITHM_PI) * t) - static_cast<T>(1.0)) / static_cast<T>(2.0);
 		}
 
 		/**
 		* @brief Ease-in quadratic function
+		* @tparam T Numeric type (float, double, etc.)
 		* @param t Normalized time [0,1]
 		* @return Eased value
 		*/
-		double EaseInQuad(double t) {
+		template<typename T>
+		T EaseInQuad(T t) {
 			return t * t;
 		}
 
 		/**
 		* @brief Ease-out quadratic function
+		* @tparam T Numeric type (float, double, etc.)
 		* @param t Normalized time [0,1]
 		* @return Eased value
 		*/
-		double EaseOutQuad(double t) {
-			return t * (2 - t);
+		template<typename T>
+		T EaseOutQuad(T t) {
+			return t * (static_cast<T>(2) - t);
 		}
 
 		/**
 		* @brief Ease-in-out quadratic function
+		* @tparam T Numeric type (float, double, etc.)
 		* @param t Normalized time [0,1]
 		* @return Eased value
 		*/
-		double EaseInOutQuad(double t) {
-			return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+		template<typename T>
+		T EaseInOutQuad(T t) {
+			return t < static_cast<T>(0.5) ? static_cast<T>(2) * t * t : -static_cast<T>(1) + (static_cast<T>(4) - static_cast<T>(2) * t) * t;
 		}
 
 		/**
 		* @brief Ease-in cubic function
+		* @tparam T Numeric type (float, double, etc.)
 		* @param t Normalized time [0,1]
 		* @return Eased value
 		*/
-		double EaseInCubic(double t) {
+		template<typename T>
+		T EaseInCubic(T t) {
 			return t * t * t;
 		}
 
 		/**
 		* @brief Ease-out cubic function
+		* @tparam T Numeric type (float, double, etc.)
 		* @param t Normalized time [0,1]
 		* @return Eased value
 		*/
-		double EaseOutCubic(double t) {
-			t -= 1;
-			return t * t * t + 1;
+		template<typename T>
+		T EaseOutCubic(T t) {
+			t -= static_cast<T>(1);
+			return t * t * t + static_cast<T>(1);
 		}
 
 		/**
 		* @brief Ease-in-out cubic function
+		* @tparam T Numeric type (float, double, etc.)
 		* @param t Normalized time [0,1]
 		* @return Eased value
 		*/
-		double EaseInOutCubic(double t) {
-			return t < 0.5 ? 4 * t * t * t : std::pow(2 * t - 2, 3) / 2 + 1;
+		template<typename T>
+		T EaseInOutCubic(T t) {
+			return t < static_cast<T>(0.5) ? static_cast<T>(4) * t * t * t : std::pow(static_cast<T>(2) * t - static_cast<T>(2), 3) / static_cast<T>(2) + static_cast<T>(1);
 		}
 
 		/**
 		* @brief Ease-in quartic function
+		* @tparam T Numeric type (float, double, etc.)
 		* @param t Normalized time [0,1]
 		* @return Eased value
 		*/
-		double EaseInQuart(double t) {
+		template<typename T>
+		T EaseInQuart(T t) {
 			return t * t * t * t;
 		}
 
 		/**
 		* @brief Ease-out quartic function
+		* @tparam T Numeric type (float, double, etc.)
 		* @param t Normalized time [0,1]
 		* @return Eased value
 		*/
-		double EaseOutQuart(double t) {
-			t -= 1;
-			return 1 - t * t * t * t;
+		template<typename T>
+		T EaseOutQuart(T t) {
+			t -= static_cast<T>(1);
+			return static_cast<T>(1) - t * t * t * t;
 		}
 
 		/**
 		* @brief Ease-in-out quartic function
+		* @tparam T Numeric type (float, double, etc.)
 		* @param t Normalized time [0,1]
 		* @return Eased value
 		*/
-		double EaseInOutQuart(double t) {
-			return t < 0.5 ? 8 * t * t * t * t : 1 - 8 * std::pow(t - 1, 4);
+		template<typename T>
+		T EaseInOutQuart(T t) {
+			return t < static_cast<T>(0.5) ? static_cast<T>(8) * t * t * t * t : static_cast<T>(1) - static_cast<T>(8) * std::pow(t - static_cast<T>(1), 4);
 		}
 
 		/**
 		* @brief Ease-in quintic function
+		* @tparam T Numeric type (float, double, etc.)
 		* @param t Normalized time [0,1]
 		* @return Eased value
 		*/
-		double EaseInQuint(double t) {
+		template<typename T>
+		T EaseInQuint(T t) {
 			return t * t * t * t * t;
 		}
 
 		/**
 		* @brief Ease-out quintic function
+		* @tparam T Numeric type (float, double, etc.)
 		* @param t Normalized time [0,1]
 		* @return Eased value
 		*/
-		double EaseOutQuint(double t) {
-			t -= 1;
-			return 1 + t * t * t * t * t;
+		template<typename T>
+		T EaseOutQuint(T t) {
+			t -= static_cast<T>(1);
+			return static_cast<T>(1) + t * t * t * t * t;
 		}
 
 		/**
 		* @brief Ease-in-out quintic function
+		* @tparam T Numeric type (float, double, etc.)
 		* @param t Normalized time [0,1]
 		* @return Eased value
 		*/
-		double EaseInOutQuint(double t) {
-			return t < 0.5 ? 16 * t * t * t * t * t : 1 + 16 * std::pow(t - 1, 5);
+		template<typename T>
+		T EaseInOutQuint(T t) {
+			return t < static_cast<T>(0.5) ? static_cast<T>(16) * t * t * t * t * t : static_cast<T>(1) + static_cast<T>(16) * std::pow(t - static_cast<T>(1), 5);
 		}
 
 		/**
 		* @brief Ease-in exponential function
+		* @tparam T Numeric type (float, double, etc.)
 		* @param t Normalized time [0,1]
 		* @return Eased value
 		*/
-		double EaseInExpo(double t) {
-			return t == 0 ? 0 : std::pow(2, 10 * (t - 1));
+		template<typename T>
+		T EaseInExpo(T t) {
+			return t == static_cast<T>(0) ? static_cast<T>(0) : std::pow(static_cast<T>(2), static_cast<T>(10) * (t - static_cast<T>(1)));
 		}
 
 		/**
 		* @brief Ease-out exponential function
+		* @tparam T Numeric type (float, double, etc.)
 		* @param t Normalized time [0,1]
 		* @return Eased value
 		*/
-		double EaseOutExpo(double t) {
-			return t == 1 ? 1 : 1 - std::pow(2, -10 * t);
+		template<typename T>
+		T EaseOutExpo(T t) {
+			return t == static_cast<T>(1) ? static_cast<T>(1) : static_cast<T>(1) - std::pow(static_cast<T>(2), -static_cast<T>(10) * t);
 		}
 
 		/**
 		* @brief Ease-in-out exponential function
+		* @tparam T Numeric type (float, double, etc.)
 		* @param t Normalized time [0,1]
 		* @return Eased value
 		*/
-		double EaseInOutExpo(double t) {
-			if (t == 0) {
-				return 0;
+		template<typename T>
+		T EaseInOutExpo(T t) {
+			if (t == static_cast<T>(0)) {
+				return static_cast<T>(0);
 			}
-			if (t == 1) {
-				return 1;
+			if (t == static_cast<T>(1)) {
+				return static_cast<T>(1);
 			}
-			return t < 0.5 ? std::pow(2, 20 * t - 10) / 2 : (2 - std::pow(2, -20 * t + 10)) / 2;
+			return t < static_cast<T>(0.5) ? std::pow(static_cast<T>(2), static_cast<T>(20) * t - static_cast<T>(10)) / static_cast<T>(2) : (static_cast<T>(2) - std::pow(static_cast<T>(2), -static_cast<T>(20) * t + static_cast<T>(10))) / static_cast<T>(2);
 		}
 
 		/**
 		* @brief Ease-in circular function
+		* @tparam T Numeric type (float, double, etc.)
 		* @param t Normalized time [0,1]
 		* @return Eased value
 		*/
-		double EaseInCirc(double t) {
-			return 1 - std::sqrt(1 - t * t);
+		template<typename T>
+		T EaseInCirc(T t) {
+			return static_cast<T>(1) - std::sqrt(static_cast<T>(1) - t * t);
 		}
 
 		/**
 		* @brief Ease-out circular function
+		* @tparam T Numeric type (float, double, etc.)
 		* @param t Normalized time [0,1]
 		* @return Eased value
 		*/
-		double EaseOutCirc(double t) {
-			t -= 1;
-			return std::sqrt(1 - t * t);
+		template<typename T>
+		T EaseOutCirc(T t) {
+			t -= static_cast<T>(1);
+			return std::sqrt(static_cast<T>(1) - t * t);
 		}
 
 		/**
 		* @brief Ease-in-out circular function
+		* @tparam T Numeric type (float, double, etc.)
 		* @param t Normalized time [0,1]
 		* @return Eased value
 		*/
-		double EaseInOutCirc(double t) {
-			if (t < 0.5) {
-				return (1 - std::sqrt(1 - 4 * t * t)) / 2;
+		template<typename T>
+		T EaseInOutCirc(T t) {
+			if (t < static_cast<T>(0.5)) {
+				return (static_cast<T>(1) - std::sqrt(static_cast<T>(1) - static_cast<T>(4) * t * t)) / static_cast<T>(2);
 			}
-			t = 2 * t - 1;
-			return (std::sqrt(1 - t * t) + 1) / 2;
+			t = static_cast<T>(2) * t - static_cast<T>(1);
+			return (std::sqrt(static_cast<T>(1) - t * t) + static_cast<T>(1)) / static_cast<T>(2);
 		}
 
 		/**
 		* @brief Ease-in back function
+		* @tparam T Numeric type (float, double, etc.)
 		* @param t Normalized time [0,1]
 		* @return Eased value
 		*/
-		double EaseInBack(double t) {
-			const double c1 = 1.70158;
-			return t * t * ((c1 + 1) * t - c1);
+		template<typename T>
+		T EaseInBack(T t) {
+			const T c1 = static_cast<T>(1.70158);
+			return t * t * ((c1 + static_cast<T>(1)) * t - c1);
 		}
 
 		/**
 		* @brief Ease-out back function
+		* @tparam T Numeric type (float, double, etc.)
 		* @param t Normalized time [0,1]
 		* @return Eased value
 		*/
-		double EaseOutBack(double t) {
-			const double c1 = 1.70158;
-			t -= 1;
-			return 1 + t * t * ((c1 + 1) * t + c1);
+		template<typename T>
+		T EaseOutBack(T t) {
+			const T c1 = static_cast<T>(1.70158);
+			t -= static_cast<T>(1);
+			return static_cast<T>(1) + t * t * ((c1 + static_cast<T>(1)) * t + c1);
 		}
 
 		/**
 		* @brief Ease-in-out back function
+		* @tparam T Numeric type (float, double, etc.)
 		* @param t Normalized time [0,1]
 		* @return Eased value
 		*/
-		double EaseInOutBack(double t) {
-			const double c1 = 1.70158;
-			const double c2 = c1 * 1.525;
-			return t < 0.5
-				? (std::pow(2 * t, 2) * ((c2 + 1) * 2 * t - c2)) / 2
-				: (std::pow(2 * t - 2, 2) * ((c2 + 1) * (t * 2 - 2) + c2) + 2) / 2;
+		template<typename T>
+		T EaseInOutBack(T t) {
+			const T c1 = static_cast<T>(1.70158);
+			const T c2 = c1 * static_cast<T>(1.525);
+			return t < static_cast<T>(0.5)
+				? (std::pow(static_cast<T>(2) * t, 2) * ((c2 + static_cast<T>(1)) * static_cast<T>(2) * t - c2)) / static_cast<T>(2)
+				: (std::pow(static_cast<T>(2) * t - static_cast<T>(2), 2) * ((c2 + static_cast<T>(1)) * (t * static_cast<T>(2) - static_cast<T>(2)) + c2) + static_cast<T>(2)) / static_cast<T>(2);
 		}
 
 		/**
 		* @brief Ease-in elastic function
+		* @tparam T Numeric type (float, double, etc.)
 		* @param t Normalized time [0,1]
 		* @return Eased value
 		*/
-		double EaseInElastic(double t) {
-			return t == 0 || t == 1 ? t : -std::pow(2, 10 * t - 10) * std::sin((t * 10 - 10.75) * ((2 * ALGORITHM_PI) / 3));
+		template<typename T>
+		T EaseInElastic(T t) {
+			return t == static_cast<T>(0) || t == static_cast<T>(1) ? t : -std::pow(static_cast<T>(2), static_cast<T>(10) * t - static_cast<T>(10)) * std::sin((t * static_cast<T>(10) - static_cast<T>(10.75)) * ((static_cast<T>(2) * static_cast<T>(ALGORITHM_PI)) / static_cast<T>(3)));
 		}
 
 		/**
 		* @brief Ease-out elastic function
+		* @tparam T Numeric type (float, double, etc.)
 		* @param t Normalized time [0,1]
 		* @return Eased value
 		*/
-		double EaseOutElastic(double t) {
-			return t == 0 || t == 1 ? t : std::pow(2, -10 * t) * std::sin((t * 10 - 0.75) * ((2 * ALGORITHM_PI) / 3)) + 1;
+		template<typename T>
+		T EaseOutElastic(T t) {
+			return t == static_cast<T>(0) || t == static_cast<T>(1) ? t : std::pow(static_cast<T>(2), -static_cast<T>(10) * t) * std::sin((t * static_cast<T>(10) - static_cast<T>(0.75)) * ((static_cast<T>(2) * static_cast<T>(ALGORITHM_PI)) / static_cast<T>(3))) + static_cast<T>(1);
 		}
 
 		/**
 		* @brief Ease-in-out elastic function
+		* @tparam T Numeric type (float, double, etc.)
 		* @param t Normalized time [0,1]
 		* @return Eased value
 		*/
-		double EaseInOutElastic(double t) {
-			if (t == 0 || t == 1) {
+		template<typename T>
+		T EaseInOutElastic(T t) {
+			if (t == static_cast<T>(0) || t == static_cast<T>(1)) {
 				return t;
 			}
-			t = t * 2;
-			if (t < 1) {
-				return -0.5 * std::pow(2, 10 * t - 10) * std::sin((t * 10 - 10.75) * ((2 * ALGORITHM_PI) / 3));
+			t = t * static_cast<T>(2);
+			if (t < static_cast<T>(1)) {
+				return -static_cast<T>(0.5) * std::pow(static_cast<T>(2), static_cast<T>(10) * t - static_cast<T>(10)) * std::sin((t * static_cast<T>(10) - static_cast<T>(10.75)) * ((static_cast<T>(2) * static_cast<T>(ALGORITHM_PI)) / static_cast<T>(3)));
 			}
-			return std::pow(2, -10 * (t - 1)) * std::sin((t * 10 - 0.75) * ((2 * ALGORITHM_PI) / 3)) * 0.5 + 1;
+			return std::pow(static_cast<T>(2), -static_cast<T>(10) * (t - static_cast<T>(1))) * std::sin((t * static_cast<T>(10) - static_cast<T>(0.75)) * ((static_cast<T>(2) * static_cast<T>(ALGORITHM_PI)) / static_cast<T>(3))) * static_cast<T>(0.5) + static_cast<T>(1);
 		}
 
 		/**
 		* @brief Ease-out bounce function
+		* @tparam T Numeric type (float, double, etc.)
 		* @param t Normalized time [0,1]
 		* @return Eased value
 		*/
-		double EaseOutBounce(double t) {
-			const double n1 = 7.5625;
-			const double d1 = 2.75;
+		template<typename T>
+		T EaseOutBounce(T t) {
+			const T n1 = static_cast<T>(7.5625);
+			const T d1 = static_cast<T>(2.75);
 
-			if (t < 1 / d1) {
+			if (t < static_cast<T>(1) / d1) {
 				return n1 * t * t;
 			}
-			else if (t < 2 / d1) {
-				t -= 1.5 / d1;
-				return n1 * t * t + 0.75;
+			else if (t < static_cast<T>(2) / d1) {
+				t -= static_cast<T>(1.5) / d1;
+				return n1 * t * t + static_cast<T>(0.75);
 			}
-			else if (t < 2.5 / d1) {
-				t -= 2.25 / d1;
-				return n1 * t * t + 0.9375;
+			else if (t < static_cast<T>(2.5) / d1) {
+				t -= static_cast<T>(2.25) / d1;
+				return n1 * t * t + static_cast<T>(0.9375);
 			}
 			else {
-				t -= 2.625 / d1;
-				return n1 * t * t + 0.984375;
+				t -= static_cast<T>(2.625) / d1;
+				return n1 * t * t + static_cast<T>(0.984375);
 			}
 		}
 
 		/**
 		* @brief Ease-in bounce function
+		* @tparam T Numeric type (float, double, etc.)
 		* @param t Normalized time [0,1]
 		* @return Eased value
 		*/
-		double EaseInBounce(double t) {
-			return 1 - EaseOutBounce(1 - t);
+		template<typename T>
+		T EaseInBounce(T t) {
+			return static_cast<T>(1) - EaseOutBounce(static_cast<T>(1) - t);
 		}
 
 		/**
 		* @brief Ease-in-out bounce function
+		* @tparam T Numeric type (float, double, etc.)
 		* @param t Normalized time [0,1]
 		* @return Eased value
 		*/
-		double EaseInOutBounce(double t) {
-			return t < 0.5
-				? (1 - EaseOutBounce(1 - 2 * t)) / 2
-				: (1 + EaseOutBounce(2 * t - 1)) / 2;
+		template<typename T>
+		T EaseInOutBounce(T t) {
+			return t < static_cast<T>(0.5)
+				? (static_cast<T>(1) - EaseOutBounce(static_cast<T>(1) - static_cast<T>(2) * t)) / static_cast<T>(2)
+				: (static_cast<T>(1) + EaseOutBounce(static_cast<T>(2) * t - static_cast<T>(1))) / static_cast<T>(2);
 		}
-
 
 	}
 
