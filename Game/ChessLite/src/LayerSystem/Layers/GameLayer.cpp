@@ -84,7 +84,7 @@ namespace Layers {
 
 		// --- Chess Board Setup ---
 		ChessContext chessCTX;
-		chessCTX.SetBoardSize(3, 10);
+		chessCTX.SetBoardSize(3, 3);
 		chessCTX.BoardCmdFillRow(0, pawnID);
 
 		//--- Win Condition Setup
