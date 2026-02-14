@@ -30,8 +30,8 @@ namespace Layers {
 
 		float m_boardTileSize = 128.0f;
 		bool m_calculateBoardTileSize = true;
-		Vector4 m_boardMargin{ 64.0f };
-		Vector2 m_RefDisplaySize{1920.0f, 1080.0f};
+		Vector4 m_boardMargin{ 128.0f };
+		Vector2 m_RefDisplaySize{ 1920.0f, 1080.0f };
 		Vector2 m_displaySize{ 0.0f };
 
 		Vector2 m_selectedPiecePos = Vector2::zero;
