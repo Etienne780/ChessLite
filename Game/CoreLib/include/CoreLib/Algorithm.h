@@ -1,10 +1,8 @@
-#pragma once
+﻿#pragma once
 #include <vector>
 #include <functional>
 #include <memory>
-/**
-* is not thread save
-*/
+
 namespace Algorithm {
 
 	namespace Search {
@@ -535,6 +533,331 @@ namespace Algorithm {
 				if (!swapped) break;
 			}
 		}
+
+	}
+
+	namespace Easing {
+		
+		/// Constant for π
+		constexpr double ALGORITHM_PI = 3.14159265358979323846;
+
+		/**
+		* @brief Ease-in sine function
+		* @param t Normalized time [0,1]
+		* @return Eased value
+		*/
+		double EaseInSine(double t) {
+			return 1.0 - std::cos((t * ALGORITHM_PI) / 2.0);
+		}
+
+		/**
+		* @brief Ease-out sine function
+		* @param t Normalized time [0,1]
+		* @return Eased value
+		*/
+		double EaseOutSine(double t) {
+			return std::sin((t * ALGORITHM_PI) / 2.0);
+		}
+
+		/**
+		* @brief Ease-in-out sine function
+		* @param t Normalized time [0,1]
+		* @return Eased value
+		*/
+		double EaseInOutSine(double t) {
+			return -(std::cos(ALGORITHM_PI * t) - 1.0) / 2.0;
+		}
+
+		/**
+		* @brief Ease-in quadratic function
+		* @param t Normalized time [0,1]
+		* @return Eased value
+		*/
+		double EaseInQuad(double t) {
+			return t * t;
+		}
+
+		/**
+		* @brief Ease-out quadratic function
+		* @param t Normalized time [0,1]
+		* @return Eased value
+		*/
+		double EaseOutQuad(double t) {
+			return t * (2 - t);
+		}
+
+		/**
+		* @brief Ease-in-out quadratic function
+		* @param t Normalized time [0,1]
+		* @return Eased value
+		*/
+		double EaseInOutQuad(double t) {
+			return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+		}
+
+		/**
+		* @brief Ease-in cubic function
+		* @param t Normalized time [0,1]
+		* @return Eased value
+		*/
+		double EaseInCubic(double t) {
+			return t * t * t;
+		}
+
+		/**
+		* @brief Ease-out cubic function
+		* @param t Normalized time [0,1]
+		* @return Eased value
+		*/
+		double EaseOutCubic(double t) {
+			t -= 1;
+			return t * t * t + 1;
+		}
+
+		/**
+		* @brief Ease-in-out cubic function
+		* @param t Normalized time [0,1]
+		* @return Eased value
+		*/
+		double EaseInOutCubic(double t) {
+			return t < 0.5 ? 4 * t * t * t : std::pow(2 * t - 2, 3) / 2 + 1;
+		}
+
+		/**
+		* @brief Ease-in quartic function
+		* @param t Normalized time [0,1]
+		* @return Eased value
+		*/
+		double EaseInQuart(double t) {
+			return t * t * t * t;
+		}
+
+		/**
+		* @brief Ease-out quartic function
+		* @param t Normalized time [0,1]
+		* @return Eased value
+		*/
+		double EaseOutQuart(double t) {
+			t -= 1;
+			return 1 - t * t * t * t;
+		}
+
+		/**
+		* @brief Ease-in-out quartic function
+		* @param t Normalized time [0,1]
+		* @return Eased value
+		*/
+		double EaseInOutQuart(double t) {
+			return t < 0.5 ? 8 * t * t * t * t : 1 - 8 * std::pow(t - 1, 4);
+		}
+
+		/**
+		* @brief Ease-in quintic function
+		* @param t Normalized time [0,1]
+		* @return Eased value
+		*/
+		double EaseInQuint(double t) {
+			return t * t * t * t * t;
+		}
+
+		/**
+		* @brief Ease-out quintic function
+		* @param t Normalized time [0,1]
+		* @return Eased value
+		*/
+		double EaseOutQuint(double t) {
+			t -= 1;
+			return 1 + t * t * t * t * t;
+		}
+
+		/**
+		* @brief Ease-in-out quintic function
+		* @param t Normalized time [0,1]
+		* @return Eased value
+		*/
+		double EaseInOutQuint(double t) {
+			return t < 0.5 ? 16 * t * t * t * t * t : 1 + 16 * std::pow(t - 1, 5);
+		}
+
+		/**
+		* @brief Ease-in exponential function
+		* @param t Normalized time [0,1]
+		* @return Eased value
+		*/
+		double EaseInExpo(double t) {
+			return t == 0 ? 0 : std::pow(2, 10 * (t - 1));
+		}
+
+		/**
+		* @brief Ease-out exponential function
+		* @param t Normalized time [0,1]
+		* @return Eased value
+		*/
+		double EaseOutExpo(double t) {
+			return t == 1 ? 1 : 1 - std::pow(2, -10 * t);
+		}
+
+		/**
+		* @brief Ease-in-out exponential function
+		* @param t Normalized time [0,1]
+		* @return Eased value
+		*/
+		double EaseInOutExpo(double t) {
+			if (t == 0) {
+				return 0;
+			}
+			if (t == 1) {
+				return 1;
+			}
+			return t < 0.5 ? std::pow(2, 20 * t - 10) / 2 : (2 - std::pow(2, -20 * t + 10)) / 2;
+		}
+
+		/**
+		* @brief Ease-in circular function
+		* @param t Normalized time [0,1]
+		* @return Eased value
+		*/
+		double EaseInCirc(double t) {
+			return 1 - std::sqrt(1 - t * t);
+		}
+
+		/**
+		* @brief Ease-out circular function
+		* @param t Normalized time [0,1]
+		* @return Eased value
+		*/
+		double EaseOutCirc(double t) {
+			t -= 1;
+			return std::sqrt(1 - t * t);
+		}
+
+		/**
+		* @brief Ease-in-out circular function
+		* @param t Normalized time [0,1]
+		* @return Eased value
+		*/
+		double EaseInOutCirc(double t) {
+			if (t < 0.5) {
+				return (1 - std::sqrt(1 - 4 * t * t)) / 2;
+			}
+			t = 2 * t - 1;
+			return (std::sqrt(1 - t * t) + 1) / 2;
+		}
+
+		/**
+		* @brief Ease-in back function
+		* @param t Normalized time [0,1]
+		* @return Eased value
+		*/
+		double EaseInBack(double t) {
+			const double c1 = 1.70158;
+			return t * t * ((c1 + 1) * t - c1);
+		}
+
+		/**
+		* @brief Ease-out back function
+		* @param t Normalized time [0,1]
+		* @return Eased value
+		*/
+		double EaseOutBack(double t) {
+			const double c1 = 1.70158;
+			t -= 1;
+			return 1 + t * t * ((c1 + 1) * t + c1);
+		}
+
+		/**
+		* @brief Ease-in-out back function
+		* @param t Normalized time [0,1]
+		* @return Eased value
+		*/
+		double EaseInOutBack(double t) {
+			const double c1 = 1.70158;
+			const double c2 = c1 * 1.525;
+			return t < 0.5
+				? (std::pow(2 * t, 2) * ((c2 + 1) * 2 * t - c2)) / 2
+				: (std::pow(2 * t - 2, 2) * ((c2 + 1) * (t * 2 - 2) + c2) + 2) / 2;
+		}
+
+		/**
+		* @brief Ease-in elastic function
+		* @param t Normalized time [0,1]
+		* @return Eased value
+		*/
+		double EaseInElastic(double t) {
+			return t == 0 || t == 1 ? t : -std::pow(2, 10 * t - 10) * std::sin((t * 10 - 10.75) * ((2 * ALGORITHM_PI) / 3));
+		}
+
+		/**
+		* @brief Ease-out elastic function
+		* @param t Normalized time [0,1]
+		* @return Eased value
+		*/
+		double EaseOutElastic(double t) {
+			return t == 0 || t == 1 ? t : std::pow(2, -10 * t) * std::sin((t * 10 - 0.75) * ((2 * ALGORITHM_PI) / 3)) + 1;
+		}
+
+		/**
+		* @brief Ease-in-out elastic function
+		* @param t Normalized time [0,1]
+		* @return Eased value
+		*/
+		double EaseInOutElastic(double t) {
+			if (t == 0 || t == 1) {
+				return t;
+			}
+			t = t * 2;
+			if (t < 1) {
+				return -0.5 * std::pow(2, 10 * t - 10) * std::sin((t * 10 - 10.75) * ((2 * ALGORITHM_PI) / 3));
+			}
+			return std::pow(2, -10 * (t - 1)) * std::sin((t * 10 - 0.75) * ((2 * ALGORITHM_PI) / 3)) * 0.5 + 1;
+		}
+
+		/**
+		* @brief Ease-out bounce function
+		* @param t Normalized time [0,1]
+		* @return Eased value
+		*/
+		double EaseOutBounce(double t) {
+			const double n1 = 7.5625;
+			const double d1 = 2.75;
+
+			if (t < 1 / d1) {
+				return n1 * t * t;
+			}
+			else if (t < 2 / d1) {
+				t -= 1.5 / d1;
+				return n1 * t * t + 0.75;
+			}
+			else if (t < 2.5 / d1) {
+				t -= 2.25 / d1;
+				return n1 * t * t + 0.9375;
+			}
+			else {
+				t -= 2.625 / d1;
+				return n1 * t * t + 0.984375;
+			}
+		}
+
+		/**
+		* @brief Ease-in bounce function
+		* @param t Normalized time [0,1]
+		* @return Eased value
+		*/
+		double EaseInBounce(double t) {
+			return 1 - EaseOutBounce(1 - t);
+		}
+
+		/**
+		* @brief Ease-in-out bounce function
+		* @param t Normalized time [0,1]
+		* @return Eased value
+		*/
+		double EaseInOutBounce(double t) {
+			return t < 0.5
+				? (1 - EaseOutBounce(1 - 2 * t)) / 2
+				: (1 + EaseOutBounce(2 * t - 1)) / 2;
+		}
+
 
 	}
 
