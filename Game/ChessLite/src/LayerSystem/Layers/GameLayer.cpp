@@ -20,6 +20,13 @@ namespace Layers {
 			m_windowResizeCBID = win->AddOnWindowResize([this](const SDLCore::Window& win) {
 				m_windowSize = win.GetSize();
 			});
+
+			Vector4 bounds = win->GetDisplayBounds();
+			m_displaySize.Set(bounds.z, bounds.w);
+			m_windowDisplayChangedCBID = win->AddOnWindowDisplayChanged([this](const SDLCore::Window& win) {
+				Vector4 bounds = win.GetDisplayBounds();
+				m_displaySize.Set(bounds.z, bounds.w);
+			});
 		}
 		else {
 			Log::Error("GameLayer: Failed to get window!");
@@ -53,6 +60,7 @@ namespace Layers {
 		auto* win = ctx->app->GetWindow(winID);
 		if (win) {
 			win->RemoveOnWindowResize(m_windowResizeCBID);
+			win->RemoveOnWindowDisplayChanged(m_windowDisplayChangedCBID);
 		}
 	}
 
@@ -76,7 +84,7 @@ namespace Layers {
 
 		// --- Chess Board Setup ---
 		ChessContext chessCTX;
-		chessCTX.SetBoardSize(3, 3);
+		chessCTX.SetBoardSize(3, 10);
 		chessCTX.BoardCmdFillRow(0, pawnID);
 
 		//--- Win Condition Setup
@@ -131,34 +139,55 @@ namespace Layers {
 		int boardWidth = board.GetWidth();
 		int boardHeight = board.GetHeight();
 
+		float scaleX = m_displaySize.x / m_RefDisplaySize.x;
+		float scaleY = m_displaySize.y / m_RefDisplaySize.y;
+		float displayScale = std::min(scaleX, scaleY);
+
+		float boardTileSize = m_boardTileSize * displayScale;
+
+		if (m_calculateBoardTileSize) {
+			float top = m_boardMargin.x * displayScale;
+			float left = m_boardMargin.y * displayScale;
+			float bottom = m_boardMargin.z * displayScale;
+			float right = m_boardMargin.w * displayScale;
+
+			float usableWidth = m_windowSize.x - top - bottom;
+			float usableHeight = m_windowSize.y - left - right;
+
+			float boardTileSizeX = usableWidth / boardWidth;
+			float boardTileSizeY = usableHeight / boardHeight;
+
+			boardTileSize = std::min(boardTileSizeX, boardTileSizeY);
+		}
+
 		Vector2 topLeftBoard{
-			(m_windowSize.x * 0.5f) - (static_cast<float>(boardWidth) * m_boardTileSize * 0.5f),
-			(m_windowSize.y * 0.5f) - (static_cast<float>(boardHeight) * m_boardTileSize * 0.5f)
+			(m_windowSize.x * 0.5f) - (static_cast<float>(boardWidth) * boardTileSize * 0.5f),
+			(m_windowSize.y * 0.5f) - (static_cast<float>(boardHeight) * boardTileSize * 0.5f)
 		};
 		
 		RE::SetColor(colorBoardDark);
-		for (int i = 0; i < boardHeight * boardWidth; i++) {
-			if (i % 2 == 0) {
-				int localX = i % boardWidth;
-				int localY = static_cast<int>(i / boardHeight);
+		for (int i = 0; i < boardWidth * boardHeight; i++) {
+			int localX = i % boardWidth;
+			int localY = i / boardWidth;
 
-				float x = topLeftBoard.x + (static_cast<float>(localX) * m_boardTileSize);
-				float y = topLeftBoard.y + (static_cast<float>(localY) * m_boardTileSize);
+			if ((localX + localY) % 2 == 0) {
+				float x = topLeftBoard.x + static_cast<float>(localX) * boardTileSize;
+				float y = topLeftBoard.y + static_cast<float>(localY) * boardTileSize;
 
-				RE::FillRect(x, y, m_boardTileSize, m_boardTileSize);
+				RE::FillRect(x, y, boardTileSize, boardTileSize);
 			}
 		}
 
 		RE::SetColor(colorBoardLight);
 		for (int i = 0; i < boardHeight * boardWidth; i++) {
-			if (i % 2 == 1) {
-				int localX = i % boardWidth;
-				int localY = static_cast<int>(i / boardHeight);
+			int localX = i % boardWidth;
+			int localY = i / boardWidth;
 
-				float x = topLeftBoard.x + (static_cast<float>(localX) * m_boardTileSize);
-				float y = topLeftBoard.y + (static_cast<float>(localY) * m_boardTileSize);
+			if ((localX + localY) % 2 == 1) {
+				float x = topLeftBoard.x + (static_cast<float>(localX) * boardTileSize);
+				float y = topLeftBoard.y + (static_cast<float>(localY) * boardTileSize);
 
-				RE::FillRect(x, y, m_boardTileSize, m_boardTileSize);
+				RE::FillRect(x, y, boardTileSize, boardTileSize);
 			}
 		}
 	}

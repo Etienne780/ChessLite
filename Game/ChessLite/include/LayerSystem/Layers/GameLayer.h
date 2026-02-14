@@ -24,10 +24,16 @@ namespace Layers {
 		CoreChess::ChessWinResult m_gameResult = CoreChess::ChessWinResult::NONE;
 		LayerEventSubscriptionID m_escapeMenuCloseEventID;
 		SDLCore::WindowCallbackID m_windowResizeCBID;
+		SDLCore::WindowCallbackID m_windowDisplayChangedCBID;
 
 		Vector2 m_windowSize;
 
 		float m_boardTileSize = 128.0f;
+		bool m_calculateBoardTileSize = true;
+		Vector4 m_boardMargin{ 64.0f };
+		Vector2 m_RefDisplaySize{1920.0f, 1080.0f};
+		Vector2 m_displaySize{ 0.0f };
+
 		Vector2 m_selectedPiecePos = Vector2::zero;
 
 		void SetupGame();
