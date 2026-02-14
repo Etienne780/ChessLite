@@ -1,4 +1,5 @@
 #pragma once
+#include <SDLCoreLib/SDLCore.h>
 #include <CoreChessLib/CoreChess.h>
 
 #include "LayerSystem/Layer.h"
@@ -24,17 +25,19 @@ namespace Layers {
 		SDLCore::WindowCallbackID m_windowResizeCBID;
 		SDLCore::WindowCallbackID m_windowDisplayChangedCBID;
 
-		Vector2 m_windowSize;
+		SDLCore::Texture m_pawnLightTexture{ SDLCore::TEXTURE_FALLBACK_TEXTURE };
+		SDLCore::Texture m_pawnDarkTexture{ SDLCore::TEXTURE_FALLBACK_TEXTURE };
 
 		float m_boardTileSize = 128.0f;
 		bool m_calculateBoardTileSize = true;
 		Vector4 m_boardMargin{ 128.0f };
 		Vector2 m_RefDisplaySize{ 1920.0f, 1080.0f };
 		Vector2 m_displaySize{ 0.0f };
+		Vector2 m_windowSize;
 
 		CoreChess::ChessGame m_game;
 		CoreChess::ChessWinResult m_gameResult = CoreChess::ChessWinResult::NONE;
-		CoreChess::ChessPieceID pawnID;
+		CoreChess::ChessPieceID m_pawnID;
 		Vector2 m_selectedPiecePos = Vector2::zero;
 
 		void SetupGame();

@@ -171,12 +171,13 @@ namespace Layers {
 			int localX = i % boardWidth;
 			int localY = i / boardWidth;
 
-			if ((localX + localY) % 2 == 0) {
-				float x = topLeftBoard.x + static_cast<float>(localX) * boardTileSize;
-				float y = topLeftBoard.y + static_cast<float>(localY) * boardTileSize;
+			if ((localX + localY) % 2 != 0)
+				continue;
 
-				RE::FillRect(x, y, boardTileSize, boardTileSize);
-			}
+			float x = topLeftBoard.x + static_cast<float>(localX) * boardTileSize;
+			float y = topLeftBoard.y + static_cast<float>(localY) * boardTileSize;
+
+			RE::FillRect(x, y, boardTileSize, boardTileSize);
 		}
 
 		RE::SetColor(colorBoardLight);
@@ -184,15 +185,35 @@ namespace Layers {
 			int localX = i % boardWidth;
 			int localY = i / boardWidth;
 
-			if ((localX + localY) % 2 == 1) {
-				float x = topLeftBoard.x + (static_cast<float>(localX) * boardTileSize);
-				float y = topLeftBoard.y + (static_cast<float>(localY) * boardTileSize);
+			if ((localX + localY) % 2 != 1)
+				continue;
 
-				RE::FillRect(x, y, boardTileSize, boardTileSize);
-			}
+			float x = topLeftBoard.x + (static_cast<float>(localX) * boardTileSize);
+			float y = topLeftBoard.y + (static_cast<float>(localY) * boardTileSize);
+
+			RE::FillRect(x, y, boardTileSize, boardTileSize);
 		}
 
-		// render board
+		// render Figures
+		for (int i = 0; i < boardHeight * boardWidth; i++) {
+			auto field = board.GetFieldAt(i);
+
+			if (field.GetPieceID() != m_pawnID)
+				continue;
+
+			int localX = i % boardWidth;
+			int localY = i / boardWidth;
+
+			float x = topLeftBoard.x + static_cast<float>(localX) * boardTileSize;
+			float y = topLeftBoard.y + static_cast<float>(localY) * boardTileSize;
+
+			if (field.GetFieldType() == CoreChess::FieldType::BLACK) {
+				RE::Texture(m_pawnDarkTexture, x, y, boardTileSize, boardTileSize);
+			}
+			else if (field.GetFieldType() == CoreChess::FieldType::WHITE) {
+				RE::Texture(m_pawnLightTexture, x, y, boardTileSize, boardTileSize);
+			}
+		}
 	}
 
 }
