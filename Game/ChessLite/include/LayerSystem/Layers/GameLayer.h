@@ -18,10 +18,8 @@ namespace Layers {
 		LayerID GetLayerID() const override;
 
 	private:
-		CoreChess::ChessGame m_game;
 		bool m_gameEnded = false;
 		bool m_isEscapeMenuOpen = false;
-		CoreChess::ChessWinResult m_gameResult = CoreChess::ChessWinResult::NONE;
 		LayerEventSubscriptionID m_escapeMenuCloseEventID;
 		SDLCore::WindowCallbackID m_windowResizeCBID;
 		SDLCore::WindowCallbackID m_windowDisplayChangedCBID;
@@ -34,6 +32,9 @@ namespace Layers {
 		Vector2 m_RefDisplaySize{ 1920.0f, 1080.0f };
 		Vector2 m_displaySize{ 0.0f };
 
+		CoreChess::ChessGame m_game;
+		CoreChess::ChessWinResult m_gameResult = CoreChess::ChessWinResult::NONE;
+		CoreChess::ChessPieceID pawnID;
 		Vector2 m_selectedPiecePos = Vector2::zero;
 
 		void SetupGame();

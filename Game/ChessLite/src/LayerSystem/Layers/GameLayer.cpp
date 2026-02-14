@@ -74,8 +74,7 @@ namespace Layers {
 		auto& reg = ChessPieceRegistry::GetInstance();
 
 		// --- Pawn Setup ---
-		ChessPieceID pawnID;
-		auto* pawn = reg.AddChessPiece(pawnID, "pawn", 1);
+		auto* pawn = reg.AddChessPiece(m_pawnID, "pawn", 1);
 		pawn->SetMoveProperties(1, false, false, TargetType::FREE);
 		pawn->AddMoveRule(0, 1); // forward
 		pawn->SetTargetType(TargetType::OPPONENT);
@@ -85,10 +84,10 @@ namespace Layers {
 		// --- Chess Board Setup ---
 		ChessContext chessCTX;
 		chessCTX.SetBoardSize(3, 3);
-		chessCTX.BoardCmdFillRow(0, pawnID);
+		chessCTX.BoardCmdFillRow(0, m_pawnID);
 
 		//--- Win Condition Setup
-		chessCTX.SetWinCondition([pawnID](const ChessGame& game) -> ChessWinResult {
+		chessCTX.SetWinCondition([this](const ChessGame& game) -> ChessWinResult {
 			if (game.IsWhiteTurn()) {
 				if (!game.HasAnyLegalMove(FieldType::BLACK)) {
 					return ChessWinResult::WHITE_WON;
@@ -165,6 +164,8 @@ namespace Layers {
 			(m_windowSize.y * 0.5f) - (static_cast<float>(boardHeight) * boardTileSize * 0.5f)
 		};
 		
+		// render board
+
 		RE::SetColor(colorBoardDark);
 		for (int i = 0; i < boardWidth * boardHeight; i++) {
 			int localX = i % boardWidth;
@@ -190,6 +191,8 @@ namespace Layers {
 				RE::FillRect(x, y, boardTileSize, boardTileSize);
 			}
 		}
+
+		// render board
 	}
 
 }
