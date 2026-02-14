@@ -23,10 +23,24 @@ namespace SDLCore {
 		static Application* GetInstance();
 
 		/**
-		* @brief Returns whether the entire application is scheduled to quit.
+		* @brief Checks whether the application has been requested to quit.
+		*
+		* This reflects the internal flag `m_closeApplication` and indicates
+		* if the main loop should terminate.
+		*
 		* @return true if the application shutdown has been requested, false otherwise
 		*/
 		static bool IsQuit();
+
+		/**
+		* @brief Checks whether SDL has been fully shut down.
+		*
+		* This reflects the internal flag `m_sdlQuit` and indicates whether
+		* `SDL_Quit()` has been called and completed.
+		*
+		* @return true if SDL has been quit, false otherwise
+		*/
+		static bool IsSDLQuit();
 
 		/**
 		* @brief Returns the platform on which the application is currently running.
@@ -631,6 +645,7 @@ namespace SDLCore {
 		std::string m_renderDriver;
 
 		bool m_closeApplication = false;
+		bool m_sdlQuit = false;
 		int m_vsync = 0;
 		int m_fpsCap = 0;
 

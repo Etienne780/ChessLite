@@ -621,11 +621,12 @@ namespace SDLCore {
 	#pragma region Member
 
 	void SoundManager::Cleanup() {
-		if (!Application::IsQuit()) {
+		if (!Application::IsSDLQuit()) {
 			for (auto& [id, audioTrack] : m_audioTracks) {
 				OnTrackStopped(id);
 			}
 			MIX_DestroyMixer(m_mixer);
+			m_mixer = nullptr;
 		}
 		m_audioTracks.clear();
 	}

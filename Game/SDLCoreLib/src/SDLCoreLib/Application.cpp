@@ -47,6 +47,13 @@ namespace SDLCore {
         return true;
     }
 
+    bool Application::IsSDLQuit() {
+        if (m_application) {
+            return m_application->m_sdlQuit;
+        }
+        return true;
+    }
+
     Platform Application::GetPlatform() {
         const char* platStr = SDL_GetPlatform();
         Platform platform = Platform::UNKOWN;
@@ -135,6 +142,7 @@ namespace SDLCore {
         TTF_Quit();
         SDL_Quit();
 
+        m_sdlQuit = true;
         return 0;
     }
 
@@ -507,6 +515,10 @@ namespace SDLCore {
         case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
         case SDL_EVENT_WINDOW_DISPLAY_CHANGED:
         case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED:
+        case SDL_EVENT_DISPLAY_ORIENTATION:
+        case SDL_EVENT_DISPLAY_CURRENT_MODE_CHANGED:
+        case SDL_EVENT_DISPLAY_CONTENT_SCALE_CHANGED:
+        case SDL_EVENT_DISPLAY_USABLE_BOUNDS_CHANGED:
             window->UpdateWindowEvents(m_sdlEvent.type);
             break;
         default:

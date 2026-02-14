@@ -27,7 +27,7 @@ namespace SDLCore {
 	}
 
 	FontAsset::~FontAsset() {
-        if(!Application::IsQuit())
+        if(!Application::IsSDLQuit())
 		    Cleanup();
 	};
 
@@ -266,7 +266,7 @@ namespace SDLCore {
 
     void FontAsset::FreeTextureForWindow(WindowID winID) {
         // prevents from calling sdl funcs if app is closing
-        if (Application::IsQuit())
+        if (Application::IsSDLQuit())
             return;
 
         auto* app = Application::GetInstance();

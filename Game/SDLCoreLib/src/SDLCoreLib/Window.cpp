@@ -50,18 +50,24 @@ namespace SDLCore {
 		return m_positionY;
 	}
 
+	Vector4 Window::GetDisplayBounds() const {
+		return Vector4{
+			static_cast<float>(m_displayBounds.x),
+			static_cast<float>(m_displayBounds.y),
+			static_cast<float>(m_displayBounds.w),
+			static_cast<float>(m_displayBounds.h)
+		};
+	}
+
 	Vector2 Window::GetSize() const {
-		PollSize();
 		return Vector2(static_cast<float>(m_width), static_cast<float>(m_height));
 	}
 
 	int Window::GetWidth() const {
-		PollSize();
 		return m_width;
 	}
 
 	int Window::GetHeight() const {
-		PollSize();
 		return m_height;
 	}
 
@@ -89,6 +95,9 @@ namespace SDLCore {
 			AddErrorF("\nSDLCore::Window::CreateWindow: Failed to set window properties for '{}'", m_name);
 			return false;
 		}
+
+		PollPosition();
+		PollDisplayProps();
 		return true;
 	}
 
@@ -209,9 +218,19 @@ namespace SDLCore {
 		CallCallbacks(m_onSDLRendererDestroyCallbacks);
 	}
 
+	void Window::CallOnWindowMoved() {
+		PollPosition();
+		CallCallbacks(m_onWinMovedCallbacks, *this);
+	}
+
 	void Window::CallOnWindowResize() {
 		PollSize();
 		CallCallbacks(m_onWinResizeCallbacks, *this);
+	}
+
+	void Window::CallOnWindowDisplayChanged() {
+		PollDisplayProps();
+		CallCallbacks(m_onWinDisplayChangedCallbacks, *this);
 	}
 
 	void Window::CallOnWindowFocusGain() {
@@ -227,7 +246,7 @@ namespace SDLCore {
 			return;
 
 		auto now = Time::GetFrameCount();
-		if (m_positionFetchedTime == now)
+		if (m_positionFetchedTime == now && now != 0)
 			return;
 
 		m_positionFetchedTime = now;
@@ -239,25 +258,42 @@ namespace SDLCore {
 			return;
 
 		auto now = Time::GetFrameCount();
-		if (m_sizeFetchedTime == now)
+		if (m_sizeFetchedTime == now && now != 0)
 			return;
 
 		m_sizeFetchedTime = now;
 		SDL_GetWindowSize(m_sdlWindow.get(), &m_width, &m_height);
 	}
 
+	void Window::PollDisplayProps() {
+		auto now = Time::GetFrameCount();
+		if (m_displayPropsFetchedTime == now && now != 0)
+			return;
+		m_displayPropsFetchedTime = now;
+
+		m_sdlDisplayID = SDL_GetDisplayForWindow(m_sdlWindow.get());
+		if (m_sdlDisplayID == 0)
+			return;
+
+		m_contentScale = SDL_GetWindowDisplayScale(m_sdlWindow.get());
+		SDL_GetDisplayBounds(m_sdlDisplayID, &m_displayBounds);
+	}
+
 	void Window::UpdateWindowEvents(Uint32 type) {
 		switch (type) {
+		case SDL_EVENT_DISPLAY_ORIENTATION:
+		case SDL_EVENT_DISPLAY_CURRENT_MODE_CHANGED:
+		case SDL_EVENT_DISPLAY_CONTENT_SCALE_CHANGED:
+		case SDL_EVENT_DISPLAY_USABLE_BOUNDS_CHANGED:
 		case SDL_EVENT_WINDOW_DISPLAY_CHANGED:
-			if(m_sdlWindow)
-				m_sdlDisplayID = SDL_GetDisplayForWindow(m_sdlWindow.get());
-			break;
 		case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED:
 		case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
-			if(m_sdlWindow)
-				m_contentScale = SDL_GetWindowDisplayScale(m_sdlWindow.get());
+			if(m_sdlWindow) {
+				CallOnWindowDisplayChanged();
+			}
 			break;
 		case SDL_EVENT_WINDOW_MOVED:
+			CallOnWindowMoved();
 			break;
 		case SDL_EVENT_WINDOW_RESIZED:
 			CallOnWindowResize();
@@ -819,6 +855,16 @@ namespace SDLCore {
 		return this;
 	}
 
+	WindowCallbackID Window::AddOnWindowMoved(WinCallback&& cb) {
+		return AddCallback<WinCallback>(m_onWinMovedCallbacks, std::move(cb));
+	}
+
+	Window* Window::RemoveOnWindowMoved(WindowCallbackID id) {
+		if (!RemoveCallback<WinCallback>(m_onWinMovedCallbacks, id))
+			Log::Warn("SDLCore::Window::RemoveOnWindowMoved: No callback found with ID '{}', nothing was removed.", id);
+		return this;
+	}
+
 	WindowCallbackID Window::AddOnWindowResize(WinCallback&& cb) {
 		return AddCallback<WinCallback>(m_onWinResizeCallbacks, std::move(cb));
 	}
@@ -826,6 +872,16 @@ namespace SDLCore {
 	Window* Window::RemoveOnWindowResize(WindowCallbackID id) {
 		if (!RemoveCallback<WinCallback>(m_onWinResizeCallbacks, id))
 			Log::Warn("SDLCore::Window::RemoveOnWindowResize: No callback found with ID '{}', nothing was removed.", id);
+		return this;
+	}
+
+	WindowCallbackID Window::AddOnWindowDisplayChanged(WinCallback&& cb) {
+		return AddCallback<WinCallback>(m_onWinDisplayChangedCallbacks, std::move(cb));
+	}
+
+	Window* Window::RemoveOnWindowDisplayChanged(WindowCallbackID id) {
+		if (!RemoveCallback<WinCallback>(m_onWinDisplayChangedCallbacks, id))
+			Log::Warn("SDLCore::Window::RemoveOnWindowDisplayChanged: No callback found with ID '{}', nothing was removed.", id);
 		return this;
 	}
 
