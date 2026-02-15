@@ -19,19 +19,18 @@ const Vector3 Vector3::zero(0, 0, 0);
 
 Vector3::Vector3() {
 }
-
 Vector3::Vector3(float value)
     : x(value), y(value), z(value) {
 }
-
 Vector3::Vector3(float x, float y, float z)
     : x(x), y(y), z(z) {
 }
-
 Vector3::Vector3(const Vector2& vec, float z) 
     : x(vec.x), y(vec.y), z(z) {
 }
-
+Vector3::Vector3(float x, const Vector2& vec)
+    : x(x), y(vec.x), z(vec.y) {
+}
 Vector3::Vector3(const Vector4& vec) 
     : x(vec.x), y(vec.y), z(vec.z) {
 }
@@ -73,6 +72,18 @@ Vector3& Vector3::Set(float fill) {
     return *this;
 }
 
+bool Vector3::Equals(float value) {
+    return x == value && y == value && z == value;
+}
+
+bool Vector3::Equals(float _x, float _y, float _z) {
+    return x == _x && y == _y && z == _z;
+}
+
+bool Vector3::Equals(const Vector3& other) {
+    return *this == other;
+}
+
 Vector3& Vector3::Normalize() {
     float len = Magnitude();
     if (len > 0) {
@@ -107,6 +118,10 @@ float Vector3::Dot(const Vector3& other) const {
     return (x * other.x) + (y * other.y) + (z * other.z);
 }
 
+float Vector3::Dot(const Vector3& a, const Vector3& b) {
+    return a.Dot(b);
+}
+
 Vector3 Vector3::Cross(const Vector3 & other) const {
     return Vector3(
         y * other.z - z * other.y,
@@ -115,16 +130,8 @@ Vector3 Vector3::Cross(const Vector3 & other) const {
     );
 }
 
-float Vector3::Dot(const Vector3& a, const Vector3& b) {
-    return (a.x * b.x) + (a.y * b.y) + (a.z * b.z);
-}
-
 Vector3 Vector3::Cross(const Vector3& a, const Vector3& b) {
-    return Vector3(
-        a.y * b.z - a.z * b.y,
-        a.z * b.x - a.x * b.z,
-        a.x * b.y - a.y * b.x
-    );
+    return a.Cross(b);
 }
 
 Vector3 Vector3::Lerp(const Vector3& a, const Vector3& b, float t) {
