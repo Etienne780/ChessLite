@@ -12,6 +12,7 @@ enum class LayerID {
 	OPTIONS_MENU,
 	ESCAPE_MENU,
 	GAME,
+	GAME_RESULT,
 	START_LOAD
 };
 

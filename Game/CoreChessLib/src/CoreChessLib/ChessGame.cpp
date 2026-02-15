@@ -56,6 +56,10 @@ namespace CoreChess {
 		InternalDeselectPiece();
 	}
 
+	bool ChessGame::MovePiece(float toX, float toY) {
+		return MovePiece(Vector2{ toX, toY });
+	}
+
 	bool ChessGame::MovePiece(const Vector2& to) {
 		if (!CheckContext("MovePiece"))
 			return false;

@@ -18,6 +18,7 @@ namespace CoreChess {
 
 		void SelectPiece(const Vector2& from);
 		void DeselectPiece();
+		bool MovePiece(float toX, float toY);
 		bool MovePiece(const Vector2& to);
 
 		size_t ConverToBoardIndex(const Vector2& pos) const;

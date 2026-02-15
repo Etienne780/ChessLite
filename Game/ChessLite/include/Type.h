@@ -13,6 +13,13 @@ struct LayerEventSubscriptionTag {};
 
 using LayerEventSubscriptionID = CoreAppID<LayerEventSubscriptionTag>;
 
+struct ChessOptions {
+	bool showPossibleMoves = true;
+
+	ChessOptions() = default;
+	ChessOptions(const ChessOptions& options) = default;
+};
+
 enum class ChessSkinType {
 	UNKOWN = 0,
 	CHESS_ECKIG,

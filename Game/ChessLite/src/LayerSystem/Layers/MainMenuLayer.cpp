@@ -26,7 +26,7 @@ namespace Layers {
 			.SetValue(Prop::align, UI::UIAlignment::CENTER, UI::UIAlignment::CENTER)
 			.SetValue(Prop::padding, Style::commanSpaceL)
 			.SetValue(Prop::sizeUnit, UI::UISizeUnit::PX, UI::UISizeUnit::PX)
-			.SetValue(Prop::size, 550.0f, 400.0f);
+			.SetValue(Prop::size, 550.0f, 450.0f);
 
 		m_styleTitle
 			.Merge(Style::commanTextTitle)

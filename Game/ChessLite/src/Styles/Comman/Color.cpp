@@ -43,7 +43,7 @@ namespace Style {
 
 		commanColorAccent = UIReg::RegisterColor(Vector4(200, 170, 90, 255));
 
-		commanColorHighlightMove = UIReg::RegisterColor(Vector4(0, 180, 0, 120));
+		commanColorHighlightMove = UIReg::RegisterColor(Vector4(148, 219, 227, 160));
 		commanColorHighlightSelected = UIReg::RegisterColor(Vector4(255, 215, 0, 160));
 		commanColorHighlightCheck = UIReg::RegisterColor(Vector4(200, 40, 40, 180));
 

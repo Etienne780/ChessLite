@@ -19,13 +19,16 @@ namespace Layers {
 		LayerID GetLayerID() const override;
 
 	private:
-		bool m_gameEnded = false;
+		using ChessCoreResult = CoreChess::ChessWinResult;
+
+		bool m_opendGameResult = false;
 		bool m_isEscapeMenuOpen = false;
 		LayerEventSubscriptionID m_escapeMenuCloseEventID;
 
 		ChessSkinType m_skinType = ChessSkinType::UNKOWN;
 		std::shared_ptr<SDLCore::Texture> m_pawnLightTexture = nullptr;
 		std::shared_ptr<SDLCore::Texture> m_pawnDarkTexture = nullptr;
+		ChessOptions m_options;
 
 		float m_boardTileSize = 128.0f;
 		bool m_calculateBoardTileSize = true;
@@ -35,14 +38,20 @@ namespace Layers {
 		Vector2 m_windowSize{ 0.0f };
 
 		CoreChess::ChessGame m_game;
-		CoreChess::ChessWinResult m_gameResult = CoreChess::ChessWinResult::NONE;
+		ChessCoreResult m_gameResult = ChessCoreResult::NONE;
 		CoreChess::ChessPieceID m_pawnID;
-		bool m_pieceSelected = false
+		bool m_pieceSelected = false;
+		CoreChess::ChessPieceID m_selectedPieceID;
+		Vector2 m_selectedPieceLocalPos = Vector2::zero;
 		Vector2 m_selectedPiecePos = Vector2::zero;
 
 		void SetupGame();
 		void GameLogic();
 		void RenderBoard();
+
+		void ResetChessSelectedParams();
+		void TryMovePiece(const Vector2& from, float toX, float toY);
+		static bool IsPointInRect(Vector2 mPos, float x, float y, float size);
 	};
 
 }

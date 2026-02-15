@@ -1,4 +1,5 @@
 #include "LayerSystem/Layers/GameLayer.h"
+#include "LayerSystem/Layers/GameResult.h"
 #include "LayerSystem/Layers/EscapeMenuLayer.h"
 #include "Styles/Comman/Color.h"
 #include "App.h"
@@ -22,6 +23,7 @@ namespace Layers {
 	void GameLayer::OnUpdate(AppContext* ctx) {
 		using namespace SDLCore;
 		
+		m_options = ctx->options;
 		m_RefDisplaySize = ctx->refDisplaySize;
 		m_displaySize = ctx->displaySize;
 		m_windowSize = ctx->windowSize;
@@ -33,12 +35,18 @@ namespace Layers {
 			m_pawnDarkTexture = ctx->skinManager.GetSkinDark();
 		}
 
-		if (!m_isEscapeMenuOpen && Input::KeyJustPressed(KeyCode::ESCAPE)) {
-			m_isEscapeMenuOpen = true;
-			ctx->app->PushLayer<EscapeMenuLayer>();
+		if (!m_opendGameResult && m_gameResult != ChessCoreResult::NONE) {
+			m_opendGameResult = true;
+			ctx->app->PushLayer<GameResult>(m_gameResult == ChessCoreResult::WHITE_WON);
 		}
 
 		GameLogic();
+
+		if (!m_isEscapeMenuOpen && Input::KeyJustPressed(KeyCode::ESCAPE)) {
+			m_isEscapeMenuOpen = true;
+			ResetChessSelectedParams();
+			ctx->app->PushLayer<EscapeMenuLayer>();
+		}
 	}
 
 	void GameLayer::OnRender(AppContext* ctx) {
@@ -115,6 +123,13 @@ namespace Layers {
 	}
 
 	void GameLayer::GameLogic() {
+		using namespace SDLCore;
+
+		if (m_game.IsGameEnd(&m_gameResult)) {
+			ResetChessSelectedParams();
+			return;
+		}
+
 		const auto& board = m_game.GetBoard();
 		int boardWidth = board.GetWidth();
 		int boardHeight = board.GetHeight();
@@ -144,7 +159,53 @@ namespace Layers {
 			tileScaler = boardTileSize / (m_boardTileSize * displayScale);
 		}
 
+		Vector2 topLeftBoard{
+			(m_windowSize.x * 0.5f) - (static_cast<float>(boardWidth) * boardTileSize * 0.5f),
+			(m_windowSize.y * 0.5f) - (static_cast<float>(boardHeight) * boardTileSize * 0.5f)
+		};
 
+		bool isWhiteTurn = m_game.IsWhiteTurn();
+
+		Vector2 mPos = Input::GetMousePosition();
+		bool mLeftJustClick = Input::MouseJustPressed(MouseButton::LEFT);
+		bool mLeftClick = Input::MousePressed(MouseButton::LEFT);
+
+		for (int i = 0; i < boardWidth * boardHeight; i++) {
+			int localX = i % boardWidth;
+			int localY = i / boardWidth;
+
+			float x = topLeftBoard.x + static_cast<float>(localX) * boardTileSize;
+			float y = topLeftBoard.y + static_cast<float>(localY) * boardTileSize;
+
+			auto field = board.GetFieldAt(i);
+			bool canPlay = (isWhiteTurn) ? 
+				field.GetFieldType() == CoreChess::FieldType::WHITE : 
+				field.GetFieldType() == CoreChess::FieldType::BLACK;
+
+			if (IsPointInRect(mPos, x, y, boardTileSize)) {
+				if (mLeftJustClick) {
+					if (!field.IsPieceNone() &&
+						canPlay) {
+						if (m_pieceSelected && 
+							m_selectedPieceLocalPos.Equals(static_cast<float>(localX), static_cast<float>(localY))) {
+							ResetChessSelectedParams();
+							break;
+						}
+						m_pieceSelected = true;
+						m_selectedPieceID = field.GetPieceID();
+						m_selectedPieceLocalPos.Set(static_cast<float>(localX), static_cast<float>(localY));
+						m_selectedPiecePos.Set(x, y);
+					}
+					else {
+						if(m_pieceSelected)
+							TryMovePiece(m_selectedPieceLocalPos, static_cast<float>(localX), static_cast<float>(localY));
+						ResetChessSelectedParams();
+					}
+				}
+
+				break;
+			}
+		}
 	}
 
 	void GameLayer::RenderBoard() {
@@ -152,10 +213,16 @@ namespace Layers {
 		typedef SDLCore::UI::UIRegistry UIReg;
 
 		Vector4 colorBtnNormal;
+		Vector4 colorOverlay;
+		Vector4 colorHighlightSelected;
+		Vector4 colorHighlightMove;
 		Vector4 colorBoardDark;
 		Vector4 colorBoardLight;
-
+		
 		UIReg::TryGetRegisteredColor(Style::commanColorBtnNormal, colorBtnNormal);
+		UIReg::TryGetRegisteredColor(Style::commanColorOverlay, colorOverlay);
+		UIReg::TryGetRegisteredColor(Style::commanColorHighlightSelected, colorHighlightSelected);
+		UIReg::TryGetRegisteredColor(Style::commanColorHighlightMove, colorHighlightMove);
 		UIReg::TryGetRegisteredColor(Style::commanColorBoardDark, colorBoardDark);
 		UIReg::TryGetRegisteredColor(Style::commanColorBoardLight, colorBoardLight);
 
@@ -192,42 +259,60 @@ namespace Layers {
 			(m_windowSize.x * 0.5f) - (static_cast<float>(boardWidth) * boardTileSize * 0.5f),
 			(m_windowSize.y * 0.5f) - (static_cast<float>(boardHeight) * boardTileSize * 0.5f)
 		};
-		
+
+		auto DrawCheckPattern = [&](int tileType, const Vector4& color) {
+			RE::SetColor(color);
+
+			for (int i = 0; i < boardWidth * boardHeight; i++) {
+				int localX = i % boardWidth;
+				int localY = i / boardWidth;
+
+				if ((localX + localY) % 2 != tileType)
+					continue;
+
+				float x = topLeftBoard.x + static_cast<float>(localX) * boardTileSize;
+				float y = topLeftBoard.y + static_cast<float>(localY) * boardTileSize;
+
+				RE::FillRect(x, y, boardTileSize, boardTileSize);
+			}
+		};
+
 		// render board
-		RE::SetColor(colorBoardDark);
-		for (int i = 0; i < boardWidth * boardHeight; i++) {
-			int localX = i % boardWidth;
-			int localY = i / boardWidth;
+		DrawCheckPattern(0, colorBoardLight);
+		DrawCheckPattern(1, colorBoardDark);
 
-			if ((localX + localY) % 2 != 0)
-				continue;
+		// render possible moves
+		if (m_pieceSelected && m_options.showPossibleMoves) {
+			auto& reg = CoreChess::ChessPieceRegistry::GetInstance();
+			const CoreChess::ChessPiece* piece = reg.GetChessPiece(m_selectedPieceID);
 
-			float x = topLeftBoard.x + static_cast<float>(localX) * boardTileSize;
-			float y = topLeftBoard.y + static_cast<float>(localY) * boardTileSize;
+			if (piece) {
+				RE::SetColor(colorHighlightMove);
+				for (int i = 0; i < boardWidth * boardHeight; i++) {
+					int localX = i % boardWidth;
+					int localY = i / boardWidth;
 
-			RE::FillRect(x, y, boardTileSize, boardTileSize);
+					float x = topLeftBoard.x + static_cast<float>(localX) * boardTileSize;
+					float y = topLeftBoard.y + static_cast<float>(localY) * boardTileSize;
+
+					if (piece->IsValidMove(board, m_selectedPieceLocalPos,
+						Vector2{ static_cast<float>(localX), static_cast<float>(localY) })) {
+						RE::FillRect(x, y, boardTileSize, boardTileSize);
+					}
+				}
+			}
 		}
 
-		RE::SetColor(colorBoardLight);
-		for (int i = 0; i < boardHeight * boardWidth; i++) {
-			int localX = i % boardWidth;
-			int localY = i / boardWidth;
-
-			if ((localX + localY) % 2 != 1)
-				continue;
-
-			float x = topLeftBoard.x + (static_cast<float>(localX) * boardTileSize);
-			float y = topLeftBoard.y + (static_cast<float>(localY) * boardTileSize);
-
-			RE::FillRect(x, y, boardTileSize, boardTileSize);
-		}
-
+		// render board outline
 		RE::SetColor(colorBtnNormal);
 		RE::SetInnerStroke(false);
 		RE::SetStrokeWidth(8.0f * tileScaler);
-		RE::Rect(topLeftBoard, Vector2(boardWidth, boardHeight) * boardTileSize);
+		RE::Rect(topLeftBoard, Vector2(static_cast<float>(boardWidth), static_cast<float>(boardHeight)) * boardTileSize);
 
 		// render Figures
+		RE::SetColor(colorHighlightSelected);
+		RE::SetInnerStroke(true);
+		RE::SetStrokeWidth(4.0f * tileScaler);
 		for (int i = 0; i < boardHeight * boardWidth; i++) {
 			auto field = board.GetFieldAt(i);
 
@@ -239,6 +324,11 @@ namespace Layers {
 
 			float x = topLeftBoard.x + static_cast<float>(localX) * boardTileSize;
 			float y = topLeftBoard.y + static_cast<float>(localY) * boardTileSize;
+
+			bool selected = m_selectedPiecePos.Equals(x, y) && m_pieceSelected;
+
+			if (selected)
+				RE::Rect(x, y, boardTileSize, boardTileSize);
 
 			if (field.GetFieldType() == CoreChess::FieldType::BLACK) {
 				if (!m_pawnDarkTexture)
@@ -255,4 +345,20 @@ namespace Layers {
 		}
 	}
 
+	void GameLayer::ResetChessSelectedParams() {
+		m_pieceSelected = false;
+		m_selectedPieceID.SetInvalid();
+		m_selectedPieceLocalPos.Set(0);
+		m_selectedPiecePos.Set(0);
+	}
+
+	void GameLayer::TryMovePiece(const Vector2& from, float toX, float toY) {
+		m_game.SelectPiece(from);
+		m_game.MovePiece(toX, toY);
+	}
+
+	bool GameLayer::IsPointInRect(Vector2 mPos, float x, float y, float size) {
+		return (mPos.x > x && mPos.x < x + size) &&
+			(mPos.y > y && mPos.y < y + size);
+	}
 }

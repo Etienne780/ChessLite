@@ -18,6 +18,7 @@ public:
 	App* app;
 	ResourcesManager resourcesManager;
 	SkinManager skinManager;
+	ChessOptions options;
 
 	Vector2 refDisplaySize{ 1920.0f, 1080.0f };
 	Vector2 displaySize{ 0.0f };
