@@ -40,6 +40,7 @@ namespace Layers {
 			ctx->app->PushLayer<GameResult>(m_gameResult == ChessCoreResult::WHITE_WON);
 		}
 
+		UpdateBoardTileSize();
 		GameLogic();
 
 		if (!m_isEscapeMenuOpen && Input::KeyJustPressed(KeyCode::ESCAPE)) {
@@ -138,26 +139,8 @@ namespace Layers {
 		float scaleY = m_displaySize.y / m_RefDisplaySize.y;
 		float displayScale = std::min(scaleX, scaleY);
 
-		float boardTileSize = m_boardTileSize * displayScale;
-
-		float tileScaler = 1.0f;
-
-		if (m_calculateBoardTileSize) {
-			float top = m_boardMargin.x * displayScale;
-			float left = m_boardMargin.y * displayScale;
-			float bottom = m_boardMargin.z * displayScale;
-			float right = m_boardMargin.w * displayScale;
-
-			float usableWidth = m_windowSize.x - top - bottom;
-			float usableHeight = m_windowSize.y - left - right;
-
-			float boardTileSizeX = usableWidth / boardWidth;
-			float boardTileSizeY = usableHeight / boardHeight;
-
-			boardTileSize = std::min(boardTileSizeX, boardTileSizeY);
-
-			tileScaler = boardTileSize / (m_boardTileSize * displayScale);
-		}
+		float boardTileSize = m_boardTileSizeFinal;
+		float tileScaler = m_tileScaler;
 
 		Vector2 topLeftBoard{
 			(m_windowSize.x * 0.5f) - (static_cast<float>(boardWidth) * boardTileSize * 0.5f),
@@ -234,26 +217,8 @@ namespace Layers {
 		float scaleY = m_displaySize.y / m_RefDisplaySize.y;
 		float displayScale = std::min(scaleX, scaleY);
 
-		float boardTileSize = m_boardTileSize * displayScale;
-
-		float tileScaler = 1.0f;
-
-		if (m_calculateBoardTileSize) {
-			float top = m_boardMargin.x * displayScale;
-			float left = m_boardMargin.y * displayScale;
-			float bottom = m_boardMargin.z * displayScale;
-			float right = m_boardMargin.w * displayScale;
-
-			float usableWidth = m_windowSize.x - top - bottom;
-			float usableHeight = m_windowSize.y - left - right;
-
-			float boardTileSizeX = usableWidth / boardWidth;
-			float boardTileSizeY = usableHeight / boardHeight;
-
-			boardTileSize = std::min(boardTileSizeX, boardTileSizeY);
-
-			tileScaler = boardTileSize / (m_boardTileSize * displayScale);
-		}
+		float boardTileSize = m_boardTileSizeFinal;
+		float tileScaler = m_tileScaler;
 
 		Vector2 topLeftBoard{
 			(m_windowSize.x * 0.5f) - (static_cast<float>(boardWidth) * boardTileSize * 0.5f),
@@ -342,6 +307,37 @@ namespace Layers {
 
 				RE::Texture(*m_pawnLightTexture, x, y, boardTileSize, boardTileSize);
 			}
+		}
+	}
+
+	void GameLayer::UpdateBoardTileSize() {
+		int boardWidth = m_game.GetBoard().GetWidth();
+		int boardHeight = m_game.GetBoard().GetHeight();
+
+		float scaleX = m_displaySize.x / m_RefDisplaySize.x;
+		float scaleY = m_displaySize.y / m_RefDisplaySize.y;
+		float displayScale = std::min(scaleX, scaleY);
+
+		float baseTileSize = m_boardTileSize * displayScale;
+
+		if (m_calculateBoardTileSize) {
+			float top = m_boardMargin.x * displayScale;
+			float left = m_boardMargin.y * displayScale;
+			float bottom = m_boardMargin.z * displayScale;
+			float right = m_boardMargin.w * displayScale;
+
+			float usableWidth = m_windowSize.x - left - right;
+			float usableHeight = m_windowSize.y - top - bottom;
+
+			float boardTileSizeX = usableWidth / boardWidth;
+			float boardTileSizeY = usableHeight / boardHeight;
+
+			m_boardTileSizeFinal = std::min(boardTileSizeX, boardTileSizeY);
+			m_tileScaler = m_boardTileSizeFinal / baseTileSize;
+		}
+		else {
+			m_boardTileSizeFinal = baseTileSize;
+			m_tileScaler = 1.0f;
 		}
 	}
 

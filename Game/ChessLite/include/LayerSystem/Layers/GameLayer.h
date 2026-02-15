@@ -31,11 +31,14 @@ namespace Layers {
 		ChessOptions m_options;
 
 		float m_boardTileSize = 128.0f;
+		float m_boardTileSizeFinal = 0.0f;
+		float m_tileScaler = 0.0f;
 		bool m_calculateBoardTileSize = true;
 		Vector4 m_boardMargin{ 128.0f };
 		Vector2 m_RefDisplaySize{ 1920.0f, 1080.0f };
 		Vector2 m_displaySize{ 0.0f };
 		Vector2 m_windowSize{ 0.0f };
+		Vector2 m_topLeftBoard{ 0.0f };
 
 		CoreChess::ChessGame m_game;
 		ChessCoreResult m_gameResult = ChessCoreResult::NONE;
@@ -49,6 +52,7 @@ namespace Layers {
 		void GameLogic();
 		void RenderBoard();
 
+		void UpdateBoardTileSize();
 		void ResetChessSelectedParams();
 		void TryMovePiece(const Vector2& from, float toX, float toY);
 		static bool IsPointInRect(Vector2 mPos, float x, float y, float size);
