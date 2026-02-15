@@ -26,7 +26,7 @@ namespace Layers {
 			.SetValue(Prop::align, UI::UIAlignment::CENTER, UI::UIAlignment::CENTER)
 			.SetValue(Prop::padding, Style::commanSpaceL)
 			.SetValue(Prop::sizeUnit, UI::UISizeUnit::PX, UI::UISizeUnit::PX)
-			.SetValue(Prop::size, 550.0f, 450.0f);
+			.SetValue(Prop::size, 600.0f, 500.0f);
 
 		m_styleTitle
 			.Merge(Style::commanTextTitle)
@@ -56,6 +56,10 @@ namespace Layers {
 						ctx->app->PushLayer<GameLayer>();
 					}
 
+					if (UIComp::DrawButton("btn_skins", "Skins", Style::commanBTNBase)) {
+						Log::Debug("MainMenu: Skins");
+					}
+
 					if (UIComp::DrawButton("btn_settings", "Settings", Style::commanBTNBase)) {
 						Log::Debug("MainMenu: Settings");
 						ctx->app->PushLayer<OptionsMenuLayer>();
@@ -63,7 +67,9 @@ namespace Layers {
 
 					if (UIComp::DrawButton("btn_quit", "Quit", Style::commanBTNBase)) {
 						Log::Debug("MainMenu: Quit");
-						// ctx->app->Quit();
+#ifdef NDEBUG
+						ctx->app->Quit();
+#endif
 					}
 				}
 				UI::EndFrame();
