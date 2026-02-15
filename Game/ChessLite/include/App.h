@@ -13,6 +13,7 @@ public:
 	App();
 	
 	static App* GetInstance();
+	static AppContext* GetContext();
 
 	void OnStart() override;
 	void OnUpdate() override;
@@ -43,7 +44,7 @@ public:
 		static_assert(std::is_invocable_v<Func, const LayerEvent&>,
 			"Callback must be callable with const LayerEvent&");
 
-		return m_context.eventBus.Subscribe(type, std::forward<Func>(func));
+		return m_context.m_eventBus.Subscribe(type, std::forward<Func>(func));
 	}
 
 	bool UnsubscribeToLayerEvent(LayerEventSubscriptionID id);
@@ -64,11 +65,16 @@ public:
 
 private:
 	SDLCore::WindowID m_winID;
+	SDLCore::WindowCallbackID m_windowResizeCBID;
+	SDLCore::WindowCallbackID m_windowDisplayChangedCBID;
 	
 	AppContext m_context{ this };
 	std::vector<std::unique_ptr<Layer>> m_layerStack;
 	std::vector<LayerCommand> m_layerCommands;
 	SDLCore::UI::UIContext* m_UICtx = nullptr;
+
+	void InstantiateWindow();
+	void WindowCleanup();
 
 	void ProcessLayerCommands();
 

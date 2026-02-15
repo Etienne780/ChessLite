@@ -22,25 +22,26 @@ namespace Layers {
 		bool m_gameEnded = false;
 		bool m_isEscapeMenuOpen = false;
 		LayerEventSubscriptionID m_escapeMenuCloseEventID;
-		SDLCore::WindowCallbackID m_windowResizeCBID;
-		SDLCore::WindowCallbackID m_windowDisplayChangedCBID;
 
-		SDLCore::Texture m_pawnLightTexture{ SDLCore::TEXTURE_FALLBACK_TEXTURE };
-		SDLCore::Texture m_pawnDarkTexture{ SDLCore::TEXTURE_FALLBACK_TEXTURE };
+		ChessSkinType m_skinType = ChessSkinType::UNKOWN;
+		std::shared_ptr<SDLCore::Texture> m_pawnLightTexture = nullptr;
+		std::shared_ptr<SDLCore::Texture> m_pawnDarkTexture = nullptr;
 
 		float m_boardTileSize = 128.0f;
 		bool m_calculateBoardTileSize = true;
 		Vector4 m_boardMargin{ 128.0f };
 		Vector2 m_RefDisplaySize{ 1920.0f, 1080.0f };
 		Vector2 m_displaySize{ 0.0f };
-		Vector2 m_windowSize;
+		Vector2 m_windowSize{ 0.0f };
 
 		CoreChess::ChessGame m_game;
 		CoreChess::ChessWinResult m_gameResult = CoreChess::ChessWinResult::NONE;
 		CoreChess::ChessPieceID m_pawnID;
+		bool m_pieceSelected = false
 		Vector2 m_selectedPiecePos = Vector2::zero;
 
 		void SetupGame();
+		void GameLogic();
 		void RenderBoard();
 	};
 

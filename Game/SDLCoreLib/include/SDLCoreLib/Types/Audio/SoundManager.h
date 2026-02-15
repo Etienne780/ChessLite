@@ -15,7 +15,7 @@ namespace SDLCore {
     inline constexpr bool SOUND_ON_SHOOT = true;
 
     /*
-    * plays sounds mixer and Manages tags. static/but not static like application
+    * @brief plays sounds mixer and Manages tags. static/but not static like application
     * events wenn sound ends
     * manages tag and master Volumn
     */

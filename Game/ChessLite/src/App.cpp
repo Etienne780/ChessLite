@@ -15,15 +15,18 @@ App* App::GetInstance(){
     return g_appInstance;
 }
 
+AppContext* App::GetContext() {
+    if (!g_appInstance)
+        return nullptr;
+    return &(g_appInstance->m_context);
+}
+
 void App::OnStart() {
-    auto* win = CreateWindow(&m_winID, "ChessLite", 800, 700);
-    win->SetWindowMinSize(800, 700);
-    m_UICtx = SDLCore::UI::CreateContext();
-    
+    InstantiateWindow();
     Style::Comman_InitStyles();
 
     // push start layer on to stack
-    PushLayer<Layers::MainMenuLayer>();
+    PushLayer<Layers::StartLoadLayer>();
 }
 
 void App::OnUpdate() {
@@ -40,7 +43,7 @@ void App::OnUpdate() {
         namespace RE = SDLCore::Render;
         RE::SetWindowRenderer(m_winID);
         RE::SetBlendMode(SDLCore::Render::BlendMode::BLEND);
-        RE::SetColor(40, 75, 150);
+        RE::SetColor(25);
         RE::Clear();
         ForeachLayer([&](Layer& layer) { layer.OnRender(&m_context); });
         
@@ -65,14 +68,15 @@ void App::OnQuit() {
     ClearLayers();
     SDLCore::UI::DestroyContext(m_UICtx);
     m_UICtx = nullptr;
+    WindowCleanup();
 }
 
 bool App::UnsubscribeToLayerEvent(LayerEventSubscriptionID id) {
-    return m_context.eventBus.Unsubscribe(id);
+    return m_context.m_eventBus.Unsubscribe(id);
 }
 
 bool App::UnsubscribeToLayerEvent(LayerEventType type, LayerEventSubscriptionID id) {
-    return m_context.eventBus.Unsubscribe(type, id);
+    return m_context.m_eventBus.Unsubscribe(type, id);
 }
 
 void App::PopLayer() {
@@ -91,8 +95,35 @@ size_t App::GetLayerCount() const {
     return m_layerStack.size();
 }
 
+void App::InstantiateWindow() {
+    auto* win = CreateWindow(&m_winID, "ChessLite", 800, 700);
+    win->SetWindowMinSize(800, 700);
+    m_UICtx = SDLCore::UI::CreateContext();
+
+    m_context.windowSize = win->GetSize();
+    m_windowResizeCBID = win->AddOnWindowResize([this](const SDLCore::Window& win) {
+        m_context.windowSize = win.GetSize();
+    });
+
+    Vector4 bounds = win->GetDisplayBounds();
+    m_context.displaySize.Set(bounds.z, bounds.w);
+    m_windowDisplayChangedCBID = win->AddOnWindowDisplayChanged([this](const SDLCore::Window& win) {
+        Vector4 bounds = win.GetDisplayBounds();
+        m_context.displaySize.Set(bounds.z, bounds.w);
+    });
+}
+
+void App::WindowCleanup() {
+    auto winID = GetWinID();
+    auto* win = GetWindow(winID);
+    if (win) {
+        win->RemoveOnWindowResize(m_windowResizeCBID);
+        win->RemoveOnWindowDisplayChanged(m_windowDisplayChangedCBID);
+    }
+}
+
 void App::ProcessLayerCommands() {
-    auto& eventBus = m_context.eventBus;
+    auto& eventBus = m_context.m_eventBus;
 
     for (auto& cmd : m_layerCommands) {
         switch (cmd.type) {

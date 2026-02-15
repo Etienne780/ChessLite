@@ -32,6 +32,11 @@ project "ChessLite"
 
     ApplyCommonConfigs()
 
+    postbuildcommands {
+        '{MKDIR} "%{cfg.targetdir}/assets"',
+        '{COPY} "assets/*" "%{cfg.targetdir}/assets"',
+    }
+
     filter "configurations:Debug"
         kind "ConsoleApp"
 

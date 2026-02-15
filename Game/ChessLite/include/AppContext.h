@@ -1,6 +1,11 @@
 #pragma once
+#include <SDLCoreLib/SDLCore.h>
+
 #include "App.h"
 #include "LayerSystem/LayerEventBus.h"
+#include "ResourcesManagement/ResourcesManager.h"
+#include "SkinManager.h"
+#include "Type.h"
 
 class App;
 class AppContext {
@@ -11,7 +16,13 @@ public:
 	}
 
 	App* app;
+	ResourcesManager resourcesManager;
+	SkinManager skinManager;
+
+	Vector2 refDisplaySize{ 1920.0f, 1080.0f };
+	Vector2 displaySize{ 0.0f };
+	Vector2 windowSize{ 0.0f };
 
 private:
-	LayerEventBus eventBus;
+	LayerEventBus m_eventBus;
 };

@@ -6,6 +6,9 @@
 namespace Layers {
 
 	void GameLayer::OnStart(AppContext* ctx) {
+		m_pawnLightTexture = std::make_shared<SDLCore::Texture>(SDLCore::TEXTURE_FALLBACK_TEXTURE);
+		m_pawnDarkTexture = std::make_shared<SDLCore::Texture>(SDLCore::TEXTURE_FALLBACK_TEXTURE);
+
 		m_escapeMenuCloseEventID = ctx->app->SubscribeToLayerEvent<LayerEventType::CLOSED>(
 		[&](const LayerEvent& e) -> void {
 			if (e.layerID == LayerID::ESCAPE_MENU) {
@@ -13,35 +16,29 @@ namespace Layers {
 			}
 		});
 
-		auto winID = ctx->app->GetWinID();
-		auto* win = ctx->app->GetWindow(winID);
-		if (win) {
-			m_windowSize = win->GetSize();
-			m_windowResizeCBID = win->AddOnWindowResize([this](const SDLCore::Window& win) {
-				m_windowSize = win.GetSize();
-			});
-
-			Vector4 bounds = win->GetDisplayBounds();
-			m_displaySize.Set(bounds.z, bounds.w);
-			m_windowDisplayChangedCBID = win->AddOnWindowDisplayChanged([this](const SDLCore::Window& win) {
-				Vector4 bounds = win.GetDisplayBounds();
-				m_displaySize.Set(bounds.z, bounds.w);
-			});
-		}
-		else {
-			Log::Error("GameLayer: Failed to get window!");
-		}
-
 		SetupGame();
 	}
 
 	void GameLayer::OnUpdate(AppContext* ctx) {
 		using namespace SDLCore;
 		
+		m_RefDisplaySize = ctx->refDisplaySize;
+		m_displaySize = ctx->displaySize;
+		m_windowSize = ctx->windowSize;
+
+		// update skin
+		if (m_skinType != ctx->skinManager.GetCurrentSkin()) {
+			m_skinType = ctx->skinManager.GetCurrentSkin();
+			m_pawnLightTexture = ctx->skinManager.GetSkinLight();
+			m_pawnDarkTexture = ctx->skinManager.GetSkinDark();
+		}
+
 		if (!m_isEscapeMenuOpen && Input::KeyJustPressed(KeyCode::ESCAPE)) {
 			m_isEscapeMenuOpen = true;
 			ctx->app->PushLayer<EscapeMenuLayer>();
 		}
+
+		GameLogic();
 	}
 
 	void GameLayer::OnRender(AppContext* ctx) {
@@ -55,13 +52,6 @@ namespace Layers {
 	void GameLayer::OnQuit(AppContext* ctx) {
 		m_game.EndGame();
 		ctx->app->UnsubscribeToLayerEvent(LayerEventType::CLOSED, m_escapeMenuCloseEventID);
-
-		auto winID = ctx->app->GetWinID();
-		auto* win = ctx->app->GetWindow(winID);
-		if (win) {
-			win->RemoveOnWindowResize(m_windowResizeCBID);
-			win->RemoveOnWindowDisplayChanged(m_windowDisplayChangedCBID);
-		}
 	}
 
 	LayerID GameLayer::GetLayerID() const {
@@ -124,16 +114,7 @@ namespace Layers {
 		m_game.StartGame();
 	}
 
-	void GameLayer::RenderBoard() {
-		namespace RE = SDLCore::Render;
-		typedef SDLCore::UI::UIRegistry UIReg;
-
-		Vector4 colorBoardDark;
-		Vector4 colorBoardLight;
-
-		UIReg::TryGetRegisteredColor(Style::commanColorBoardDark, colorBoardDark);
-		UIReg::TryGetRegisteredColor(Style::commanColorBoardLight, colorBoardLight);
-
+	void GameLayer::GameLogic() {
 		const auto& board = m_game.GetBoard();
 		int boardWidth = board.GetWidth();
 		int boardHeight = board.GetHeight();
@@ -143,6 +124,8 @@ namespace Layers {
 		float displayScale = std::min(scaleX, scaleY);
 
 		float boardTileSize = m_boardTileSize * displayScale;
+
+		float tileScaler = 1.0f;
 
 		if (m_calculateBoardTileSize) {
 			float top = m_boardMargin.x * displayScale;
@@ -157,6 +140,52 @@ namespace Layers {
 			float boardTileSizeY = usableHeight / boardHeight;
 
 			boardTileSize = std::min(boardTileSizeX, boardTileSizeY);
+
+			tileScaler = boardTileSize / (m_boardTileSize * displayScale);
+		}
+
+
+	}
+
+	void GameLayer::RenderBoard() {
+		namespace RE = SDLCore::Render;
+		typedef SDLCore::UI::UIRegistry UIReg;
+
+		Vector4 colorBtnNormal;
+		Vector4 colorBoardDark;
+		Vector4 colorBoardLight;
+
+		UIReg::TryGetRegisteredColor(Style::commanColorBtnNormal, colorBtnNormal);
+		UIReg::TryGetRegisteredColor(Style::commanColorBoardDark, colorBoardDark);
+		UIReg::TryGetRegisteredColor(Style::commanColorBoardLight, colorBoardLight);
+
+		const auto& board = m_game.GetBoard();
+		int boardWidth = board.GetWidth();
+		int boardHeight = board.GetHeight();
+
+		float scaleX = m_displaySize.x / m_RefDisplaySize.x;
+		float scaleY = m_displaySize.y / m_RefDisplaySize.y;
+		float displayScale = std::min(scaleX, scaleY);
+
+		float boardTileSize = m_boardTileSize * displayScale;
+
+		float tileScaler = 1.0f;
+
+		if (m_calculateBoardTileSize) {
+			float top = m_boardMargin.x * displayScale;
+			float left = m_boardMargin.y * displayScale;
+			float bottom = m_boardMargin.z * displayScale;
+			float right = m_boardMargin.w * displayScale;
+
+			float usableWidth = m_windowSize.x - top - bottom;
+			float usableHeight = m_windowSize.y - left - right;
+
+			float boardTileSizeX = usableWidth / boardWidth;
+			float boardTileSizeY = usableHeight / boardHeight;
+
+			boardTileSize = std::min(boardTileSizeX, boardTileSizeY);
+
+			tileScaler = boardTileSize / (m_boardTileSize * displayScale);
 		}
 
 		Vector2 topLeftBoard{
@@ -165,7 +194,6 @@ namespace Layers {
 		};
 		
 		// render board
-
 		RE::SetColor(colorBoardDark);
 		for (int i = 0; i < boardWidth * boardHeight; i++) {
 			int localX = i % boardWidth;
@@ -194,6 +222,11 @@ namespace Layers {
 			RE::FillRect(x, y, boardTileSize, boardTileSize);
 		}
 
+		RE::SetColor(colorBtnNormal);
+		RE::SetInnerStroke(false);
+		RE::SetStrokeWidth(8.0f * tileScaler);
+		RE::Rect(topLeftBoard, Vector2(boardWidth, boardHeight) * boardTileSize);
+
 		// render Figures
 		for (int i = 0; i < boardHeight * boardWidth; i++) {
 			auto field = board.GetFieldAt(i);
@@ -208,10 +241,16 @@ namespace Layers {
 			float y = topLeftBoard.y + static_cast<float>(localY) * boardTileSize;
 
 			if (field.GetFieldType() == CoreChess::FieldType::BLACK) {
-				RE::Texture(m_pawnDarkTexture, x, y, boardTileSize, boardTileSize);
+				if (!m_pawnDarkTexture)
+					continue;
+
+				RE::Texture(*m_pawnDarkTexture, x, y, boardTileSize, boardTileSize);
 			}
 			else if (field.GetFieldType() == CoreChess::FieldType::WHITE) {
-				RE::Texture(m_pawnLightTexture, x, y, boardTileSize, boardTileSize);
+				if (!m_pawnLightTexture)
+					continue;
+
+				RE::Texture(*m_pawnLightTexture, x, y, boardTileSize, boardTileSize);
 			}
 		}
 	}

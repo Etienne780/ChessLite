@@ -13,6 +13,8 @@ namespace SDLCore::UI {
 
 	void TextNode::RenderNode(UIContext* ctx) const {
 		namespace RE = SDLCore::Render;
+		RE::SetTextAlign(SDLCore::Align::START);
+
 		if(m_textSize > 0) {
 			RE::SetTextSize(m_textSize);
 			RE::SetColor(m_textColor);

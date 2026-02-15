@@ -11,7 +11,8 @@ enum class LayerID {
 	MAIN_MENU = 0,
 	OPTIONS_MENU,
 	ESCAPE_MENU,
-	GAME
+	GAME,
+	START_LOAD
 };
 
 class Layer {
