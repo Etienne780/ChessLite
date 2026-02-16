@@ -27,7 +27,7 @@ namespace Layers {
 
 		float m_loadTimeMin = 0.5f;
 		float m_loadTimeMax = 1.0f;
-		float m_startDelay = 0.5f;
+		float m_startDelay = 0.35f;
 
 		float m_loadTime = 0.0f;
 		float m_currentLoadTime = 0.0f;

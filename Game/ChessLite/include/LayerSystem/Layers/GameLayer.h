@@ -23,7 +23,7 @@ namespace Layers {
 
 		bool m_opendGameResult = false;
 		bool m_isEscapeMenuOpen = false;
-		LayerEventSubscriptionID m_escapeMenuCloseEventID;
+		LayerEventSubscriptionID m_menuCloseEventID;
 
 		ChessSkinType m_skinType = ChessSkinType::UNKOWN;
 		std::shared_ptr<SDLCore::Texture> m_pawnLightTexture = nullptr;

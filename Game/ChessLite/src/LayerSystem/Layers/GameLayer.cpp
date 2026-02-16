@@ -10,14 +10,21 @@ namespace Layers {
 		m_pawnLightTexture = std::make_shared<SDLCore::Texture>(SDLCore::TEXTURE_FALLBACK_TEXTURE);
 		m_pawnDarkTexture = std::make_shared<SDLCore::Texture>(SDLCore::TEXTURE_FALLBACK_TEXTURE);
 
-		m_escapeMenuCloseEventID = ctx->app->SubscribeToLayerEvent<LayerEventType::CLOSED>(
+		m_menuCloseEventID = ctx->app->SubscribeToLayerEvent<LayerEventType::CLOSED>(
 		[&](const LayerEvent& e) -> void {
 			if (e.layerID == LayerID::ESCAPE_MENU) {
 				m_isEscapeMenuOpen = false;
 			}
+
+			if (e.layerID == LayerID::GAME_RESULT) {
+				m_game.StartGame();
+				m_opendGameResult = false;
+				m_gameResult = ChessCoreResult::NONE;
+			}
 		});
 
 		SetupGame();
+		m_game.StartGame();
 	}
 
 	void GameLayer::OnUpdate(AppContext* ctx) {
@@ -37,13 +44,18 @@ namespace Layers {
 
 		if (!m_opendGameResult && m_gameResult != ChessCoreResult::NONE) {
 			m_opendGameResult = true;
+			m_game.EndGame();
+			ResetChessSelectedParams();
 			ctx->app->PushLayer<GameResult>(m_gameResult == ChessCoreResult::WHITE_WON);
 		}
 
 		UpdateBoardTileSize();
 		GameLogic();
 
-		if (!m_isEscapeMenuOpen && Input::KeyJustPressed(KeyCode::ESCAPE)) {
+		if (!m_opendGameResult && 
+			!m_isEscapeMenuOpen && 
+			Input::KeyJustPressed(KeyCode::ESCAPE)) 
+		{
 			m_isEscapeMenuOpen = true;
 			ResetChessSelectedParams();
 			ctx->app->PushLayer<EscapeMenuLayer>();
@@ -60,7 +72,7 @@ namespace Layers {
 
 	void GameLayer::OnQuit(AppContext* ctx) {
 		m_game.EndGame();
-		ctx->app->UnsubscribeToLayerEvent(LayerEventType::CLOSED, m_escapeMenuCloseEventID);
+		ctx->app->UnsubscribeToLayerEvent(LayerEventType::CLOSED, m_menuCloseEventID);
 	}
 
 	LayerID GameLayer::GetLayerID() const {
@@ -120,7 +132,6 @@ namespace Layers {
 		});
 
 		m_game.SetGameContext(chessCTX);
-		m_game.StartGame();
 	}
 
 	void GameLayer::GameLogic() {
