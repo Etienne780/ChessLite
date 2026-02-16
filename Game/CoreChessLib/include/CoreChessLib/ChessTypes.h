@@ -1,6 +1,4 @@
 #pragma once
-#include <functional>
-
 #include <CoreLib/FormatUtils.h>
 #include <CoreLib/CoreID.h>
 #include <CoreLib/IDManager.h>
@@ -47,21 +45,26 @@ namespace CoreChess {
 		Y      // Moves along the y-axis first, then along the x-axis
 	};
 
-	using ChessWinConditionFunc = std::function<ChessWinResult(const ChessGame&)>;
-
 	using CoreChessIDManager = IDManager<uint32_t, CORE_CHESS_INVALID_ID>;
 
 	template<typename Tag>
 	using ChessCoreID = CoreID<uint32_t, CORE_CHESS_INVALID_ID, Tag>;
 
 	struct ChessPieceTag {};
+	struct WinConditionTag {};
 
 	using ChessPieceID = ChessCoreID<ChessPieceTag>;
+	using ChessWinConditionID = ChessCoreID<WinConditionTag>;
 
 }
 
 template<>
 static inline std::string FormatUtils::toString<CoreChess::ChessPieceID>(CoreChess::ChessPieceID id) {
+	return id.ToString();
+}
+
+template<>
+static inline std::string FormatUtils::toString<CoreChess::ChessWinConditionID>(CoreChess::ChessWinConditionID id) {
 	return id.ToString();
 }
 

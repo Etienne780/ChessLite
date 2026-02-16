@@ -1,9 +1,14 @@
 #include <CoreLib/Log.h>
+#include <CoreLib/BinarySerializer.h>
+#include <CoreLib/BinaryDeserializer.h>
+#include <CoreLib/ConversionUtils.h>
 
 #include "ChessContext.h"
 #include "ChessBoard.h"
 
 namespace CoreChess {
+
+	constexpr uint32_t CONFIG_VERSION = 1;
 
 	ChessBoard ChessContext::GenerateBoard() {
 		ChessBoard board{ m_boardWidth, m_boardHeight };
@@ -122,8 +127,30 @@ namespace CoreChess {
 		return *this;
 	}
 
-	ChessContext& ChessContext::SetWinCondition(const ChessWinConditionFunc& func) {
-		m_winCondition = func;
+	ChessContext& ChessContext::SetWinCondition(
+		const ChessWinConditionFunc& func, 
+		ChessWinConditionID* outID) 
+	{
+		auto& reg = ChessWinConditionRegistry::GetInstance();
+		auto id = reg.AddWinCondition(func);
+		if (outID)
+			*outID = id;
+		return SetWinCondition(id);
+	}
+
+	ChessContext& ChessContext::SetWinCondition(ChessWinConditionID id) {
+#ifndef NDEBUG
+		if (id.IsInvalid()) {
+			Log::Warn("CoreChess::ChessContext::SetWinCondition: Given id was invalid");
+		}
+
+		auto& reg = ChessWinConditionRegistry::GetInstance();
+		auto func = reg.GetWinCondition(id);
+		if (!func) {
+			Log::Warn("CoreChess::ChessContext::SetWinCondition: There is no win condition func asoziated with the id '{}'", id);
+		}
+#endif
+		m_winConditionID = id;
 		return *this;
 	}
 
@@ -143,8 +170,86 @@ namespace CoreChess {
 		return m_boardCmds;
 	}
 
-	const ChessWinConditionFunc& ChessContext::GetWinCondition() const {
-		return m_winCondition;
+	ChessWinConditionID ChessContext::GetWinConditionID() const {
+		return m_winConditionID;
+	}
+
+	std::string ChessContext::GetConfigString() const {
+		BinarySerializer bSer;
+
+		bSer.AddFields(
+			CONFIG_VERSION,
+			m_boardWidth, 
+			m_boardHeight,
+			m_winConditionID,
+			m_pieces
+		);
+		
+		bSer.AddComplexField(m_boardCmds, 
+		[](BinarySerializer& subSer, CoreChess::BoardCommand& cmd) {
+			uint8_t flags = 0;
+			flags |= cmd.fill ? 1 : 0;
+			flags |= cmd.startRight ? 2 : 0;
+			
+			subSer.AddFields(
+				cmd.columnIndex,
+				cmd.rowIndex,
+				flags,
+				cmd.pieces
+			);
+		});
+
+		return bSer.ToBase64();
+	}
+
+	bool ChessContext::SetPerConfigString(const std::string& config) {
+		try {
+			std::vector<uint8_t> buffer = ConversionUtils::FromBase64(config);
+			BinaryDeserializer bDes{ buffer };
+
+			uint32_t version = bDes.Read<uint32_t>();
+			if (version != CONFIG_VERSION) {
+				Log::Error("Unsupported config version '{}'", version);
+				return false;
+			}
+
+			int boardWidth = bDes.Read<int>();
+			int boardHeight = bDes.Read<int>();
+			auto winConditionID = bDes.Read<ChessWinConditionID>();
+			auto pieces = bDes.ReadVector<ChessPieceID>();
+
+			auto boardCmds = bDes.ReadVector<CoreChess::BoardCommand>(
+			[](BinaryDeserializer& subDes) {
+				CoreChess::BoardCommand cmd{};
+
+				cmd.columnIndex = subDes.Read<int>();
+				cmd.rowIndex = subDes.Read<int>();
+
+				uint8_t flags = subDes.Read<uint8_t>();
+				cmd.fill = (flags & 1) != 0;
+				cmd.startRight = (flags & 2) != 0;
+
+				cmd.pieces = subDes.ReadVector<ChessPieceID>();
+
+				return cmd;
+			});
+
+			if (!bDes.IsAtEnd()) {
+				Log::Error("Config contains trailing data");
+				return false;
+			}
+
+			m_boardWidth = boardWidth;
+			m_boardHeight = boardHeight;
+			m_winConditionID = winConditionID;
+			m_pieces = std::move(pieces);
+			m_boardCmds = std::move(boardCmds);
+		}
+		catch (const std::exception& e) {
+			Log::Error("CoreChess::ChessContext::SetPerConfigString: Failed to set: {}", e.what());
+			return false;
+		}
+		return true;
 	}
 
 	void ChessContext::AddUniquePiece(ChessPieceID pieceID) {
@@ -224,6 +329,5 @@ namespace CoreChess {
 	int ChessContext::MirrorColumn(int col) const {
 		return m_boardWidth - 1 - col;
 	}
-
 
 }

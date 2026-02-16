@@ -9,6 +9,12 @@
 */
 class ConversionUtils {
 public:
+    ConversionUtils(const ConversionUtils&) = delete;
+    ConversionUtils(ConversionUtils&&) = delete;
+
+    ConversionUtils& operator=(const ConversionUtils&) = delete;
+    ConversionUtils& operator=(ConversionUtils&&) = delete;
+
     /**
     * @brief Converts a hexadecimal string to an integer.
     *
@@ -38,13 +44,13 @@ public:
     }
 
     /**
-     * @brief Converts an integral value to a binary string.
-     *
-     * @tparam T An integral type (e.g., int, uint32_t).
-     * @param num The value to convert.
-     * @param withPrefix If true, includes the "0b" prefix.
-     * @return A string representing the value in binary format.
-     */
+    * @brief Converts an integral value to a binary string.
+    *
+    * @tparam T An integral type (e.g., int, uint32_t).
+    * @param num The value to convert.
+    * @param withPrefix If true, includes the "0b" prefix.
+    * @return A string representing the value in binary format.
+    */
     template<typename T>
     static std::string IntegralToBinary(T num, bool withPrefix) {
         static_assert(std::is_integral<T>::value, "IntegralToBinary requires integral types");
@@ -96,6 +102,23 @@ public:
     // Converts an angle in degrees to radians.
     // Example: 180 degrees ≈ π radians.
     static double ToRadiansDouble(double degrees);
+
+    /**
+    * @brief Encodes raw bytes into a Base64 string.
+    *
+    * @param data Vector of bytes to encode.
+    * @return Base64-encoded string.
+    */
+    static std::string ToBase64(const std::vector<uint8_t>& data);
+
+    /**
+    * @brief Decodes a Base64 string back into bytes.
+    *
+    * @param base64Str Base64-encoded input string.
+    * @return Vector of decoded bytes.
+    * @throws std::runtime_error if input is invalid.
+    */
+    static std::vector<uint8_t> FromBase64(const std::string& base64Str);
 
 private:
     ConversionUtils();

@@ -3,6 +3,7 @@
 #include <unordered_map>
 
 #include "ChessTypes.h"
+#include "ChessWinConditionRegistry.h"
 
 namespace CoreChess {
 
@@ -133,16 +134,33 @@ namespace CoreChess {
 		ChessContext& SetBoardSize(int width, int height);
 		
 		/**
-		* @brief Sets the win condition function for this chess context.
+		* @brief Registers and assigns a win condition function.
 		*
-		* The win condition function is responsible for evaluating the current
-		* game state and returning a ChessWinResult that indicates whether
-		* the game is still running or which side has won.
+		* The given function is registered in the ChessWinConditionRegistry,
+		* which generates a new unique ChessWinConditionID. The context then
+		* stores and uses this generated ID internally.
 		*
-		* @param func Win condition callback to be used.
-		* @return Reference to this context for chaining.
+		* Optionally, the generated identifier can be returned via the outID
+		* pointer. If outID is nullptr, the identifier is not exposed to the caller.
+		*
+		* @param func The win condition function to register and assign.
+		* @param outID Optional pointer that receives the generated ChessWinConditionID.
+		* @return Reference to this ChessContext instance for chaining.
 		*/
-		ChessContext& SetWinCondition(const ChessWinConditionFunc& func);
+		ChessContext& SetWinCondition(const ChessWinConditionFunc& func, ChessWinConditionID* outID = nullptr);
+
+		/**
+		* @brief Assigns an existing win condition by its identifier.
+		*
+		* The provided ChessWinConditionID must already be registered in
+		* the ChessWinConditionRegistry. In debug builds, validity checks
+		* are performed and warnings are logged if the ID is invalid or
+		* not associated with a function.
+		*
+		* @param id The identifier of a previously registered win condition.
+		* @return Reference to this ChessContext instance for chaining.
+		*/
+		ChessContext& SetWinCondition(ChessWinConditionID id);
 
 		/**
 		* @brief Returns the width of the board for this context.
@@ -173,21 +191,28 @@ namespace CoreChess {
 		const std::vector<BoardCommand>& GetBoardCommands() const;
 
 		/**
-		* @brief Returns the currently active win condition function.
+		* @brief Returns the currently assigned win condition identifier.
 		*
-		* This function provides read-only access to the win condition callback
-		* that is used to evaluate the game outcome.
+		* The returned ID can be used to query the associated win condition
+		* function from the ChessWinConditionRegistry.
 		*
-		* @return Constant reference to the win condition function.
+		* @return The active ChessWinConditionID.
 		*/
-		const ChessWinConditionFunc& GetWinCondition() const;
+		ChessWinConditionID GetWinConditionID() const;
+
+		/*
+		* @brief gets a string that represents the current configs of the ctx
+		*/
+		std::string GetConfigString() const;
+
+		bool SetPerConfigString(const std::string& config);
 
 	private:
 		int m_boardWidth = 0;
 		int m_boardHeight = 0;
 		std::vector<ChessPieceID> m_pieces;
 		std::vector<BoardCommand> m_boardCmds;
-		ChessWinConditionFunc m_winCondition = nullptr;
+		ChessWinConditionID m_winConditionID;
 
 		/**
 		* @brief Adds a piece ID to the list if it does not already exist.

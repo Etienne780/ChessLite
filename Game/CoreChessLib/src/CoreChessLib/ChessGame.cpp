@@ -242,6 +242,14 @@ namespace CoreChess {
 
 		m_isContextSet = true;
 		m_gameContext = ctx;
+		
+		auto& reg = ChessWinConditionRegistry::GetInstance();
+		auto id = m_gameContext.GetWinConditionID();
+		m_winCondition = reg.GetWinCondition(id);
+
+		if (!m_winCondition) {
+			Log::Warn("CoreChess::ChessGame::SetGameContext: Win condition of this function is nullptr!");
+		}
 	}
 
 	void ChessGame::InternalSelectPiece(const Vector2& piecePos) {
