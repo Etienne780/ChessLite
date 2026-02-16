@@ -16,7 +16,7 @@ namespace CoreChess {
 		return board;
 	}
 
-	ChessContext& ChessContext::ReservePiece(size_t amount) {
+	ChessContext& ChessContext::ReservePieces(size_t amount) {
 		m_pieces.reserve(amount);
 		return *this;
 	}
@@ -27,6 +27,7 @@ namespace CoreChess {
 	}
 
 	ChessContext& ChessContext::ClearBoardSetupCommands() {
+		SetDirty();
 		m_boardCmds.clear();
 		return *this;
 	}
@@ -52,11 +53,13 @@ namespace CoreChess {
 			index++;
 		}
 
+		SetDirty();
 		m_boardCmds.push_back(cmd);
 		return *this;
 	}
 
 	ChessContext& ChessContext::AddBoardCommands(const std::vector<BoardCommand>& cmds) {
+		SetDirty();
 		for (const auto& cmd : cmds) {
 			AddBoardCommand(cmd);
 		}
@@ -76,6 +79,7 @@ namespace CoreChess {
 		cmd.pieces.push_back(pieceID);
 
 		AddUniquePiece(pieceID);
+		SetDirty();
 		m_boardCmds.push_back(cmd);
 		return *this;
 	}
@@ -94,6 +98,7 @@ namespace CoreChess {
 		cmd.pieces.push_back(pieceID);
 
 		AddUniquePiece(pieceID);
+		SetDirty();
 		m_boardCmds.push_back(cmd);
 		return *this;
 	}
@@ -117,11 +122,13 @@ namespace CoreChess {
 		cmd.startRight = startRight;
 		cmd.pieces = row;
 
+		SetDirty();
 		m_boardCmds.push_back(cmd);
 		return *this;
 	}
 
 	ChessContext& ChessContext::SetBoardSize(int width, int height) {
+		SetDirty();
 		m_boardWidth = width;
 		m_boardHeight = height;
 		return *this;
@@ -150,6 +157,7 @@ namespace CoreChess {
 			Log::Warn("CoreChess::ChessContext::SetWinCondition: There is no win condition func asoziated with the id '{}'", id);
 		}
 #endif
+		SetDirty();
 		m_winConditionID = id;
 		return *this;
 	}
@@ -175,6 +183,10 @@ namespace CoreChess {
 	}
 
 	std::string ChessContext::GetConfigString() const {
+		if (!m_configContextChanged) {
+			return m_configString;
+		}
+		
 		BinarySerializer bSer;
 
 		bSer.AddFields(
@@ -199,7 +211,9 @@ namespace CoreChess {
 			);
 		});
 
-		return bSer.ToBase64();
+		m_configContextChanged = false;
+		m_configString = bSer.ToBase64();
+		return m_configString;
 	}
 
 	bool ChessContext::SetPerConfigString(const std::string& config) {
@@ -257,6 +271,7 @@ namespace CoreChess {
 			if (p == pieceID)
 				return;
 		}
+		SetDirty();
 		m_pieces.push_back(pieceID);
 	}
 
@@ -328,6 +343,10 @@ namespace CoreChess {
 
 	int ChessContext::MirrorColumn(int col) const {
 		return m_boardWidth - 1 - col;
+	}
+
+	void ChessContext::SetDirty() {
+		m_configContextChanged = true;
 	}
 
 }

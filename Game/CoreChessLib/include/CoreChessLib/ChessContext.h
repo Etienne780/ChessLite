@@ -47,7 +47,7 @@ namespace CoreChess {
 		* @param amount Number of pieces to reserve space for.
 		* @return Reference to this context for chaining.
 		*/
-		ChessContext& ReservePiece(size_t amount);
+		ChessContext& ReservePieces(size_t amount);
 
 		/**
 		* @brief Adds a unique piece type to the context.
@@ -232,6 +232,9 @@ namespace CoreChess {
 		std::vector<BoardCommand> m_boardCmds;
 		ChessWinConditionID m_winConditionID;
 
+		mutable bool m_configContextChanged = true;
+		mutable std::string m_configString;
+		
 		/**
 		* @brief Adds a piece ID to the list if it does not already exist.
 		*
@@ -265,6 +268,11 @@ namespace CoreChess {
 		* @return int Mirrored column index.
 		*/
 		int MirrorColumn(int col) const;
+
+		/*
+		* @brief Marks this context as dirty for the config generation
+		*/
+		void SetDirty();
 	};
 
 }
