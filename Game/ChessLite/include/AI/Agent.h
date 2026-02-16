@@ -1,0 +1,31 @@
+#pragma once
+#include <string>
+#include <unordered_map>
+
+#include <CoreChessLib/ChessGame.h>
+
+#include "BoardState.h"
+
+class Agent {
+public:
+	Agent() = default;
+	Agent(const std::string& name, const CoreChess::ChessContext& context);
+	~Agent() = default;
+
+	Vector2 GetBestMove(const CoreChess::ChessGame& game);
+
+	void GameFinished(bool won);
+
+	const std::string& GetName() const;
+	const std::string& GetChessConfig() const;
+	const std::unordered_map<std::string, BoardState>& GetNormilzedBoardStates();
+
+private:
+	std::string m_name = "UNKOWN";
+	std::string m_chessConfigString;
+	std::unordered_map<std::string, BoardState> m_boardStates;/* < normalized board position to board state*/
+
+	std::vector<std::pair<std::string, int>> m_moveHistory;/* < board state, move index*/
+	
+	std::string GetNormalizedBoardStr(const CoreChess::ChessBoard& board, bool isWhite);
+};

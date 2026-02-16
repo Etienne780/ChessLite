@@ -31,6 +31,7 @@ namespace CoreChess {
 		bool IsGameEnd(ChessWinResult* outResult = nullptr) const;
 
 		const ChessBoard& GetBoard() const;
+		const ChessContext& GetContext() const;
 		const Vector2& GetSelectedPiecePos() const;
 		size_t GetSelectedPieceIndex() const;
 		std::vector<Vector2> GetPossibleMovePosOf(size_t index) const;

@@ -2,10 +2,10 @@
 
 namespace CoreChess {
 
-    static ChessWinConditionRegistry s_winConditionRegistry;
 
     ChessWinConditionRegistry& ChessWinConditionRegistry::GetInstance() {
-        return s_winConditionRegistry;
+        static ChessWinConditionRegistry instance;
+        return instance;
     }
 
     ChessWinConditionID ChessWinConditionRegistry::AddWinCondition(ChessWinConditionFunc func) {

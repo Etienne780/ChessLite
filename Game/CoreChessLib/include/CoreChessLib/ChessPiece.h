@@ -68,11 +68,6 @@ namespace CoreChess {
 		bool IsValidMove(const ChessBoard& board, const Vector2& from, const Vector2& to) const;
 
 		/**
-		* @brief Returns whether this piece uses sliding movement.
-		*/
-		bool IsSliding() const;
-
-		/**
 		* @brief Checks whether this piece is marked as a critical target.
 		*
 		* If this function returns true, the piece is considered essential
@@ -92,26 +87,6 @@ namespace CoreChess {
 		* @brief Returns the display name of this chess piece.
 		*/
 		const std::string& GetName() const;
-
-		/**
-		* @brief Returns the maximum number of steps per move.
-		*/
-		uint16_t GetMaxSteps() const;
-
-		/**
-		* @brief Returns the allowed target type for this piece.
-		*/
-		TargetType GetTargetType() const;
-
-		/**
-		* @brief Returns the path evaluation mode used by this piece.
-		*/
-		PathMode GetPathMode() const;
-
-		/**
-		* @brief Returns the priority axis for axis-ordered movement.
-		*/
-		PriorityAxis GetPriorityAxis() const;
 
 		/**
 		* @brief Returns all movement rules associated with this piece.
@@ -174,8 +149,9 @@ namespace CoreChess {
 		*/
 		void SetSliding(bool value);
 
+		// TODO: not implemented
 		/**
-		* @brief Marks this chess piece as a critical target.
+		* @brief [not implemented] Marks this chess piece as a critical target.
 		*
 		* A critical target is a piece whose safety is essential for the player.
 		* If a critical target of a player is under attack after a move,

@@ -161,13 +161,17 @@ namespace CoreChess {
 	}
 
 	bool ChessGame::IsGameEnd(ChessWinResult* outResult) const {
-		if(outResult)
+		if (outResult)
 			*outResult = m_winResult;
 		return m_winResult != ChessWinResult::NONE;
 	}
 
 	const ChessBoard& ChessGame::GetBoard() const {
 		return m_board;
+	}
+
+	const ChessContext& ChessGame::GetContext() const {
+		return m_gameContext;
 	}
 
 	const Vector2& ChessGame::GetSelectedPiecePos() const {

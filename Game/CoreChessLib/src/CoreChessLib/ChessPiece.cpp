@@ -25,10 +25,6 @@ namespace CoreChess {
 		return m_moveRules.IsValidMove(board, from, to);
 	}
 
-	bool ChessPiece::IsSliding() const {
-		return m_sliding;
-	}
-
 	bool ChessPiece::IsCriticalTarget() const {
 		return m_isCriticalTarget;
 	}
@@ -39,22 +35,6 @@ namespace CoreChess {
 
 	const std::string& ChessPiece::GetName() const {
 		return m_name;
-	}
-
-	uint16_t ChessPiece::GetMaxSteps() const {
-		return m_maxSteps;
-	}
-
-	TargetType ChessPiece::GetTargetType() const {
-		return m_targetType;
-	}
-
-	PathMode ChessPiece::GetPathMode() const {
-		return m_pathMode;
-	}
-
-	PriorityAxis ChessPiece::GetPriorityAxis() const {
-		return m_priorityAxis;
 	}
 
 	const std::vector<ChessMoveRule>& ChessPiece::GetMoveRules() const {
