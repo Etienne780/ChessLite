@@ -24,7 +24,7 @@ Vector2 Agent::GetBestMove(const CoreChess::ChessGame& game) {
 	}
 
 	float explorationChance = 0.1f;
-	int moveIndex = boardStatePtr->GetBestMove(explorationChance);
+	size_t moveIndex = boardStatePtr->GetBestMove(explorationChance);
 
 	m_moveHistory.emplace_back(state, moveIndex);
 	return boardStatePtr->GetMoveTo(moveIndex);

@@ -25,7 +25,7 @@ private:
 	std::string m_chessConfigString;
 	std::unordered_map<std::string, BoardState> m_boardStates;/* < normalized board position to board state*/
 
-	std::vector<std::pair<std::string, int>> m_moveHistory;/* < board state, move index*/
+	std::vector<std::pair<std::string, size_t>> m_moveHistory;/* < board state, move index*/
 	
 	std::string GetNormalizedBoardStr(const CoreChess::ChessBoard& board, bool isWhite);
 };

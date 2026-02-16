@@ -29,6 +29,11 @@ enum class ChessSkinType {
 	SPACE
 };
 
+enum class PlayerType {
+	PLAYER = 0,
+	AI
+};
+
 enum class ResourceType {
 	UNKOWN = 0,
 	TEXTURE,

@@ -10,13 +10,13 @@ BoardState::BoardState(const std::string& state,
 	m_possibleMoves = CalculatePossibleMoves(game);
 }
 
-int BoardState::GetBestMove(float explorationChance) {
+size_t BoardState::GetBestMove(float explorationChance) {
 	if (m_possibleMoves.empty())
 		throw std::runtime_error("No moves available");
 
 	size_t moveIndex = 0;
 	if (Random::GetNumber<float>() < explorationChance) {
-		moveIndex = Random::GetRangeNumber<int>(0, static_cast<int>(m_possibleMoves.size()) - 1);
+		moveIndex = Random::GetRangeNumber<size_t>(0, m_possibleMoves.size() - 1);
 	}
 	else {
 		float bestScore = m_possibleMoves[0].GetEvaluation();
@@ -31,11 +31,11 @@ int BoardState::GetBestMove(float explorationChance) {
 	return moveIndex;
 }
 
-GameMove& BoardState::GetMove(int index) {
+GameMove& BoardState::GetMove(size_t index) {
 	return m_possibleMoves.at(index);
 }
 
-Vector2 BoardState::GetMoveTo(int index) const {
+Vector2 BoardState::GetMoveTo(size_t index) const {
 	return m_possibleMoves.at(index).GetTo();
 }
 

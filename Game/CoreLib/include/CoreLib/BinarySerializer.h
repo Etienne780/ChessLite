@@ -111,6 +111,9 @@ public:
     template<typename T, typename Serializer>
     void AddComplexField(const std::vector<T>& vec, Serializer ser) {
         AddField(static_cast<uint32_t>(vec.size()));
+        static_assert(std::is_invocable_v<Serializer, BinarySerializer&, const T&>,
+            "Serializer lambda must accept (BinarySerializer&, const T&)");
+        
         for (const auto& e : vec) {
             ser(*this, e);
         }

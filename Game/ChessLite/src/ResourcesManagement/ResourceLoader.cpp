@@ -13,7 +13,7 @@ void ResourceLoader::AddRequest(const ResourceRequest& request) {
 }
 
 void ResourceLoader::LoadAsync() {
-    Wait();
+    Wait();// Joins old thread
 
     m_textures.clear();
     m_sounds.clear();
@@ -71,8 +71,9 @@ void ResourceLoader::LoadInternal() {
             break;
         }
         m_loadedCount++;
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        
+        // Delay to slow down loading for testing
+        // std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
     m_finishedLoad.store(true, std::memory_order_release);

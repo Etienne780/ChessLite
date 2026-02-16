@@ -25,7 +25,15 @@ namespace CoreChess {
 		InternalDeselectPiece();
 		m_isWhiteTurn = true;
 		m_board = m_gameContext.GenerateBoard();
-		m_winCondition = m_gameContext.GetWinCondition();
+
+		auto& reg = ChessWinConditionRegistry::GetInstance();
+		auto id = m_gameContext.GetWinConditionID();
+		m_winCondition = reg.GetWinCondition(id);
+
+		if (!m_winCondition) {
+			Log::Warn("CoreChess::ChessGame::StartGame: Win condition of this function is nullptr!");
+		}
+
 		m_winResult = ChessWinResult::NONE;
 		m_whiteMaterialValue = 0;
 		m_blackMaterialValue = 0;

@@ -41,8 +41,7 @@ namespace Layers {
 
 			if (UIComp::DrawButton("btn_resume", "Retry", Style::commanBTNBase)) {
 				Log::Debug("GameResult: Retry");
-				ctx->app->ClearLayers();
-				ctx->app->PushLayer<GameLayer>();
+				ctx->app->PopLayer();
 			}
 
 			if (UIComp::DrawButton("btn_back_to_menu", "Back To Menu", Style::commanBTNBase)) {

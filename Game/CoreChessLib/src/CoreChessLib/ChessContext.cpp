@@ -198,7 +198,7 @@ namespace CoreChess {
 		);
 		
 		bSer.AddComplexField(m_boardCmds, 
-		[](BinarySerializer& subSer, CoreChess::BoardCommand& cmd) {
+		[](BinarySerializer& subSer, const CoreChess::BoardCommand& cmd) {
 			uint8_t flags = 0;
 			flags |= cmd.fill ? 1 : 0;
 			flags |= cmd.startRight ? 2 : 0;
