@@ -200,11 +200,29 @@ namespace CoreChess {
 		*/
 		ChessWinConditionID GetWinConditionID() const;
 
-		/*
-		* @brief gets a string that represents the current configs of the ctx
+		/**
+		* @brief Serializes the current configuration of the context into a Base64 string.
+		*
+		* All relevant configuration data (board size, win condition,
+		* pieces, and board commands) are serialized into a binary format
+		* and encoded as Base64.
+		*
+		* @return std::string Base64-encoded representation of the current configuration.
 		*/
 		std::string GetConfigString() const;
 
+		/**
+		* @brief Restores the context configuration from a Base64 string.
+		*
+		* Decodes the given Base64 string, deserializes the contained binary data,
+		* and applies the configuration to the context. The function provides
+		* strong exception safety: the internal state is only updated if the
+		* entire deserialization process succeeds.
+		*
+		* @param config Base64-encoded configuration string.
+		* @return true  If the configuration was successfully parsed and applied.
+		* @return false If decoding, version validation, or deserialization failed.
+		*/
 		bool SetPerConfigString(const std::string& config);
 
 	private:
