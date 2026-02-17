@@ -10,9 +10,11 @@ namespace UIComponent {
 	bool DrawButton(
 		std::string key,
 		const char* text,
-		const UI::UIStyle& style
+		const UI::UIStyle& style,
+		bool isDisabled
 	) {
-		UI::BeginFrame(UI::UIKey(key), style);
+		UI::BeginFrame(UI::UIKey(key), style)
+			->SetOverride(SDLCore::UI::Properties::disabled, isDisabled);
 		{
 			UI::Text(UI::UIKey("label"), text, Style::commanTextBase);
 		}
@@ -25,10 +27,12 @@ namespace UIComponent {
 		const char* text,
 		bool isActive,
 		const SDLCore::UI::UIStyle& styleNormal,
-		const SDLCore::UI::UIStyle& styleActive
+		const SDLCore::UI::UIStyle& styleActive,
+		bool isDisabled
 	) {
 		const SDLCore::UI::UIStyle& style = (isActive) ? styleActive : styleNormal;
-		UI::BeginFrame(UI::UIKey(key), style);
+		UI::BeginFrame(UI::UIKey(key), style)
+			->SetOverride(SDLCore::UI::Properties::disabled, isDisabled);
 		{
 			UI::Text(UI::UIKey("label"), text, Style::commanTextBase);
 		}
