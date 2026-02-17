@@ -104,10 +104,10 @@ namespace SDLCore {
 		* This function destroys the specified window, including its underlying SDL window
 		* and renderer, and removes it from the application's window list.
 		*
-		* @param id Unique identifier of the window to delete.
-		* @return true if the window was found and deleted successfully, false otherwise.
+		* @param id Reference to the unique identifier of the window to delete. After deletion, the ID is invalidated.
+		* @return true if a window with the given ID existed and was deleted; false if no such window was found.
 		*/
-		bool DeleteWindow(WindowID id);
+		bool DeleteWindow(WindowID& id);
 
 		/**
 		* @brief Deletes all windows managed by the application.
