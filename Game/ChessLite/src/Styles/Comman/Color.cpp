@@ -41,7 +41,7 @@ namespace Style {
 		commanColorBtnPressed = UIReg::RegisterColor(Vector4(110, 110, 110, 255));
 		commanColorBtnDisabled = UIReg::RegisterColor(Vector4(60, 60, 60, 160));
 
-		commanColorAccent = UIReg::RegisterColor(Vector4(200, 170, 90, 255));
+		commanColorAccent = UIReg::RegisterColor(Vector4(49, 80, 173, 255));
 
 		commanColorHighlightMove = UIReg::RegisterColor(Vector4(148, 219, 227, 160));
 		commanColorHighlightSelected = UIReg::RegisterColor(Vector4(255, 215, 0, 160));
