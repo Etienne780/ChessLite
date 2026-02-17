@@ -32,7 +32,6 @@ namespace SDLCore::UI {
         inline constexpr uint64_t hashSeed = 1469598103934665603ull;
         inline constexpr uint64_t hashMul = 1315423911ull;
 
-        // Slow path – dynamic styles
         template<typename It>
         uint64_t InternalGenerateStyleHash(It begin, It end) {
             uint64_t hash = hashSeed;
@@ -41,9 +40,18 @@ namespace SDLCore::UI {
             }
             return hash;
         }
+
+        template<typename... Styles>
+        uint64_t InternalGenerateStyleHash(const Styles&... styles) {
+            static_assert((std::is_same_v<Styles, UIStyle> && ...),
+                "GenerateStylesHash only accepts UIStyle parameters");
+
+            uint64_t hash = hashSeed;
+            ((hash = hash * hashMul + styles.GetID().value), ...);
+            return hash;
+        }
     }
 
-    // faster begin frame. because styles canot change
     template<typename... Styles>
     FrameNode* BeginFrame(UIKey&& key, const Styles&... styles) {
         static_assert((std::is_same_v<Styles, UIStyle> && ...),
@@ -53,23 +61,25 @@ namespace SDLCore::UI {
         if (!node)
             return nullptr;
 
+        uint64_t styleHash = Internal::InternalGenerateStyleHash(styles...);
+
         uint64_t newestStyleFrame = 0;
         ((newestStyleFrame = std::max(newestStyleFrame, styles.GetLastModified())), ...);
 
         if (!node->IsActive() || node->GetStyleChanged() || 
+            node->GetAppliedStyleHash() != styleHash ||
             node->GetAppliedStyleNode() < newestStyleFrame) {
             node->ClearStyles();
             node->ReserveStyles(sizeof...(Styles));
             (node->AddStyle(styles), ...);
             node->UpdateFinalStyle(GetCurrentContext());
 
-            Internal::InternalSetAppliedStyleParams(node, 0, newestStyleFrame);
+            Internal::InternalSetAppliedStyleParams(node, styleHash, newestStyleFrame);
         }
 
         return node;
     }
 
-    // slower because styles can dynamically change
     FrameNode* BeginFrame(UIKey&& key, const std::vector<UIStyle>& styles);
 
     /*
@@ -77,7 +87,6 @@ namespace SDLCore::UI {
     */
     UIEvent EndFrame();
 
-    // faster begin frame. because styles canot change
     template<typename... Styles>
     TextNode* Text(UIKey&& key, const std::string& text, const Styles&... styles) {
         static_assert((std::is_same_v<Styles, UIStyle> && ...),
@@ -90,23 +99,25 @@ namespace SDLCore::UI {
         if(node->GetText() != text)
             node->SetText(text);
 
+        uint64_t styleHash = Internal::InternalGenerateStyleHash(styles...);
+
         uint64_t newestStyleFrame = 0;
         ((newestStyleFrame = std::max(newestStyleFrame, styles.GetLastModified())), ...);
 
         if (!node->IsActive() || node->GetStyleChanged() || 
+            node->GetAppliedStyleHash() != styleHash ||
             node->GetAppliedStyleNode() < newestStyleFrame) {
             node->ClearStyles();
             node->ReserveStyles(sizeof...(Styles));
             (node->AddStyle(styles), ...);
             node->UpdateFinalStyle(GetCurrentContext());
 
-            Internal::InternalSetAppliedStyleParams(node, 0, newestStyleFrame);
+            Internal::InternalSetAppliedStyleParams(node, styleHash, newestStyleFrame);
         }
       
         return node;
     }
 
-    // slower because styles can dynamically change
     TextNode* Text(UIKey&& key, const std::string& text, const std::vector<UIStyle>& styles);
 
 }
