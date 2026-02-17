@@ -49,6 +49,7 @@ void App::OnUpdate() {
             layer.OnRender(&m_context); 
             
             if (RE::GetActiveWindowID() != m_winID) {
+                Input::SetWindow(m_winID);
                 RE::SetWindowRenderer(m_winID);
             }
         });
@@ -62,6 +63,7 @@ void App::OnUpdate() {
                 layer.OnUIRender(&m_context);
 
                 if (RE::GetActiveWindowID() != m_winID) {
+                    Input::SetWindow(m_winID);
                     UI::BindContext(m_UICtx);
                     RE::SetWindowRenderer(m_winID);
                 }
