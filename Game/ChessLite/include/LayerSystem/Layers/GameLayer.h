@@ -1,14 +1,16 @@
 #pragma once
 #include <SDLCoreLib/SDLCore.h>
+#include <SDLCoreLib/SDLCoreUI.h>
 #include <CoreChessLib/CoreChess.h>
 
 #include "LayerSystem/Layer.h"
+#include "AI/Agent.h"
 
 namespace Layers {
 
 	class GameLayer : public Layer {
 	public:
-		GameLayer() = default;
+		GameLayer(PlayerType player1, PlayerType player2);
 		~GameLayer() override = default;
 
 		void OnStart(AppContext* ctx) override;
@@ -24,6 +26,7 @@ namespace Layers {
 		bool m_opendGameResult = false;
 		bool m_isEscapeMenuOpen = false;
 		LayerEventSubscriptionID m_menuCloseEventID;
+		SDLCore::UI::UIStyle m_root;
 
 		ChessSkinType m_skinType = ChessSkinType::UNKOWN;
 		std::shared_ptr<SDLCore::Texture> m_pawnLightTexture = nullptr;
@@ -40,6 +43,13 @@ namespace Layers {
 		Vector2 m_windowSize{ 0.0f };
 		Vector2 m_topLeftBoard{ 0.0f };
 
+		bool m_isPlayer1Turn = false;
+		PlayerType m_player1 = PlayerType::PLAYER;
+		PlayerType m_player2 = PlayerType::PLAYER;
+		bool m_player1White = false;
+		AgentID m_agentID1;
+		AgentID m_agentID2;
+
 		CoreChess::ChessGame m_game;
 		ChessCoreResult m_gameResult = ChessCoreResult::NONE;
 		CoreChess::ChessPieceID m_pawnID;
@@ -49,12 +59,21 @@ namespace Layers {
 		Vector2 m_selectedPiecePos = Vector2::zero;
 
 		void SetupGame();
+		void StartGame();
 		void GameLogic();
+		void EvaluateAIs();
+		void ProcessTurn(PlayerType type);
+		// returns true when a move was made
+		bool PlayerLogic();
+		// returns true when a move was made
+		bool AILogic();
 		void RenderBoard();
 
 		void UpdateBoardTileSize();
 		void ResetChessSelectedParams();
-		void TryMovePiece(const Vector2& from, float toX, float toY);
+		// true on successful move
+		bool TryMovePiece(const Vector2& from, const Vector2& to);
+		bool TryMovePiece(const Vector2& from, float toX, float toY);
 		static bool IsPointInRect(Vector2 mPos, float x, float y, float size);
 	};
 

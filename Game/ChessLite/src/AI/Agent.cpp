@@ -4,7 +4,7 @@ Agent::Agent(const std::string& name, const CoreChess::ChessContext& context)
 	: m_name(name), m_chessConfigString(context.GetConfigString()) {
 }
 
-Vector2 Agent::GetBestMove(const CoreChess::ChessGame& game) {
+const GameMove& Agent::GetBestMove(const CoreChess::ChessGame& game) {
 	if (game.GetContext().GetConfigString() != m_chessConfigString) {
 		throw std::runtime_error("Agent: Unsupported game configuration");
 	}
@@ -27,7 +27,7 @@ Vector2 Agent::GetBestMove(const CoreChess::ChessGame& game) {
 	size_t moveIndex = boardStatePtr->GetBestMove(explorationChance);
 
 	m_moveHistory.emplace_back(state, moveIndex);
-	return boardStatePtr->GetMoveTo(moveIndex);
+	return boardStatePtr->GetMove(moveIndex);
 }
 
 void Agent::GameFinished(bool won) {

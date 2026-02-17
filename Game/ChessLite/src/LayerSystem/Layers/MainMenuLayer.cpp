@@ -53,7 +53,7 @@ namespace Layers {
 					if (UIComp::DrawButton("btn_play", "Play", Style::commanBTNBase)) {
 						Log::Debug("MainMenu: Play");
 						ctx->app->ClearLayers();
-						ctx->app->PushLayer<GameLayer>();
+						ctx->app->PushLayer<GameLayer>(PlayerType::PLAYER, PlayerType::AI);
 					}
 
 					if (UIComp::DrawButton("btn_skins", "Skins", Style::commanBTNBase)) {

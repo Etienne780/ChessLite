@@ -12,7 +12,7 @@ public:
 	Agent(const std::string& name, const CoreChess::ChessContext& context);
 	~Agent() = default;
 
-	Vector2 GetBestMove(const CoreChess::ChessGame& game);
+	const GameMove& GetBestMove(const CoreChess::ChessGame& game);
 
 	void GameFinished(bool won);
 

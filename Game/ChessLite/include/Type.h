@@ -10,8 +10,10 @@ template<typename Tag>
 using CoreAppID = CoreID<uint32_t, SDLCORE_INVALID_ID, Tag>;
 
 struct LayerEventSubscriptionTag {};
+struct AgentTag {};
 
 using LayerEventSubscriptionID = CoreAppID<LayerEventSubscriptionTag>;
+using AgentID = CoreAppID<AgentTag>;
 
 struct ChessOptions {
 	bool showPossibleMoves = true;
@@ -41,6 +43,16 @@ enum class ResourceType {
 };
 
 template<>
+static inline std::string FormatUtils::toString<PlayerType>(PlayerType type) {
+	switch (type)
+	{
+	case PlayerType::PLAYER:	return "Player";
+	case PlayerType::AI:		return "AI";
+	default:					return "UNKNOWN";
+	}
+}
+
+template<>
 static inline std::string FormatUtils::toString<ChessSkinType>(ChessSkinType type) {
 	switch (type) {
 	case ChessSkinType::CHESS_ECKIG:	return "Eckig";
@@ -49,6 +61,6 @@ static inline std::string FormatUtils::toString<ChessSkinType>(ChessSkinType typ
 	case ChessSkinType::SIMPLE:			return "Simple";
 	case ChessSkinType::SPACE:			return "Space";
 	case ChessSkinType::UNKOWN:
-	default:							return "Unknown";
+	default:							return "UNKNOWN";
 	}
 }

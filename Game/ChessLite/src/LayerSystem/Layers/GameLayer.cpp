@@ -1,12 +1,29 @@
+#include <CoreLib/Random.h>
+
 #include "LayerSystem/Layers/GameLayer.h"
 #include "LayerSystem/Layers/GameResult.h"
 #include "LayerSystem/Layers/EscapeMenuLayer.h"
 #include "Styles/Comman/Color.h"
+#include "Styles/Comman/Space.h"
+#include "Styles/Comman/Style.h"
 #include "App.h"
+
+namespace UI = SDLCore::UI;
 
 namespace Layers {
 
+	GameLayer::GameLayer(PlayerType player1, PlayerType player2) 
+		: m_player1(player1), m_player2(player2) {
+	}
+
 	void GameLayer::OnStart(AppContext* ctx) {
+		namespace Prop = UI::Properties;
+
+		m_root
+			.Merge(Style::commanRootTransparent)
+			.SetValue(Prop::positionType, SDLCore::UI::UIPositionType::ABSOLUTE)
+			.SetValue(Prop::padding, Style::commanSpaceL);
+
 		m_pawnLightTexture = std::make_shared<SDLCore::Texture>(SDLCore::TEXTURE_FALLBACK_TEXTURE);
 		m_pawnDarkTexture = std::make_shared<SDLCore::Texture>(SDLCore::TEXTURE_FALLBACK_TEXTURE);
 
@@ -17,14 +34,37 @@ namespace Layers {
 			}
 
 			if (e.layerID == LayerID::GAME_RESULT) {
-				m_game.StartGame();
 				m_opendGameResult = false;
-				m_gameResult = ChessCoreResult::NONE;
+				StartGame();
 			}
 		});
 
 		SetupGame();
-		m_game.StartGame();
+		// setup Agents for testing
+		ctx->agentManager.AddAgent(AgentID(0), Agent("name1", m_game.GetContext()));
+		ctx->agentManager.AddAgent(AgentID(1), Agent("name2", m_game.GetContext()));
+		ctx->selectedAgentID1 = AgentID(0);
+		ctx->selectedAgentID2 = AgentID(1);
+
+		m_agentID1 = ctx->selectedAgentID1;
+		m_agentID2 = ctx->selectedAgentID2;
+
+		auto ensureValidAIPlayer = [](AppContext* ctx, PlayerType& type, AgentID agentID) -> void {
+			if (type == PlayerType::AI && agentID.IsInvalid()) {
+				type = PlayerType::PLAYER;
+				return;
+			}
+
+			auto* agent = ctx->agentManager.GetAgent(agentID);
+			if (!agent) {
+				type = PlayerType::PLAYER;
+			}
+		};
+
+		ensureValidAIPlayer(ctx, m_player1, m_agentID1);
+		ensureValidAIPlayer(ctx, m_player2, m_agentID2);
+
+		StartGame();
 	}
 
 	void GameLayer::OnUpdate(AppContext* ctx) {
@@ -67,7 +107,18 @@ namespace Layers {
 	}
 
 	void GameLayer::OnUIRender(AppContext* ctx) {
-		
+		typedef UI::UIKey Key;
+
+		std::string playerTypeStr = "Turn: ";
+		playerTypeStr += (m_isPlayer1Turn) ? 
+			FormatUtils::formatString("Player1 ({})", m_player1) :
+			FormatUtils::formatString("Player2 ({})", m_player2);
+
+		UI::BeginFrame(Key("game_ui_overlay"), m_root);
+		{
+			UI::Text(Key("title"), playerTypeStr, Style::commanTextBase);
+		}
+		UI::EndFrame();
 	}
 
 	void GameLayer::OnQuit(AppContext* ctx) {
@@ -131,16 +182,80 @@ namespace Layers {
 			return ChessWinResult::NONE;
 		});
 
-		m_game.SetGameContext(chessCTX);
+		m_game.SetGameContext(std::move(chessCTX));
+	}
+
+	void GameLayer::StartGame() {
+		m_gameResult = ChessCoreResult::NONE;
+
+		int ran = Random::GetRangeNumber<int>(0, 1);
+		m_isPlayer1Turn = (ran == 1);
+		m_player1White = m_isPlayer1Turn;
+
+		m_game.StartGame();
 	}
 
 	void GameLayer::GameLogic() {
-		using namespace SDLCore;
-
 		if (m_game.IsGameEnd(&m_gameResult)) {
+			EvaluateAIs();
 			ResetChessSelectedParams();
 			return;
 		}
+
+		if (m_isPlayer1Turn) {
+			ProcessTurn(m_player1);
+		}
+		else {
+			ProcessTurn(m_player2);
+		}
+	}
+
+	void GameLayer::EvaluateAIs() {
+		auto* app = App::GetInstance();
+		if (!app) {
+			throw std::runtime_error("EvaluateAIs: app was nullptr!");
+		}
+		auto* ctx = app->GetContext();
+		Agent* agent1 = ctx->agentManager.GetAgent(m_agentID1);
+		Agent* agent2 = ctx->agentManager.GetAgent(m_agentID2);
+		if (!agent1 || !agent2) {
+			throw std::runtime_error("EvaluateAIs: agent with id doesnt exist!");
+		}
+		
+		ChessCoreResult result = ChessCoreResult::NONE;
+		if (m_game.IsGameEnd(&result)) {
+			agent1->GameFinished(
+				(m_player1White && result == ChessCoreResult::WHITE_WON) ||
+				(!m_player1White && result == ChessCoreResult::BLACK_WON)
+			);
+
+			agent2->GameFinished(
+				(!m_player1White && result == ChessCoreResult::WHITE_WON) ||
+				(m_player1White && result == ChessCoreResult::BLACK_WON)
+			);
+		}
+	}
+
+	void GameLayer::ProcessTurn(PlayerType type) {
+		bool movePlayed = false;
+		
+		switch (type) {
+		case PlayerType::PLAYER:
+			movePlayed = PlayerLogic();
+			break;
+		case PlayerType::AI:
+			movePlayed = AILogic();
+			break;
+		default:
+			break;
+		}
+
+		if(movePlayed) 
+			m_isPlayer1Turn = !m_isPlayer1Turn;
+	}
+
+	bool GameLayer::PlayerLogic() {
+		using namespace SDLCore;
 
 		const auto& board = m_game.GetBoard();
 		int boardWidth = board.GetWidth();
@@ -164,6 +279,8 @@ namespace Layers {
 		bool mLeftJustClick = Input::MouseJustPressed(MouseButton::LEFT);
 		bool mLeftClick = Input::MousePressed(MouseButton::LEFT);
 
+		bool movePlayed = false;
+
 		for (int i = 0; i < boardWidth * boardHeight; i++) {
 			int localX = i % boardWidth;
 			int localY = i / boardWidth;
@@ -172,34 +289,71 @@ namespace Layers {
 			float y = topLeftBoard.y + static_cast<float>(localY) * boardTileSize;
 
 			auto field = board.GetFieldAt(i);
-			bool canPlay = (isWhiteTurn) ? 
-				field.GetFieldType() == CoreChess::FieldType::WHITE : 
+			bool canPlay = (isWhiteTurn) ?
+				field.GetFieldType() == CoreChess::FieldType::WHITE :
 				field.GetFieldType() == CoreChess::FieldType::BLACK;
 
-			if (IsPointInRect(mPos, x, y, boardTileSize)) {
-				if (mLeftJustClick) {
-					if (!field.IsPieceNone() &&
-						canPlay) {
-						if (m_pieceSelected && 
-							m_selectedPieceLocalPos.Equals(static_cast<float>(localX), static_cast<float>(localY))) {
-							ResetChessSelectedParams();
-							break;
-						}
-						m_pieceSelected = true;
-						m_selectedPieceID = field.GetPieceID();
-						m_selectedPieceLocalPos.Set(static_cast<float>(localX), static_cast<float>(localY));
-						m_selectedPiecePos.Set(x, y);
-					}
-					else {
-						if(m_pieceSelected)
-							TryMovePiece(m_selectedPieceLocalPos, static_cast<float>(localX), static_cast<float>(localY));
-						ResetChessSelectedParams();
-					}
-				}
+			if (!IsPointInRect(mPos, x, y, boardTileSize))
+				continue;
 
+			if (!mLeftJustClick)
 				break;
+
+			if (!field.IsPieceNone() &&
+				canPlay) {
+				if (m_pieceSelected &&
+					m_selectedPieceLocalPos.Equals(static_cast<float>(localX), static_cast<float>(localY))) {
+					ResetChessSelectedParams();
+					break;
+				}
+				m_pieceSelected = true;
+				m_selectedPieceID = field.GetPieceID();
+				m_selectedPieceLocalPos.Set(static_cast<float>(localX), static_cast<float>(localY));
+				m_selectedPiecePos.Set(x, y);
 			}
+			else {
+				if (m_pieceSelected) {
+					movePlayed = TryMovePiece(
+						m_selectedPieceLocalPos,
+						static_cast<float>(localX),
+						static_cast<float>(localY)
+					);
+				}
+				ResetChessSelectedParams();
+			}
+
+			break;
 		}
+
+		return movePlayed;
+	}
+
+	bool GameLayer::AILogic() {
+		AgentID agentID = (m_isPlayer1Turn) ? m_agentID1 : m_agentID2;
+		bool agentIsWhite = m_game.IsWhiteTurn();
+
+		auto* app = App::GetInstance();
+		if (!app) {
+			throw std::runtime_error("AILogic: app was nullptr!");
+		}
+		auto* ctx = app->GetContext();
+		Agent* agent = ctx->agentManager.GetAgent(agentID);
+		if (!agent) {
+			throw std::runtime_error("AILogic: agent with id doesnt exist!");
+		}
+
+		bool movePlayed = false;
+		do {
+			const GameMove& move = agent->GetBestMove(m_game);
+
+			movePlayed = TryMovePiece(
+				move.GetFrom(), 
+				move.GetTo()
+			);
+			Log::Print("AI: {} Move, from {} -> to {}", ((agentIsWhite) ? "White" : "Black"), move.GetFrom(), move.GetTo());
+		} while (!movePlayed);
+
+		return movePlayed;
 	}
 
 	void GameLayer::RenderBoard() {
@@ -359,9 +513,13 @@ namespace Layers {
 		m_selectedPiecePos.Set(0);
 	}
 
-	void GameLayer::TryMovePiece(const Vector2& from, float toX, float toY) {
+	bool GameLayer::TryMovePiece(const Vector2& from, const Vector2& to) {
+		return TryMovePiece(from, to.x, to.y);
+	}
+
+	bool GameLayer::TryMovePiece(const Vector2& from, float toX, float toY) {
 		m_game.SelectPiece(from);
-		m_game.MovePiece(toX, toY);
+		return m_game.MovePiece(toX, toY);
 	}
 
 	bool GameLayer::IsPointInRect(Vector2 mPos, float x, float y, float size) {

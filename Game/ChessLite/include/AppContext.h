@@ -4,6 +4,7 @@
 #include "App.h"
 #include "LayerSystem/LayerEventBus.h"
 #include "ResourcesManagement/ResourcesManager.h"
+#include "AI/AgentManager.h"
 #include "SkinManager.h"
 #include "Type.h"
 
@@ -19,6 +20,10 @@ public:
 	ResourcesManager resourcesManager;
 	SkinManager skinManager;
 	ChessOptions options;
+	AgentManager agentManager;
+
+	AgentID selectedAgentID1;
+	AgentID selectedAgentID2;
 
 	Vector2 refDisplaySize{ 1920.0f, 1080.0f };
 	Vector2 displaySize{ 0.0f };

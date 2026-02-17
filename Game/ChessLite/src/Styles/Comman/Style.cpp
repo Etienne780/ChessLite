@@ -61,8 +61,8 @@ namespace Style {
 		// --- Box / Panel ---
 		commanBox
 			.Merge(commanStretch)
-			.SetValue(Prop::backgroundColor, commanColorUIPanel);
-		commanBox.SetValue(Prop::padding, commanSpaceM);
+			.SetValue(Prop::backgroundColor, commanColorUIPanel)
+			.SetValue(Prop::padding, commanSpaceM);
 
 		commanOverlay
 			.Merge(commanStretch)
