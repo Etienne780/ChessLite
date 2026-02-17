@@ -281,7 +281,7 @@ namespace SDLCore::UI {
 		return IsPointInNode(Input::GetMousePosition());
 	}
 
-	bool UINode::IsMouseInClipRect(const Vector2& point) const {
+	bool UINode::IsMouseInClipRect() const {
 		return IsPointInClipRect(Input::GetMousePosition());
 	}
 

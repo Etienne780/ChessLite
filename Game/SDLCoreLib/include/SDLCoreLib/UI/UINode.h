@@ -217,7 +217,7 @@ namespace SDLCore::UI {
         void SetResolvedState(UIState state);
 
         bool IsMouseInNode() const;
-        bool IsMouseInClipRect(const Vector2& point) const;
+        bool IsMouseInClipRect() const;
         bool IsPointInNode(const Vector2& point) const;
         bool IsPointInClipRect(const Vector2& point) const;
 
