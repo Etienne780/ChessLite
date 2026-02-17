@@ -45,8 +45,14 @@ void App::OnUpdate() {
         RE::SetBlendMode(SDLCore::Render::BlendMode::BLEND);
         RE::SetColor(25);
         RE::Clear();
-        ForeachLayer([&](Layer& layer) { layer.OnRender(&m_context); });
-        
+        ForeachLayer([&](Layer& layer) { 
+            layer.OnRender(&m_context); 
+            
+            if (RE::GetActiveWindowID() != m_winID) {
+                RE::SetWindowRenderer(m_winID);
+            }
+        });
+
         UI::SetContextWindow(m_UICtx, m_winID);
         UI::BindContext(m_UICtx);
 
@@ -54,10 +60,15 @@ void App::OnUpdate() {
         {
             ForeachLayer([&](Layer& layer) {
                 layer.OnUIRender(&m_context);
+
+                if (RE::GetActiveWindowID() != m_winID) {
+                    UI::BindContext(m_UICtx);
+                    RE::SetWindowRenderer(m_winID);
+                }
             });
         }
         UI::EndFrame();
-      
+        
         RE::Present();
 
         ProcessLayerCommands();
