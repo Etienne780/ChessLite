@@ -13,4 +13,12 @@ namespace UIComponent {
 		const SDLCore::UI::UIStyle& style
 	);
 
+	bool DrawTabButton(
+		std::string key,
+		const char* text,
+		bool isActive,
+		const SDLCore::UI::UIStyle& styleNormal,
+		const SDLCore::UI::UIStyle& styleActive
+	);
+
 }
