@@ -58,6 +58,15 @@ public:
 	*/
 	void PopLayer();
 
+	/**
+	* @brief Requests to pop a specific layer from the layer stack by its ID.
+	* 
+	* note: Layer will not be directly poped
+	* 
+	* @param layerID The ID of the layer to be removed.
+	*/
+	void PopLayer(LayerID layerID);
+
 	void ClearLayers();
 
 	SDLCore::WindowID GetWinID() const;

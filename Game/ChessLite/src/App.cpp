@@ -91,11 +91,15 @@ bool App::UnsubscribeToLayerEvent(LayerEventType type, LayerEventSubscriptionID 
 }
 
 void App::PopLayer() {
-    m_layerCommands.emplace_back<LayerCommand>(LayerCmdType::POP);
+    m_layerCommands.emplace_back(LayerCmdType::POP);
+}
+
+void App::PopLayer(LayerID layerID) {
+    m_layerCommands.emplace_back(LayerCmdType::POP, layerID);
 }
 
 void App::ClearLayers() {
-    m_layerCommands.emplace_back<LayerCommand>(LayerCmdType::CLEAR);
+    m_layerCommands.emplace_back(LayerCmdType::CLEAR);
 }
 
 SDLCore::WindowID App::GetWinID() const {
@@ -149,11 +153,25 @@ void App::ProcessLayerCommands() {
         }
         case LayerCmdType::POP: {
             if (!m_layerStack.empty()) {
-                auto& layer = m_layerStack.back();
-                eventBus.Emit(LayerEventType::CLOSED, layer->GetLayerID());
-                layer->OnQuit(&m_context);
+                if (cmd.layerID != LayerID::NONE) {
+                    auto it = std::find_if(m_layerStack.begin(), m_layerStack.end(),
+                        [&](const std::unique_ptr<Layer>& layer) {
+                            return layer->GetLayerID() == cmd.layerID;
+                        });
+                    
+                    if (it != m_layerStack.end()) {
+                        eventBus.Emit(LayerEventType::CLOSED, (*it)->GetLayerID());
+                        (*it)->OnQuit(&m_context);
+                        m_layerStack.erase(it);
+                    }
+                }
+                else {
+                    auto& layer = m_layerStack.back();
+                    eventBus.Emit(LayerEventType::CLOSED, layer->GetLayerID());
+                    layer->OnQuit(&m_context);
 
-                m_layerStack.pop_back();
+                    m_layerStack.pop_back();
+                }
                 Log::Debug("App::Layer::Pop: - new count {}", m_layerStack.size());
             }
             break;
