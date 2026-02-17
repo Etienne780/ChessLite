@@ -41,7 +41,7 @@ namespace SDLCore::Render {
     constexpr bool CREATE_ON_NOT_FOUND = true;
     constexpr uint64_t TEXT_CACHE_TTL_FRAMES = 600; // ~10 sec
     struct TextCacheKey {
-        WindowID winID;
+        SDL_Renderer* renderer;
         const Font* font;
         std::string text;// final text after truncation
         float fontSize;
@@ -52,7 +52,7 @@ namespace SDLCore::Render {
         float lineHeightMultiplier;
 
         bool operator==(const TextCacheKey& o) const {
-            return winID == o.winID &&
+            return renderer == o.renderer &&
                 font == o.font &&
                 text == o.text &&
                 fontSize == o.fontSize &&
@@ -88,7 +88,7 @@ namespace SDLCore::Render {
         size_t operator()(const TextCacheKey& k) const noexcept {
             size_t h = 0;
 
-            hashCombine(h, std::hash<uint32_t>{}(k.winID.value));
+            hashCombine(h, std::hash<SDL_Renderer*>{}(k.renderer));
             hashCombine(h, std::hash<const Font*>{}(k.font));
             hashCombine(h, std::hash<std::string>{}(k.text));
             hashCombine(h, std::hash<float>{}(k.fontSize));
@@ -103,6 +103,21 @@ namespace SDLCore::Render {
     };
 
     std::unordered_map<TextCacheKey, CachedText, TextCacheKeyHash> s_textCache;
+
+    static void ClearTextCacheForRenderer(SDL_Renderer* renderer) {
+        for (auto it = s_textCache.begin(); it != s_textCache.end(); ) {
+            if (it->first.renderer == renderer) {
+                if (it->second.preRenderedTexture) {
+                    SDL_DestroyTexture(it->second.preRenderedTexture);
+                    it->second.preRenderedTexture = nullptr;
+                }
+                it = s_textCache.erase(it);
+            }
+            else {
+                ++it;
+            }
+        }
+    }
 
     SDL_Renderer* GetActiveRenderer() {
         return s_renderer;
@@ -181,6 +196,10 @@ namespace SDLCore::Render {
             s_renderer = nullptr;
             return;
         }
+        
+        win->AddOnSDLRendererDestroy([rendererPtr]() {
+            ClearTextCacheForRenderer(rendererPtr);
+        });
 
         s_renderer = rendererPtr;
     }
@@ -904,7 +923,7 @@ namespace SDLCore::Render {
     // text musst be in finale version. Truncated applyed, ...
     static inline CachedText* GetCachedText(const std::string& text, bool createOnNotFound = false) {
         TextCacheKey key{
-            s_winID,
+            s_renderer,
             s_font.get(),
             text,
             s_textSize,
@@ -959,6 +978,10 @@ namespace SDLCore::Render {
                     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
                     SDL_RenderClear(renderer);
 
+                    SDL_Texture* atlas = s_font->GetFontAsset()->GetGlyphAtlasTexture(s_winID);
+                    SDL_SetTextureColorMod(atlas, 255, 255, 255);
+                    SDL_SetTextureAlphaMod(atlas, 255);
+
                     float lineH = GetLineHeight();
                     float penY = 0.0f;
                     for (size_t i = 0; i < ct.lines.size(); ++i) {
@@ -990,7 +1013,7 @@ namespace SDLCore::Render {
                                 static_cast<float>(m->atlasHeight)
                             };
                             
-                            SDL_RenderTexture(renderer, s_font->GetFontAsset()->GetGlyphAtlasTexture(s_winID), &src, &dst);
+                            SDL_RenderTexture(renderer, atlas, &src, &dst);
                             penX += m->advance;
                         }
 
@@ -1012,11 +1035,7 @@ namespace SDLCore::Render {
         auto renderer = GetActiveRenderer("RenderCachedText");
         if (!renderer) return;
 
-        std::string currentText = (s_textMaxLimit != 0 && s_textLimitType != UnitType::NONE)
-            ? GetTruncatedText(text)
-            : text;
-
-        CachedText* ct = GetCachedText(currentText, CREATE_ON_NOT_FOUND);
+        CachedText* ct = GetCachedText(text, CREATE_ON_NOT_FOUND);
         if (!ct || !ct->preRenderedTexture)
             return;
 
