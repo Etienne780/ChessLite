@@ -8,7 +8,8 @@
 class AppContext;
 
 enum class LayerID {
-	MAIN_MENU = 0,
+	NONE = 0,
+	MAIN_MENU,
 	OPTIONS_MENU,
 	ESCAPE_MENU,
 	GAME,
@@ -64,11 +65,15 @@ struct LayerCommand {
 	using FactoryFunc = std::function<std::unique_ptr<Layer>()>;
 
 	LayerCmdType type;
+	LayerID layerID = LayerID::NONE;
 	FactoryFunc factory = nullptr;
 
 
 	LayerCommand(LayerCmdType _type)
 		: type(_type) {
+	}
+	LayerCommand(LayerCmdType _type, LayerID _layerID)
+		: type(_type), layerID(_layerID) {
 	}
 	LayerCommand(LayerCmdType _type, FactoryFunc _factory)
 		: type(_type), factory(_factory) {
