@@ -13,11 +13,11 @@ namespace SDLCore::UI {
 		: m_childPos(childPos), m_id(id), m_typeName(typeName) {
 		m_typeID = GetUITypeID(m_typeName);
 
-		Log::Debug("CreadedNode: id={} name={}", id, m_typeName);
+		// Log::Debug("CreadedNode: id={} name={}", id, m_typeName);
 	}
 
 	UINode::~UINode() {
-		Log::Debug("DestroyedNode: id={} name={}", m_id, m_typeName);
+		// Log::Debug("DestroyedNode: id={} name={}", m_id, m_typeName);
 	}
 
 	void UINode::ClearStyles() {
