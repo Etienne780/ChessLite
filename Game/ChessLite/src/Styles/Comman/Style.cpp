@@ -93,7 +93,7 @@ namespace Style {
 			.SetValue(Prop::padding, commanSpaceM)
 			.SetValue(Prop::margin, commanSpaceXS)
 			.SetValue(Prop::hideOverflow, true, true)
-			.SetValue(Prop::duration, 0.15f)
+			.SetValue(Prop::duration, 0.1f)
 			.SetValue(Prop::durationEasing, CoreUI::UIEasing::EaseInOutSine);
 
 		commanBTNBase.SetActiveState(CoreUI::UIState::HOVER)
@@ -108,12 +108,17 @@ namespace Style {
 
 		// --- Tab buttons ---
 		commanBTNTabNormal
-			.Merge(commanBTNBase)
-			.SetValue(Prop::backgroundColor, commanColorBtnNormal);
+			.Merge(commanBTNBase);
 
 		commanBTNTabActive
 			.Merge(commanBTNBase)
 			.SetValue(Prop::backgroundColor, commanColorAccent);
+
+		commanBTNTabActive.SetActiveState(CoreUI::UIState::HOVER)
+			.SetValue(Prop::backgroundColor, commanColorAccentLight);
+
+		commanBTNTabActive.SetActiveState(CoreUI::UIState::PRESSED)
+			.SetValue(Prop::backgroundColor, commanColorAccentDark);
 
 		// --- Text ---
 		commanTextBase
