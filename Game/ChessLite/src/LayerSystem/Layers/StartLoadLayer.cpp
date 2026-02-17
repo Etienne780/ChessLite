@@ -3,7 +3,7 @@
 
 #include "LayerSystem/Layers/MainMenuLayer.h"
 #include "LayerSystem/Layers/StartLoadLayer.h"
-#include "Styles/Comman/Style.h"
+#include "Styles/Comman/Color.h"
 #include "App.h"
 
 namespace Layers {
@@ -63,6 +63,9 @@ namespace Layers {
 	void StartLoadLayer::OnRender(AppContext* ctx) {
 		namespace RE = SDLCore::Render;
 
+		Vector4 colorAccent;
+		SDLCore::UI::UIRegistry::TryGetRegisteredColor(Style::commanColorAccent, colorAccent);
+
 		float scaleX = m_displaySize.x / m_RefDisplaySize.x;
 		float scaleY = m_displaySize.y / m_RefDisplaySize.y;
 		float displayScale = std::min(scaleX, scaleY);
@@ -74,7 +77,7 @@ namespace Layers {
 		float loadingBarW = (m_windowSize.x - 128.0f) * displayScale;
 		float loadingFill = loadingBarW * (static_cast<float>(m_progress) / 100.0f);
 
-		RE::SetColor(40, 75, 150);
+		RE::SetColor(colorAccent);
 		RE::SetStrokeWidth(4.0f * displayScale);
 		RE::FillRect(winXHalf - loadingBarW * 0.5f, winYHalf, loadingFill, loadingBarH);
 
