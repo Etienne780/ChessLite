@@ -13,7 +13,8 @@ enum class LayerID {
 	ESCAPE_MENU,
 	GAME,
 	GAME_RESULT,
-	START_LOAD
+	START_LOAD,
+	AI_VISUALIZER
 };
 
 class Layer {
