@@ -23,7 +23,7 @@ namespace Layers {
 		using namespace SDLCore;
 		
 		if (Input::KeyJustPressed(KeyCode::ESCAPE)) {
-			ctx->app->PopLayer();
+			ctx->app->PopLayer(LayerID::ESCAPE_MENU);
 		}
 	}
 
@@ -40,7 +40,7 @@ namespace Layers {
 
 			if (UIComp::DrawButton("btn_resume", "Resume", Style::commanBTNBase)) {
 				Log::Debug("EscapeMenu: Resume");
-				ctx->app->PopLayer();
+				ctx->app->PopLayer(LayerID::ESCAPE_MENU);
 			}
 
 			if (UIComp::DrawButton("btn_settings", "Settings", Style::commanBTNBase)) {

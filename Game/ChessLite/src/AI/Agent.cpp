@@ -5,6 +5,11 @@ Agent::Agent(const std::string& name, const CoreChess::ChessContext& context)
 }
 
 const GameMove& Agent::GetBestMove(const CoreChess::ChessGame& game) {
+	if (m_gameFinished) {
+		m_moveHistory.clear();
+		m_gameFinished = false;
+	}
+	
 	if (game.GetContext().GetConfigString() != m_chessConfigString) {
 		throw std::runtime_error("Agent: Unsupported game configuration");
 	}
@@ -41,7 +46,7 @@ void Agent::GameFinished(bool won) {
 		}
 	}
 
-	m_moveHistory.clear();
+	m_gameFinished = true;
 }
 
 const std::string& Agent::GetName() const {
@@ -52,8 +57,12 @@ const std::string& Agent::GetChessConfig() const {
 	return m_chessConfigString;
 }
 
-const std::unordered_map<std::string, BoardState>& Agent::GetNormilzedBoardStates() {
+const std::unordered_map<std::string, BoardState>& Agent::GetNormilzedBoardStates() const {
 	return m_boardStates;
+}
+
+const std::vector<std::pair<std::string, size_t>>& Agent::GetMoveHistory() const {
+	return m_moveHistory;
 }
 
 std::string Agent::GetNormalizedBoardStr(const CoreChess::ChessBoard& board, bool isWhite) {

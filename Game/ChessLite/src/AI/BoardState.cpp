@@ -35,6 +35,10 @@ GameMove& BoardState::GetMove(size_t index) {
 	return m_possibleMoves.at(index);
 }
 
+const GameMove& BoardState::GetMove(size_t index) const {
+	return m_possibleMoves.at(index);
+}
+
 Vector2 BoardState::GetMoveTo(size_t index) const {
 	return m_possibleMoves.at(index).GetTo();
 }

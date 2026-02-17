@@ -31,10 +31,6 @@ void App::OnStart() {
 
 void App::OnUpdate() {
     
-    // Quit if no windows remain 
-    if (GetWindowCount() <= 0)
-        Quit();
-
     if (!m_winID.IsInvalid()) {
         using namespace SDLCore;
         Input::SetWindow(m_winID);
@@ -74,6 +70,10 @@ void App::OnUpdate() {
         RE::Present();
 
         ProcessLayerCommands();
+    }
+    else {
+        // main window is closed
+        Quit();
     }
 }
 

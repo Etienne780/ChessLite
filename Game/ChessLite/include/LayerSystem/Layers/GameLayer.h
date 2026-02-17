@@ -25,6 +25,7 @@ namespace Layers {
 
 		bool m_opendGameResult = false;
 		bool m_isEscapeMenuOpen = false;
+		bool m_isAIVisualizerOpen = false;
 		LayerEventSubscriptionID m_menuCloseEventID;
 		SDLCore::UI::UIStyle m_root;
 
@@ -50,6 +51,7 @@ namespace Layers {
 		AgentID m_agentID1;
 		AgentID m_agentID2;
 
+		bool m_gameEnded = false;
 		CoreChess::ChessGame m_game;
 		ChessCoreResult m_gameResult = ChessCoreResult::NONE;
 		CoreChess::ChessPieceID m_pawnID;

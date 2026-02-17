@@ -12,6 +12,7 @@ public:
 	size_t GetBestMove(float explorationChance = 0.1f);
 
 	GameMove& GetMove(size_t index);
+	const GameMove& GetMove(size_t index) const;
 	Vector2 GetMoveTo(size_t index) const;
 
 	const std::string& GetState() const;

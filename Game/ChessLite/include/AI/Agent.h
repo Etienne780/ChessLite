@@ -18,9 +18,11 @@ public:
 
 	const std::string& GetName() const;
 	const std::string& GetChessConfig() const;
-	const std::unordered_map<std::string, BoardState>& GetNormilzedBoardStates();
+	const std::unordered_map<std::string, BoardState>& GetNormilzedBoardStates() const;
+	const std::vector<std::pair<std::string, size_t>>& GetMoveHistory() const;
 
 private:
+	bool m_gameFinished = false;
 	std::string m_name = "UNKOWN";
 	std::string m_chessConfigString;
 	std::unordered_map<std::string, BoardState> m_boardStates;/* < normalized board position to board state*/

@@ -3,6 +3,7 @@
 #include "LayerSystem/Layers/GameLayer.h"
 #include "LayerSystem/Layers/GameResult.h"
 #include "LayerSystem/Layers/EscapeMenuLayer.h"
+#include "LayerSystem/Layers/AIVisualizerLayer.h"
 #include "Styles/Comman/Color.h"
 #include "Styles/Comman/Space.h"
 #include "Styles/Comman/Style.h"
@@ -31,6 +32,10 @@ namespace Layers {
 		[&](const LayerEvent& e) -> void {
 			if (e.layerID == LayerID::ESCAPE_MENU) {
 				m_isEscapeMenuOpen = false;
+			}
+
+			if (e.layerID == LayerID::AI_VISUALIZER) {
+				m_isAIVisualizerOpen = false;
 			}
 
 			if (e.layerID == LayerID::GAME_RESULT) {
@@ -91,6 +96,12 @@ namespace Layers {
 
 		UpdateBoardTileSize();
 		GameLogic();
+
+		if (!m_isAIVisualizerOpen && 
+			Input::KeyJustPressed(KeyCode::NUM_1)) {
+			m_isAIVisualizerOpen = true;
+			ctx->app->PushLayer<AIVisualizerLayer>(m_player1, m_player2);
+		}
 
 		if (!m_opendGameResult && 
 			!m_isEscapeMenuOpen && 
@@ -187,20 +198,25 @@ namespace Layers {
 
 	void GameLayer::StartGame() {
 		m_gameResult = ChessCoreResult::NONE;
+		m_gameEnded = false;
 
-		int ran = Random::GetRangeNumber<int>(0, 1);
-		m_isPlayer1Turn = (ran == 1);
+		int random = Random::GetRangeNumber<int>(0, 1);
+		m_isPlayer1Turn = /*(random == 1)*/false;
 		m_player1White = m_isPlayer1Turn;
 
 		m_game.StartGame();
 	}
 
 	void GameLayer::GameLogic() {
-		if (m_game.IsGameEnd(&m_gameResult)) {
+		if (!m_gameEnded && m_game.IsGameEnd(&m_gameResult)) {
+			m_gameEnded = true;
 			EvaluateAIs();
 			ResetChessSelectedParams();
 			return;
 		}
+
+		if (m_gameEnded || m_isEscapeMenuOpen)
+			return;
 
 		if (m_isPlayer1Turn) {
 			ProcessTurn(m_player1);
@@ -239,6 +255,8 @@ namespace Layers {
 	void GameLayer::ProcessTurn(PlayerType type) {
 		bool movePlayed = false;
 		
+
+
 		switch (type) {
 		case PlayerType::PLAYER:
 			movePlayed = PlayerLogic();
