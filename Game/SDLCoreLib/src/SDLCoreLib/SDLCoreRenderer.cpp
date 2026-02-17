@@ -41,6 +41,7 @@ namespace SDLCore::Render {
     constexpr bool CREATE_ON_NOT_FOUND = true;
     constexpr uint64_t TEXT_CACHE_TTL_FRAMES = 600; // ~10 sec
     struct TextCacheKey {
+        WindowID winID;
         const Font* font;
         std::string text;// final text after truncation
         float fontSize;
@@ -51,7 +52,8 @@ namespace SDLCore::Render {
         float lineHeightMultiplier;
 
         bool operator==(const TextCacheKey& o) const {
-            return font == o.font &&
+            return winID == o.winID &&
+                font == o.font &&
                 text == o.text &&
                 fontSize == o.fontSize &&
                 clipWidth == o.clipWidth &&
@@ -86,6 +88,7 @@ namespace SDLCore::Render {
         size_t operator()(const TextCacheKey& k) const noexcept {
             size_t h = 0;
 
+            hashCombine(h, std::hash<uint32_t>{}(k.winID.value));
             hashCombine(h, std::hash<const Font*>{}(k.font));
             hashCombine(h, std::hash<std::string>{}(k.text));
             hashCombine(h, std::hash<float>{}(k.fontSize));
@@ -901,6 +904,7 @@ namespace SDLCore::Render {
     // text musst be in finale version. Truncated applyed, ...
     static inline CachedText* GetCachedText(const std::string& text, bool createOnNotFound = false) {
         TextCacheKey key{
+            s_winID,
             s_font.get(),
             text,
             s_textSize,
