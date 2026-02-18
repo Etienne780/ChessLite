@@ -21,7 +21,7 @@ namespace Layers {
 
 	void EscapeMenuLayer::OnUpdate(AppContext* ctx) {
 		using namespace SDLCore;
-		
+
 		if (Input::KeyJustPressed(KeyCode::ESCAPE)) {
 			ctx->app->PopLayer(LayerID::ESCAPE_MENU);
 		}
