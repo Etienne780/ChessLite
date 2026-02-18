@@ -16,7 +16,7 @@ public:
 	Vector2 GetMoveTo(size_t index) const;
 
 	const std::string& GetState() const;
-	const std::vector<GameMove> GetPossibleMoves() const;
+	const std::vector<GameMove>& GetPossibleMoves() const;
 
 private:
 	std::string m_state;

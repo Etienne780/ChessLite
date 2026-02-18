@@ -187,11 +187,11 @@ public:
 	*         - value = range end
 	*/
 #ifdef DEBUG
-	const std::map<ID_TYPE, ID_TYPE>& IDManager::DebugGetRanges() const {
+	const std::map<ID_TYPE, ID_TYPE>& DebugGetRanges() const {
 		return m_rangeFreeIDs;
 	}
 #else
-	const std::map<ID_TYPE, ID_TYPE>& IDManager::DebugGetRanges() const {
+	const std::map<ID_TYPE, ID_TYPE>& DebugGetRanges() const {
 		Log::Warn("IDManager::DebugGetRanges: Called DebugGetRanges outside of debug builds!");
 		static std::map<ID_TYPE, ID_TYPE> dummy;
 		return dummy;
@@ -325,9 +325,8 @@ private:
 };
 
 template<>
-static inline std::string FormatUtils::toString<IDOrder>(IDOrder order) {
-	switch (order)
-	{
+inline std::string FormatUtils::toString<IDOrder>(IDOrder order) {
+	switch (order) {
 	case IDOrder::RANDOME:		return "Random";
 	case IDOrder::ASCENDING:	return "Ascending";
 	case IDOrder::DESCENDING:	return "Descending";

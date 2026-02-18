@@ -2,8 +2,8 @@
 #include <stdexcept>
 #include <type_traits>
 
-#include "CoreLib\ConversionUtils.h"
-#include "CoreLib\CoreMath.h"
+#include "CoreLib/ConversionUtils.h"
+#include "CoreLib/CoreMath.h"
 
 int ConversionUtils::HexToIntegral(const std::string& hex) {
     size_t start = 0;

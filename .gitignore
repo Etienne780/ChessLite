@@ -8,6 +8,9 @@
 *.pdb
 *.exp
 
+#  Make
+MakeFile
+
 # Build artifacts
 build/
 .build/

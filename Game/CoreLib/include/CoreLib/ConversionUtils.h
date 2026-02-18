@@ -4,6 +4,7 @@
 #include <bitset>
 #include <sstream>
 #include <vector>
+#include <cstdint>
 
 /**
 * @brief Provides utility functions for common data format conversions.

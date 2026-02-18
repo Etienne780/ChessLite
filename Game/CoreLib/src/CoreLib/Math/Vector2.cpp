@@ -1,13 +1,13 @@
 #include <sstream>
 #include <cmath>
 
-#include "CoreLib\Math\Matrix.h"
-#include "CoreLib\Math\MathUtil.h"
-#include "CoreLib\FormatUtils.h"
-#include "CoreLib\Math\Vector3.h"
-#include "CoreLib\Math\Vector4.h"
+#include "CoreLib/Math/Matrix.h"
+#include "CoreLib/Math/MathUtil.h"
+#include "CoreLib/FormatUtils.h"
+#include "CoreLib/Math/Vector3.h"
+#include "CoreLib/Math/Vector4.h"
 
-#include "CoreLib\Math\Vector2.h"
+#include "CoreLib/Math/Vector2.h"
 
 const Vector2 Vector2::up(0, 1);
 const Vector2 Vector2::down(0, -1);

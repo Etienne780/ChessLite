@@ -11,9 +11,9 @@
 #include <algorithm>
 #include <fstream>
 
-#include "CoreLib\tinyfiledialogs.h"
-#include <CoreLib\Log.h>
-#include "CoreLib\File.h" 
+#include "CoreLib/tinyfiledialogs.h"
+#include <CoreLib/Log.h>
+#include "CoreLib/File.h" 
 
 
 File::File(const SystemFilePath& path)

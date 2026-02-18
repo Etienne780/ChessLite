@@ -28,7 +28,7 @@ namespace Layers {
 		AgentID m_agentID1;
 		AgentID m_agentID2;
 
-		const float m_headerHeightPer = 10.0f;
+		const float m_headerHeightPixel = 100.0f;
 
 		bool m_isAgent1Shown = true;
 

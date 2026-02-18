@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <cstdint>
 
 /**
 * @brief A simple binary serializer for trivially copyable types and vectors.

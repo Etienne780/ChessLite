@@ -180,6 +180,9 @@ namespace SDLCore {
     }
 
     bool Application::DeleteWindow(WindowID& id) {
+        if (id.IsInvalid())
+            return false;
+
         auto it = std::find_if(m_windows.begin(), m_windows.end(),
             [id](const std::unique_ptr<Window>& win) { return win->GetID() == id; });
 

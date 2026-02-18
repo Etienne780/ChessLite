@@ -28,11 +28,19 @@ namespace Layers {
 
 		auto* win = ctx->app->CreateWindow(&m_winID, "Visualizer", 800, 500);
 		win->SetWindowMinSize(600, 400);
+
+		win->AddOnDestroy([&]() {
+			auto* app = App::GetInstance();
+			if(app)
+				app->PopLayer(LayerID::AI_VISUALIZER);
+		});
+
 		m_UICtx = UI::CreateContext();
 
 		m_styleHeader
 			.Merge(Style::commanStretch)
-			.SetValue(Prop::height, m_headerHeightPer)
+			.SetValue(Prop::heightUnit, UI::UISizeUnit::PX)
+			.SetValue(Prop::height, m_headerHeightPixel)
 			.SetValue(Prop::layoutDirection, UI::UILayoutDir::ROW)
 			.SetValue(Prop::align, UI::UIAlignment::START, UI::UIAlignment::CENTER)
 			.SetValue(Prop::backgroundColor, Style::commanColorUIPanelDark);
@@ -41,10 +49,6 @@ namespace Layers {
 	void AIVisualizerLayer::OnUpdate(AppContext* ctx) {
 		using namespace SDLCore;
 		Input::SetWindow(m_winID);
-
-		if (m_winID.IsInvalid()) {
-			ctx->app->PopLayer(LayerID::AI_VISUALIZER);
-		}
 	}
 
 	void AIVisualizerLayer::OnRender(AppContext* ctx) {
@@ -122,7 +126,7 @@ namespace Layers {
 		float width = static_cast<float>(viewport.w);
 		float height = static_cast<float>(viewport.h);
 
-		float reservedTop = height * (m_headerHeightPer / 100.0f);
+		float reservedTop = m_headerHeightPixel;
 		float usableHeight = height - reservedTop;
 
 		RE::SetColor(25);
@@ -191,10 +195,6 @@ namespace Layers {
 		RE::SetColor(28);
 		RE::FillRect(leftWidth, contentTop, rightWidth, contentHeight);
 
-		std::vector<std::pair<std::string, BoardState>> allStates;
-		for (const auto& [stateStr, boardState] : states)
-			allStates.emplace_back(stateStr, boardState);
-
 		// Layout constants
 		float miniBoardSize = 60.0f;
 		float moveBoxW = 80.0f;
@@ -207,7 +207,7 @@ namespace Layers {
 		float panelW = rightWidth - 40.0f;
 
 		float estimatedH = 0.0f;
-		for (const auto& [stateStr, boardState] : allStates) {
+		for (const auto& [stateStr, boardState] : states) {
 			int moveCount = static_cast<int>(boardState.GetPossibleMoves().size());
 			int gridCols = std::max(1, static_cast<int>(panelW / (moveBoxW + 5.0f)));
 			int gridRows = (moveCount + gridCols - 1) / gridCols;
@@ -235,7 +235,7 @@ namespace Layers {
 
 		float detailY = contentTop - m_detailScrollOffset + m_padding;
 
-		for (const auto& [stateStr, boardState] : allStates) {
+		for (const auto& [stateStr, boardState] : states) {
 			const auto& moves = boardState.GetPossibleMoves();
 			int moveCount = static_cast<int>(moves.size());
 			int gridCols = std::max(1, static_cast<int>(panelW / (moveBoxW + 5.0f)));

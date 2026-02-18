@@ -25,7 +25,7 @@ public:
 
     Example:
     template<>
-    static inline std::string FormatUtils::toString<Vector2>(Vector2 vec) {
+    std::string FormatUtils::toString<Vector2>(Vector2 vec) {
         return vec.ToString();
     }
     */

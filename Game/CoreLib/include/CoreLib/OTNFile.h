@@ -188,6 +188,25 @@ namespace OTN {
 		OBJECT_REF,
 		LIST
 	};
+	
+	template<typename>
+	inline constexpr bool otn_always_false_v = false;
+
+	class OTNObjectBuilder;
+
+	/**
+	* @brief Template for converting between T and OTNObject.
+	*
+	* note:
+	*
+	* - Must be specialized for user-defined types.
+	*
+	* @tparam T Type to serialize/deserialize.
+	*/
+	template<typename T>
+	void ToOTNDataType(OTNObjectBuilder&, T&) {
+		static_assert(otn_always_false_v<T>, "Unsupported type for ToOTNDataType");
+	}
 
 	/**
 	* @brief Type descriptor with support for nested arrays
@@ -438,9 +457,6 @@ namespace OTN {
 	public:
 		std::vector<OTNValue> values;
 	};
-	
-	template<typename>
-	inline constexpr bool otn_always_false_v = false;
 	
 	template<typename T>
 	struct otn_is_std_vector : std::false_type {};
@@ -911,7 +927,6 @@ namespace OTN {
 			return (opt) ? *opt : defaultValue;
 		}
 
-
 		/**
 		* @brief Get a typed value with default fallback by row and column index
 		* @tparam T Expected value type
@@ -977,59 +992,7 @@ namespace OTN {
 		* @return std::optional with the converted value, or std::nullopt on failure
 		*/
 		template<typename T>
-		std::optional<T> TryDeserializeValue(const OTNValue& val) const {
-			using DT = std::decay_t<T>;
-
-			// Base types
-			if constexpr (is_otn_base_type_v<DT>) {
-				try {
-					return std::get<DT>(val.value);
-				}
-				catch (...) {
-					return std::nullopt;
-				}
-			}
-			// List
-			else if constexpr (otn_is_std_vector<DT>::value) {
-				if (val.type != OTNBaseType::LIST)
-					return std::nullopt;
-
-				OTNArrayPtr ptr = std::get<OTNArrayPtr>(val.value);
-				if (!ptr)
-					return std::nullopt;
-
-				DT result;
-				using ElemType = typename DT::value_type;
-				result.reserve(ptr->values.size());
-
-				for (const OTNValue& elem : ptr->values) {
-					auto conv = ConvertOTNValue<ElemType>(elem);
-					if (!conv)
-						return std::nullopt;
-					result.push_back(std::move(*conv));
-				}
-				return result;
-			}
-			// Object (custom type)
-			else {
-				if (val.type != OTNBaseType::OBJECT)
-					return std::nullopt;
-
-				OTNObjectPtr ptr = std::get<OTNObjectPtr>(val.value);
-				if (!ptr || ptr->GetRowCount() != 1)
-					return std::nullopt;
-
-				OTNObjectBuilder builder{ *ptr };
-				T result{};
-				ToOTNDataType<DT>(builder, result);
-
-				if (!builder.IsValid()) {
-					AddError(builder.GetError());
-					return std::nullopt;
-				}
-				return result;
-			}
-		}
+		std::optional<T> TryDeserializeValue(const OTNValue& val) const;
 		
 	private:
 		std::string m_name;
@@ -1071,25 +1034,7 @@ namespace OTN {
 		* @param outRowValid Set to false if validation fails.
 		*/
 		template<typename U>
-		void AddSingleValueToRow(OTNRow& outRow, U&& value, bool& outRowValid) {
-			using DT = std::decay_t<U>;
-			
-			if constexpr (std::is_same_v<DT, OTNValue>) {
-				outRow.emplace_back(std::forward<U>(value));
-			}
-			else if constexpr (is_otn_variant_v<DT>) {
-				outRow.emplace_back(std::forward<U>(value));
-			}
-			else {
-				OTNDataType<DT> data(std::forward<U>(value));
-				if (!data.m_valid) {
-					outRowValid = false;
-					AddError("Invalid data in object '" + m_name + "':\n" + data.m_error);
-					return;
-				}
-				outRow.emplace_back(std::move(data.m_value));
-			}
-		}
+		void AddSingleValueToRow(OTNRow& outRow, U&& value, bool& outRowValid);
 
 		void AddError(const std::string& error) const;
 		void SetNamesFromBuilder(std::vector<std::string>&& names);
@@ -1251,30 +1196,7 @@ namespace OTN {
 		* @return True if the operation succeeded.
 		*/
 		template<typename T>
-		bool AddSingleData(T& data) {
-			if (m_otnObjectFromT) {
-				// Serialize: T -> OTNObject
-				OTNDataType<std::decay_t<T>> wrappedData(std::forward<T>(data));
-				if (!wrappedData.m_valid) {
-					AddError("OTNObjectBuilder: failed to serialize data: " + wrappedData.m_error);
-					return false;
-				}
-				m_data.emplace_back(std::move(wrappedData.m_value));
-			}
-			else {
-				// Deserialize: OTNObject -> T
-				if (m_dataPos >= m_data.size()) {
-					AddError("OTNObjectBuilder: insufficient data to extract value");
-					return false;
-				}
-				OTNValue& val = m_data[m_dataPos++];
-				if (!DeserializeFromOTNValue<T>(val, data)) {
-					AddError("OTNObjectBuilder: failed to deserialize value");
-					return false;
-				}
-			}
-			return true;
-		}
+		bool AddSingleData(T& data);
 
 		/**
 		* @brief Deserializes an OTNValue into the provided variable.
@@ -1284,81 +1206,7 @@ namespace OTN {
 		* @return True if deserialization succeeded.
 		*/
 		template<typename T>
-		bool DeserializeFromOTNValue(const OTNValue& val, T& data) {
-			using DT = std::decay_t<T>;
-
-			if constexpr (is_otn_base_type_v<DT>) {
-				// Base type
-				try {
-					data = std::get<DT>(val.value);
-				}
-				catch (...) {
-					return false;
-				}
-				return true;
-			}
-			else if constexpr (std::is_same_v<DT, OTNObject>) {
-				// Custom object
-				if (val.type != OTNBaseType::OBJECT) 
-					return false;
-				OTNObjectPtr& ptr = std::get<OTNObjectPtr>(val.value);
-				if (!ptr) 
-					return false;
-				data = *(ptr.get());
-				return true;
-			}
-			else if constexpr (is_otn_list_v<DT>) {
-				// List or nested list
-				data.clear();
-				using ElemType = typename DT::value_type;
-
-				std::vector<OTNValue> elements;
-				if (val.type == OTNBaseType::LIST) {
-					OTNArrayPtr arrayPtr = std::get<OTNArrayPtr>(val.value);
-					if (!arrayPtr) 
-						return false;
-					elements = arrayPtr->values;
-				}
-				else {
-					elements.push_back(val); // single value treated as list
-				}
-
-				for (auto& elemVal : elements) {
-					ElemType elem;
-					if constexpr (is_otn_list_v<ElemType> || !is_otn_base_type_v<ElemType>) {
-						if (!DeserializeFromOTNValue<ElemType>(elemVal, elem))
-							return false;
-						data.push_back(std::move(elem));
-					}
-					else {
-						try {
-							data.push_back(std::get<ElemType>(elemVal.value));
-						}
-						catch (...) {
-							return false;
-						}
-					}
-				}
-				return true;
-			}// if type ist not specified check if it can be made with the object builder
-			else if (val.type == OTNBaseType::OBJECT) {
-				OTNObjectPtr ptr = std::get<OTNObjectPtr>(val.value);
-				if (!ptr)
-					return false;
-
-				if (ptr->GetRowCount() > 1)
-					return false;
-
-				OTNObjectBuilder builder{ *ptr };
-				ToOTNDataType<DT>(builder, data);
-				if (!builder.IsValid()) {
-					AddError(builder.GetError());
-					return false;
-				}
-				return true;
-			}
-			return false;
-		}
+		bool DeserializeFromOTNValue(const OTNValue& val, T& data);
 	
 		/**
 		* @brief Checks if a name is unique in the current object.
@@ -1373,20 +1221,6 @@ namespace OTN {
 		*/
 		bool IsDataOutOfSync() const;
 	};
-	
-	/**
-	* @brief Template for converting between T and OTNObject.
-	* 
-	* note:
-	* 
-	* - Must be specialized for user-defined types.
-	* 
-	* @tparam T Type to serialize/deserialize.
-	*/
-	template<typename T>
-	void ToOTNDataType(OTNObjectBuilder&, T&) {
-		static_assert(otn_always_false_v<T>, "Unsupported type for ToOTNDataType");
-	}
 
 	/**
 	* @brief Template for converting a value of type U into an OTNValue.
@@ -1456,13 +1290,173 @@ namespace OTN {
 		bool m_valid = true;
 		std::string m_error;
 
-		void OTNDataType::AddError(const std::string& error) {
+		void AddError(const std::string& error) {
 			m_valid = false;
 			if (!m_error.empty())
 				m_error += "\n";
 			m_error += error;
 		}
 	};
+
+	template<typename T>
+	std::optional<T> OTNObject::TryDeserializeValue(const OTNValue& val) const {
+		using DT = std::decay_t<T>;
+
+		if constexpr (is_otn_base_type_v<DT>) {
+			try { return std::get<DT>(val.value); }
+			catch (...) { return std::nullopt; }
+		}
+		else if constexpr (otn_is_std_vector<DT>::value) {
+			if (val.type != OTNBaseType::LIST) return std::nullopt;
+			OTNArrayPtr ptr = std::get<OTNArrayPtr>(val.value);
+			if (!ptr) return std::nullopt;
+			DT result;
+			using ElemType = typename DT::value_type;
+			result.reserve(ptr->values.size());
+			for (const OTNValue& elem : ptr->values) {
+				auto conv = TryDeserializeValue<ElemType>(elem);
+				if (!conv) return std::nullopt;
+				result.push_back(std::move(*conv));
+			}
+			return result;
+		}
+		else {
+			if (val.type != OTNBaseType::OBJECT) return std::nullopt;
+			OTNObjectPtr ptr = std::get<OTNObjectPtr>(val.value);
+			if (!ptr || ptr->GetRowCount() != 1) return std::nullopt;
+			OTNObjectBuilder builder{ *ptr };  // jetzt vollständig bekannt
+			T result{};
+			ToOTNDataType<DT>(builder, result);
+			if (!builder.IsValid()) {
+				AddError(builder.GetError());
+				return std::nullopt;
+			}
+			return result;
+		}
+	}
+
+	template<typename U>
+	void OTNObject::AddSingleValueToRow(OTNRow& outRow, U&& value, bool& outRowValid) {
+		using DT = std::decay_t<U>;
+		if constexpr (std::is_same_v<DT, OTNValue>) {
+			outRow.emplace_back(std::forward<U>(value));
+		}
+		else if constexpr (is_otn_variant_v<DT>) {
+			outRow.emplace_back(std::forward<U>(value));
+		}
+		else {
+			OTNDataType<DT> data(std::forward<U>(value));  // jetzt vollständig bekannt
+			if (!data.m_valid) {
+				outRowValid = false;
+				AddError("Invalid data in object '" + m_name + "':\n" + data.m_error);
+				return;
+			}
+			outRow.emplace_back(std::move(data.m_value));
+		}
+	}
+
+	template<typename T>
+	bool OTNObjectBuilder::AddSingleData(T& data) {
+		if (m_otnObjectFromT) {
+			// Serialize: T -> OTNObject
+			OTNDataType<std::decay_t<T>> wrappedData(std::forward<T>(data));
+			if (!wrappedData.m_valid) {
+				AddError("OTNObjectBuilder: failed to serialize data: " + wrappedData.m_error);
+				return false;
+			}
+			m_data.emplace_back(std::move(wrappedData.m_value));
+		}
+		else {
+			// Deserialize: OTNObject -> T
+			if (m_dataPos >= m_data.size()) {
+				AddError("OTNObjectBuilder: insufficient data to extract value");
+				return false;
+			}
+			OTNValue& val = m_data[m_dataPos++];
+			if (!DeserializeFromOTNValue<T>(val, data)) {
+				AddError("OTNObjectBuilder: failed to deserialize value");
+				return false;
+			}
+		}
+		return true;
+	}
+
+	template<typename T>
+	bool OTNObjectBuilder::DeserializeFromOTNValue(const OTNValue& val, T& data) {
+		using DT = std::decay_t<T>;
+
+		if constexpr (is_otn_base_type_v<DT>) {
+			// Base type
+			try {
+				data = std::get<DT>(val.value);
+			}
+			catch (...) {
+				return false;
+			}
+			return true;
+		}
+		else if constexpr (std::is_same_v<DT, OTNObject>) {
+			// Custom object
+			if (val.type != OTNBaseType::OBJECT)
+				return false;
+			OTNObjectPtr& ptr = std::get<OTNObjectPtr>(val.value);
+			if (!ptr)
+				return false;
+			data = *(ptr.get());
+			return true;
+		}
+		else if constexpr (is_otn_list_v<DT>) {
+			// List or nested list
+			data.clear();
+			using ElemType = typename DT::value_type;
+
+			std::vector<OTNValue> elements;
+			if (val.type == OTNBaseType::LIST) {
+				OTNArrayPtr arrayPtr = std::get<OTNArrayPtr>(val.value);
+				if (!arrayPtr)
+					return false;
+				elements = arrayPtr->values;
+			}
+			else {
+				elements.push_back(val); // single value treated as list
+			}
+
+			for (auto& elemVal : elements) {
+				ElemType elem;
+				if constexpr (is_otn_list_v<ElemType> || !is_otn_base_type_v<ElemType>) {
+					if (!DeserializeFromOTNValue<ElemType>(elemVal, elem))
+						return false;
+					data.push_back(std::move(elem));
+				}
+				else {
+					try {
+						data.push_back(std::get<ElemType>(elemVal.value));
+					}
+					catch (...) {
+						return false;
+					}
+				}
+			}
+			return true;
+		}// if type ist not specified check if it can be made with the object builder
+		else if (val.type == OTNBaseType::OBJECT) {
+			OTNObjectPtr ptr = std::get<OTNObjectPtr>(val.value);
+			if (!ptr)
+				return false;
+
+			if (ptr->GetRowCount() > 1)
+				return false;
+
+			OTNObjectBuilder builder{ *ptr };
+			ToOTNDataType<DT>(builder, data);
+			if (!builder.IsValid()) {
+				AddError(builder.GetError());
+				return false;
+			}
+			return true;
+		}
+		return false;
+	}
 
 	#pragma endregion
 	

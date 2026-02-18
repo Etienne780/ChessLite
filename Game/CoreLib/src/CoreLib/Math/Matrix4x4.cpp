@@ -1,11 +1,11 @@
 #include <sstream>
 #include <stdexcept>
 
-#include "CoreLib\Math\Vector2.h"
-#include "CoreLib\Math\Vector3.h"
-#include "CoreLib\Math\Vector4.h"
-#include "CoreLib\FormatUtils.h"
-#include "CoreLib\Math\Matrix4x4.h"
+#include "CoreLib/Math/Vector2.h"
+#include "CoreLib/Math/Vector3.h"
+#include "CoreLib/Math/Vector4.h"
+#include "CoreLib/FormatUtils.h"
+#include "CoreLib/Math/Matrix4x4.h"
 
 Matrix4x4::Matrix4x4() {
     std::memset(m_data, 0, sizeof(m_data));
@@ -74,6 +74,15 @@ Matrix4x4& Matrix4x4::operator=(Matrix4x4&& other) noexcept {
     return *this;
 }
 
+float* Matrix4x4::GetData() {
+    m_isColMajorCacheDirty = true;
+    return m_data;
+}
+
+const float* Matrix4x4::GetData() const {
+    return m_data; 
+}
+
 Vector3 Matrix4x4::GetTranslation() const {
     return Vector3(m_data[3], m_data[7], m_data[11]);
 }
@@ -122,6 +131,11 @@ Matrix4x4& Matrix4x4::SetData(float value) {
     return *this;
 }
 
+Matrix4x4& Matrix4x4::SetDataDirty() {
+    m_isColMajorCacheDirty = true;
+    return *this;
+}
+
 void Matrix4x4::UpdateColMajorCache() const {
     if (m_isColMajorCacheDirty) {
         // Convert from row-major to column-major
@@ -160,6 +174,10 @@ std::string Matrix4x4::ToString(const std::string& prefix) const {
         oss << "\n";
     }
     return oss.str();
+}
+
+inline int Matrix4x4::ToIndex(int row, int col) const {
+    return row * 4 + col;
 }
 
 float& Matrix4x4::operator()(int row, int col) {

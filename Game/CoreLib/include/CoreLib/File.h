@@ -331,12 +331,12 @@ private:
 };
 
 template<>
-static inline std::string FormatUtils::toString<SystemFilePath>(SystemFilePath path) {
+inline std::string FormatUtils::toString<SystemFilePath>(SystemFilePath path) {
     return path.string();
 }
 
 template<>
-static inline std::string FormatUtils::toString<FileState>(FileState state) {
+inline std::string FormatUtils::toString<FileState>(FileState state) {
     switch (state)
     {
     case FILE_CLOSE: return "FILE_ClOSE";

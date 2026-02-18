@@ -1,13 +1,13 @@
 #include <stdexcept>
 #include <cmath>
 
-#include "CoreLib\Math\Vector2.h"
-#include "CoreLib\Math\Vector3.h"
-#include "CoreLib\Math\Matrix.h"
-#include "CoreLib\Math\MathUtil.h"
-#include "CoreLib\FormatUtils.h"
+#include "CoreLib/Math/Vector2.h"
+#include "CoreLib/Math/Vector3.h"
+#include "CoreLib/Math/Matrix.h"
+#include "CoreLib/Math/MathUtil.h"
+#include "CoreLib/FormatUtils.h"
 
-#include "CoreLib\Math\Vector4.h"
+#include "CoreLib/Math/Vector4.h"
 
 const Vector4 Vector4::one(1, 1, 1, 1);
 const Vector4 Vector4::zero(0, 0, 0, 0);

@@ -228,6 +228,6 @@ Vector4 operator/(float scalar, const Vector4& other);
 #pragma endregion
 
 template<>
-static inline std::string FormatUtils::toString<Vector4>(Vector4 value) {
+inline std::string FormatUtils::toString<Vector4>(Vector4 value) {
     return value.ToString();
 }

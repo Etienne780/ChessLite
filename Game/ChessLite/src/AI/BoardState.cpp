@@ -47,7 +47,7 @@ const std::string& BoardState::GetState() const {
 	return m_state;
 }
 
-const std::vector<GameMove> BoardState::GetPossibleMoves() const {
+const std::vector<GameMove>& BoardState::GetPossibleMoves() const {
 	return m_possibleMoves;
 }
 

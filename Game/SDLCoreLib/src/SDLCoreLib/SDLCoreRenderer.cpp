@@ -12,34 +12,6 @@
 
 namespace SDLCore::Render {
 
-    static SDL_Renderer* s_renderer = nullptr;
-    static WindowID s_winID { SDLCORE_INVALID_ID };
-
-    // ========== Primitives ========== 
-    static constexpr bool SET_COLOR = true;
-    static SDL_Color s_activeColor { 255, 255, 255, 255 };
-    static float s_strokeWidth = 1;
-    static bool s_innerStroke = true;
-    static bool s_isClipRectEnabled = false;
-
-    // ========== Text ==========
-    std::shared_ptr<SDLCore::Font> s_font = std::make_shared<SDLCore::Font>(true);// loads the default font
-    static float s_textSize = s_font->GetSelectedSize();
-    static Align s_textHorAlign = Align::START;
-    static Align s_textVerAlign = Align::START;
-    static float s_textLineHeightMultiplier = 0.4f;
-
-    static size_t s_textMaxLines = 0;// < 0 = no limits
-    static UnitType s_textLimitType = UnitType::NONE;
-    static size_t s_textMaxLimit = 0;          // max characters or Pixel
-    static std::string s_textEllipsisDefault = "...";
-    static std::string s_textEllipsis = s_textEllipsisDefault;
-    static float s_textClipWidth = -1.0f;
-    static bool s_textCacheEnabled = false;
-    static bool s_isCalculatingTextCache = false;
-
-    static constexpr bool CREATE_ON_NOT_FOUND = true;
-    static constexpr uint64_t TEXT_CACHE_TTL_FRAMES = 600; // ~10 sec
     struct TextCacheKey {
         SDL_Renderer* renderer;
         const Font* font;
@@ -102,8 +74,56 @@ namespace SDLCore::Render {
         }
     };
 
-    static std::unordered_map<TextCacheKey, CachedText, TextCacheKeyHash> s_textCache;
-    static std::unordered_map<WindowID, WindowCallbackID> s_onRendererDestroyCallbacks;
+    namespace {
+
+        SDL_Renderer* s_renderer = nullptr;
+        WindowID s_winID{ SDLCORE_INVALID_ID };
+
+        // ========== Primitives ========== 
+        constexpr bool SET_COLOR = true;
+        SDL_Color s_activeColor{ 255, 255, 255, 255 };
+        float s_strokeWidth = 1;
+        bool s_innerStroke = true;
+        bool s_isClipRectEnabled = false;
+
+        // ========== Text ==========
+        std::shared_ptr<SDLCore::Font> s_font = std::make_shared<SDLCore::Font>(true);// loads the default font
+        float s_textSize = s_font->GetSelectedSize();
+        Align s_textHorAlign = Align::START;
+        Align s_textVerAlign = Align::START;
+        float s_textLineHeightMultiplier = 0.4f;
+
+        size_t s_textMaxLines = 0;// < 0 = no limits
+        UnitType s_textLimitType = UnitType::NONE;
+        size_t s_textMaxLimit = 0;          // max characters or Pixel
+        std::string s_textEllipsisDefault = "...";
+        std::string s_textEllipsis = s_textEllipsisDefault;
+        float s_textClipWidth = -1.0f;
+        bool s_textCacheEnabled = false;
+        bool s_isCalculatingTextCache = false;
+
+        constexpr bool CREATE_ON_NOT_FOUND = true;
+        constexpr uint64_t TEXT_CACHE_TTL_FRAMES = 600; // ~10 sec
+
+        std::unordered_map<TextCacheKey, CachedText, TextCacheKeyHash> s_textCache;
+        std::unordered_map<WindowID, WindowCallbackID> s_onRendererDestroyCallbacks;
+
+    }
+
+    static inline void EvictOldTextCache(uint64_t currentFrame) {
+        for (auto it = s_textCache.begin(); it != s_textCache.end(); ) {
+            if (currentFrame - it->second.lastUseFrame > TEXT_CACHE_TTL_FRAMES) {
+                if (it->second.preRenderedTexture) {
+                    SDL_DestroyTexture(it->second.preRenderedTexture);
+                    it->second.preRenderedTexture = nullptr;
+                }
+                it = s_textCache.erase(it);
+            }
+            else {
+                ++it;
+            }
+        }
+    }
 
     static void ClearTextCacheForRenderer(SDL_Renderer* renderer) {
         if (!renderer)
@@ -162,13 +182,6 @@ namespace SDLCore::Render {
         }
     }
 
-    static SDL_Renderer* GetActiveRenderer(const char* func) {
-        if (!s_renderer) {
-            SetErrorF("SDLCore::Renderer::{}: Current renderer is null", func);
-        }
-        return s_renderer;
-    }
-
     void SetWindowRenderer(WindowID winID) {
         if (winID.value == SDLCORE_INVALID_ID) {
             s_winID.value = SDLCORE_INVALID_ID;
@@ -204,19 +217,17 @@ namespace SDLCore::Render {
         if (s_onRendererDestroyCallbacks.find(winID) == s_onRendererDestroyCallbacks.end()) {
             auto idPtr = std::make_shared<WindowCallbackID>();
 
+            SDL_Renderer* rendererPtr = win->GetSDLRenderer();
             *idPtr = win->AddOnSDLRendererDestroy(
-            [winID, idPtr]() {
+            [winID, idPtr, rendererPtr]() {
                 auto app = Application::GetInstance();
                 auto win = app->GetWindow(winID);
             
                 if (win) {
-                    SDL_Renderer* renderer = win->GetSDLRenderer();
-            
                     win->RemoveOnSDLRendererDestroy(*idPtr);
-            
-                    ClearTextCacheForRenderer(renderer);
+                    ClearTextCacheForRenderer(rendererPtr);
                 }
-            
+                
                 s_onRendererDestroyCallbacks.erase(winID);
             });
 
@@ -231,7 +242,7 @@ namespace SDLCore::Render {
     }
 
     void Clear() {
-        auto renderer = GetActiveRenderer("Clear");
+        auto renderer = GetActiveRenderer();
         if (!renderer)
             return;
         if (!SDL_RenderClear(renderer)) {
@@ -240,7 +251,8 @@ namespace SDLCore::Render {
     }
 
     void Present() {
-        auto renderer = GetActiveRenderer("Present");
+        EvictOldTextCache(Time::GetFrameCount());
+        auto renderer = GetActiveRenderer();
         if (!renderer)
             return;
         if (!SDL_RenderPresent(renderer)) {
@@ -249,7 +261,7 @@ namespace SDLCore::Render {
     }
 
     void SetRenderScale(float scaleX, float scaleY) {
-        auto renderer = GetActiveRenderer("SetRenderScale");
+        auto renderer = GetActiveRenderer();
         if (!renderer)
             return;
         if (!SDL_SetRenderScale(renderer,scaleX, scaleY)) {
@@ -267,7 +279,7 @@ namespace SDLCore::Render {
 
     Vector2 GetRenderScale() {
         Vector2 scale{ 0, 0 };
-        auto renderer = GetActiveRenderer("GetRenderScale");
+        auto renderer = GetActiveRenderer();
         if (!renderer)
             return scale;
         if (!SDL_GetRenderScale(renderer, &scale.x, &scale.y)) {
@@ -278,7 +290,7 @@ namespace SDLCore::Render {
 
     SDLCore::Rect GetViewport() {
         SDL_Rect viewport{ 0, 0, 0, 0 };
-        auto renderer = GetActiveRenderer("GetViewport");
+        auto renderer = GetActiveRenderer();
         if (!renderer)
             return viewport;
 
@@ -289,7 +301,7 @@ namespace SDLCore::Render {
     }
 
     void SetViewport(int x, int y, int w, int h) {
-        auto renderer = GetActiveRenderer("SetViewport");
+        auto renderer = GetActiveRenderer();
         if (!renderer)
             return;
 
@@ -323,7 +335,7 @@ namespace SDLCore::Render {
     }
 
     void ResetViewport() {
-        auto renderer = GetActiveRenderer("ResetViewport");
+        auto renderer = GetActiveRenderer();
         if (!renderer)
             return;
 
@@ -334,7 +346,7 @@ namespace SDLCore::Render {
 
     SDLCore::Rect GetClipRect() {
         SDL_Rect clipRect{ 0, 0, 0, 0 };
-        auto renderer = GetActiveRenderer("GetClipRect");
+        auto renderer = GetActiveRenderer();
         if (!renderer)
             return clipRect;
 
@@ -349,7 +361,7 @@ namespace SDLCore::Render {
     }
 
     void SetClipRect(int x, int y, int w, int h) {
-        auto renderer = GetActiveRenderer("SetClipRect");
+        auto renderer = GetActiveRenderer();
         if (!renderer)
             return;
 
@@ -384,7 +396,7 @@ namespace SDLCore::Render {
     }
 
     void ResetClipRect() {
-        auto renderer = GetActiveRenderer("ResetClipRect");
+        auto renderer = GetActiveRenderer();
         if (!renderer)
             return;
 
@@ -395,7 +407,7 @@ namespace SDLCore::Render {
     }
 
     void SetBlendMode(bool enabled) {
-        auto renderer = GetActiveRenderer("SetBlendMode");
+        auto renderer = GetActiveRenderer();
         if (!renderer)
             return;
 
@@ -407,7 +419,7 @@ namespace SDLCore::Render {
     }
 
     void SetBlendMode(BlendMode mode) {
-        auto renderer = GetActiveRenderer("SetBlendMode");
+        auto renderer = GetActiveRenderer();
         if (!renderer)
             return;
         if (!SDL_SetRenderDrawBlendMode(renderer, static_cast<SDL_BlendMode>(mode))) {
@@ -422,7 +434,7 @@ namespace SDLCore::Render {
     }
 
     void SetColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a) {
-        auto renderer = GetActiveRenderer("SetColor");
+        auto renderer = GetActiveRenderer();
         if (!renderer)
             return;
         s_activeColor = { r, g, b, a};
@@ -472,7 +484,7 @@ namespace SDLCore::Render {
     #pragma region Rectangle
 
     void FillRect(float x, float y, float w, float h) {
-        auto renderer = GetActiveRenderer("FillRect");
+        auto renderer = GetActiveRenderer();
         if (!renderer)
             return;
 
@@ -499,7 +511,7 @@ namespace SDLCore::Render {
     }
 
     void FillRects(const Vector4* transforms, size_t count) {
-        auto renderer = GetActiveRenderer("FillRects");
+        auto renderer = GetActiveRenderer();
         if (!renderer || count == 0)
             return;
 
@@ -521,7 +533,7 @@ namespace SDLCore::Render {
     }
 
     void Rect(float x, float y, float w, float h) {
-        auto renderer = GetActiveRenderer("Rect");
+        auto renderer = GetActiveRenderer();
         if (!renderer)
             return;
 
@@ -579,7 +591,7 @@ namespace SDLCore::Render {
     }
 
     void Rects(const Vector4* transforms, size_t count) {
-        auto renderer = GetActiveRenderer("Rects");
+        auto renderer = GetActiveRenderer();
         if (!renderer || count == 0)
             return;
 
@@ -633,7 +645,7 @@ namespace SDLCore::Render {
 #pragma region Line
 
     void Line(float x1, float y1, float x2, float y2) {
-        auto renderer = GetActiveRenderer("Line");
+        auto renderer = GetActiveRenderer();
         if (!renderer)
             return;
 
@@ -699,7 +711,7 @@ namespace SDLCore::Render {
 #pragma endregion
 
     void Point(float x, float y) {
-        auto renderer = GetActiveRenderer("Point");
+        auto renderer = GetActiveRenderer();
         if (!renderer)
             return;
 
@@ -718,7 +730,7 @@ namespace SDLCore::Render {
         float scaleX,
         float scaleY)
     {
-        auto renderer = GetActiveRenderer("Polygon");
+        auto renderer = GetActiveRenderer();
         if (!renderer)
             return false;
 
@@ -987,7 +999,7 @@ namespace SDLCore::Render {
                 ct.preRenderedTexture = nullptr;
             }
 
-            auto renderer = GetActiveRenderer("PreRenderText");
+            auto renderer = GetActiveRenderer();
             if (renderer) {
                 ct.preRenderedTexture = SDL_CreateTexture(
                     renderer,
@@ -1058,7 +1070,7 @@ namespace SDLCore::Render {
     }
 
     static inline void RenderCachedText(const std::string& text, float x, float y) {
-        auto renderer = GetActiveRenderer("RenderCachedText");
+        auto renderer = GetActiveRenderer();
         if (!renderer) return;
 
         CachedText* ct = GetCachedText(text, CREATE_ON_NOT_FOUND);
@@ -1099,24 +1111,7 @@ namespace SDLCore::Render {
         SDL_RenderTexture(renderer, ct->preRenderedTexture, nullptr, &dst);
     }
 
-    static inline void EvictOldTextCache(uint64_t currentFrame) {
-        for (auto it = s_textCache.begin(); it != s_textCache.end(); ) {
-            if (currentFrame - it->second.lastUseFrame > TEXT_CACHE_TTL_FRAMES) {
-                if (it->second.preRenderedTexture) {
-                    SDL_DestroyTexture(it->second.preRenderedTexture);
-                    it->second.preRenderedTexture = nullptr;
-                }
-                it = s_textCache.erase(it);
-            }
-            else {
-                ++it;
-            }
-        }
-    }
-
     void Text(const std::string& text, float x, float y) {
-        EvictOldTextCache(Time::GetFrameCount());
-
         std::string finalText = (s_textMaxLimit != 0 && s_textLimitType != UnitType::NONE)
             ? GetTruncatedText(text)
             : text;
@@ -1127,7 +1122,7 @@ namespace SDLCore::Render {
             return;
         }
 
-        auto renderer = GetActiveRenderer("Text");
+        auto renderer = GetActiveRenderer();
         if (!renderer)
             return;
 
