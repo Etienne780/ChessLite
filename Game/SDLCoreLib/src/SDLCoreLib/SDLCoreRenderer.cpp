@@ -24,22 +24,22 @@ namespace SDLCore::Render {
 
     // ========== Text ==========
     std::shared_ptr<SDLCore::Font> s_font = std::make_shared<SDLCore::Font>(true);// loads the default font
-    float s_textSize = s_font->GetSelectedSize();
+    static float s_textSize = s_font->GetSelectedSize();
     static Align s_textHorAlign = Align::START;
     static Align s_textVerAlign = Align::START;
-    float s_textLineHeightMultiplier = 0.4f;
+    static float s_textLineHeightMultiplier = 0.4f;
 
-    size_t s_textMaxLines = 0;// < 0 = no limits
-    UnitType s_textLimitType = UnitType::NONE;
-    size_t s_textMaxLimit = 0;          // max characters or Pixel
-    std::string s_textEllipsisDefault = "...";
-    std::string s_textEllipsis = s_textEllipsisDefault;
-    float s_textClipWidth = -1.0f;
-    bool s_textCacheEnabled = false;
-    bool s_isCalculatingTextCache = false;
+    static size_t s_textMaxLines = 0;// < 0 = no limits
+    static UnitType s_textLimitType = UnitType::NONE;
+    static size_t s_textMaxLimit = 0;          // max characters or Pixel
+    static std::string s_textEllipsisDefault = "...";
+    static std::string s_textEllipsis = s_textEllipsisDefault;
+    static float s_textClipWidth = -1.0f;
+    static bool s_textCacheEnabled = false;
+    static bool s_isCalculatingTextCache = false;
 
-    constexpr bool CREATE_ON_NOT_FOUND = true;
-    constexpr uint64_t TEXT_CACHE_TTL_FRAMES = 600; // ~10 sec
+    static constexpr bool CREATE_ON_NOT_FOUND = true;
+    static constexpr uint64_t TEXT_CACHE_TTL_FRAMES = 600; // ~10 sec
     struct TextCacheKey {
         SDL_Renderer* renderer;
         const Font* font;
@@ -102,9 +102,13 @@ namespace SDLCore::Render {
         }
     };
 
-    std::unordered_map<TextCacheKey, CachedText, TextCacheKeyHash> s_textCache;
+    static std::unordered_map<TextCacheKey, CachedText, TextCacheKeyHash> s_textCache;
+    static std::unordered_map<WindowID, WindowCallbackID> s_onRendererDestroyCallbacks;
 
     static void ClearTextCacheForRenderer(SDL_Renderer* renderer) {
+        if (!renderer)
+            return;
+
         for (auto it = s_textCache.begin(); it != s_textCache.end(); ) {
             if (it->first.renderer == renderer) {
                 if (it->second.preRenderedTexture) {
@@ -196,10 +200,32 @@ namespace SDLCore::Render {
             s_renderer = nullptr;
             return;
         }
-        
-        win->AddOnSDLRendererDestroy([rendererPtr]() {
-            ClearTextCacheForRenderer(rendererPtr);
-        });
+       
+        if (s_onRendererDestroyCallbacks.find(winID) == s_onRendererDestroyCallbacks.end()) {
+            auto idPtr = std::make_shared<WindowCallbackID>();
+
+            *idPtr = win->AddOnSDLRendererDestroy(
+            [winID, idPtr]() {
+                auto app = Application::GetInstance();
+                auto win = app->GetWindow(winID);
+            
+                if (win) {
+                    SDL_Renderer* renderer = win->GetSDLRenderer();
+            
+                    win->RemoveOnSDLRendererDestroy(*idPtr);
+            
+                    ClearTextCacheForRenderer(renderer);
+                }
+            
+                s_onRendererDestroyCallbacks.erase(winID);
+            });
+
+            s_onRendererDestroyCallbacks[winID] = *idPtr;
+
+            win->AddOnDestroy([winID]() {
+                s_onRendererDestroyCallbacks.erase(winID);
+            });
+        }
 
         s_renderer = rendererPtr;
     }

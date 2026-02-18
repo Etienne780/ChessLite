@@ -767,10 +767,9 @@ namespace SDLCore {
 		// Calls all callbacks and forwards arbitrary arguments to them
 		template<typename CBType, typename... Args>
 		void CallCallbacks(const std::vector<WindowCallback<CBType>>& callbacks, Args&&... args) {
-			for (auto& windowCallback : callbacks) {
-				// Check that the callback is valid
+			auto callbacksCopy = callbacks;
+			for (auto& windowCallback : callbacksCopy) {
 				if (windowCallback.cb) {
-					// Forward all parameters to the callback
 					windowCallback.cb(std::forward<Args>(args)...);
 				}
 			}
