@@ -77,7 +77,7 @@ namespace SDLCore {
     }
 
     Texture::~Texture() {
-        if (!Application::IsSDLQuit())
+        if (!IsSDLQuit())
             Cleanup();
     }
 

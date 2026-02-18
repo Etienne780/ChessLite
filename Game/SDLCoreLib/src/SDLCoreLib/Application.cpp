@@ -16,42 +16,38 @@ namespace SDLCore {
     static inline constexpr char* platformStrIOS = "iOS";
     static inline constexpr char* platformStrAndroid = "Android";
 
-    static Application* m_application = nullptr;
+    static Application* s_application = nullptr;
 
+    static bool s_closeApplication = false;
+    static bool s_sdlQuit = false;
+
+    bool IsQuit() {
+        return s_closeApplication;
+    }
+
+    bool IsSDLQuit() {
+        return s_sdlQuit;
+    }
 
     Application::Application(std::string& name, const Version& version)
         : m_name(name), m_version(version) {
         Init();
-        m_application = this;
+        s_application = this;
     }
         
     Application::Application(std::string&& name, const Version& version)
         : m_name(std::move(name)), m_version(version) {
         Init();
-        m_application = this;
+        s_application = this;
     }
 
     Application* Application::GetInstance() {
 #ifndef NDEBUG
-        if (!m_application) {
+        if (!s_application) {
             Log::Error("SDLCore::Application::GetInstance: called without an exesting instance!");
         }
 #endif
-        return m_application;
-    }
-
-    bool Application::IsQuit() {
-        if (m_application) {
-            return m_application->m_closeApplication;
-        }
-        return true;
-    }
-
-    bool Application::IsSDLQuit() {
-        if (m_application) {
-            return m_application->m_sdlQuit;
-        }
-        return true;
+        return s_application;
     }
 
     Platform Application::GetPlatform() {
@@ -118,12 +114,12 @@ namespace SDLCore {
 
         uint64_t frameStart = 0;
         OnStart();
-        while(!m_closeApplication) {
+        while(!s_closeApplication) {
             frameStart = Time::GetTimeMS();
             Time::Update();
 
             ProcessSDLPollEvents();
-            if (m_closeApplication)
+            if (s_closeApplication)
                 break;
 
             OnUpdate();
@@ -142,12 +138,12 @@ namespace SDLCore {
         TTF_Quit();
         SDL_Quit();
 
-        m_sdlQuit = true;
+        s_sdlQuit = true;
         return 0;
     }
 
     void Application::Quit() {
-        m_closeApplication = true;
+        s_closeApplication = true;
     }
 
     Window* Application::AddWindow(WindowID* idPtr, std::string name, int width, int height) {

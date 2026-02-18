@@ -621,7 +621,7 @@ namespace SDLCore {
 	#pragma region Member
 
 	void SoundManager::Cleanup() {
-		if (!Application::IsSDLQuit()) {
+		if (!IsSDLQuit()) {
 			for (auto& [id, audioTrack] : m_audioTracks) {
 				OnTrackStopped(id);
 			}

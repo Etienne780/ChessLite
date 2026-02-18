@@ -14,6 +14,26 @@ namespace SDLCore {
 
 	class Window;
 
+	/**
+	* @brief Checks whether the application has been requested to quit.
+	*
+	* This reflects the internal flag `m_closeApplication` and indicates
+	* if the main loop should terminate.
+	*
+	* @return true if the application shutdown has been requested, false otherwise
+	*/
+	bool IsQuit();
+
+	/**
+	* @brief Checks whether SDL has been fully shut down.
+	*
+	* This reflects the internal flag `m_sdlQuit` and indicates whether
+	* `SDL_Quit()` has been called and completed.
+	*
+	* @return true if SDL has been quit, false otherwise
+	*/
+	bool IsSDLQuit();
+
 	class Application {
 	friend class Window;
 	public:
@@ -21,26 +41,6 @@ namespace SDLCore {
 		Application(std::string&& name, const Version& version);
 
 		static Application* GetInstance();
-
-		/**
-		* @brief Checks whether the application has been requested to quit.
-		*
-		* This reflects the internal flag `m_closeApplication` and indicates
-		* if the main loop should terminate.
-		*
-		* @return true if the application shutdown has been requested, false otherwise
-		*/
-		static bool IsQuit();
-
-		/**
-		* @brief Checks whether SDL has been fully shut down.
-		*
-		* This reflects the internal flag `m_sdlQuit` and indicates whether
-		* `SDL_Quit()` has been called and completed.
-		*
-		* @return true if SDL has been quit, false otherwise
-		*/
-		static bool IsSDLQuit();
 
 		/**
 		* @brief Returns the platform on which the application is currently running.
@@ -644,8 +644,6 @@ namespace SDLCore {
 		SDLCoreIDManager m_windowIDManager;
 		std::string m_renderDriver;
 
-		bool m_closeApplication = false;
-		bool m_sdlQuit = false;
 		int m_vsync = 0;
 		int m_fpsCap = 0;
 
