@@ -34,7 +34,12 @@ void App::OnUpdate() {
     if (!m_winID.IsInvalid()) {
         using namespace SDLCore;
         Input::SetWindow(m_winID);
-        ForeachLayer([&](Layer& layer) { layer.OnUpdate(&m_context); });
+        ForeachLayer([&](Layer& layer) { 
+            layer.OnUpdate(&m_context); 
+            if (Input::GetWindowID() != m_winID) {
+                Input::SetWindow(m_winID);
+            }
+        });
 
         namespace RE = SDLCore::Render;
         RE::SetWindowRenderer(m_winID);
