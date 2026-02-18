@@ -79,7 +79,7 @@ include "Server"
 --------------------------------------------------------
 newaction {
     trigger = "clean",
-    description = "Remove all binaries, intermediates, and VS files",
+    description = "Remove all binaries, intermediates, Visual Studio files, and Makefile artifacts",
     execute = function()
         print("Removing binaries...")
         os.rmdir("./build/bin")
@@ -99,6 +99,16 @@ newaction {
         os.remove("**.vcxproj.filters")
         os.remove("**.vcxproj.user")
         os.remove("**.slnLaunch.user")
+
+        print("Removing Makefile artifacts...")
+        os.remove("Makefile") 
+        os.remove("Makefile.*")
+
+        os.remove("**.o")
+        os.remove("**.d")
+        os.remove("**.a") 
+        os.remove("**.so")
+        os.remove("**.exe")
 
         print("Done.")
     end
