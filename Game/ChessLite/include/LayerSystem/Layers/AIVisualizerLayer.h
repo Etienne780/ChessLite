@@ -62,6 +62,7 @@ namespace Layers {
 		void DrawBoard(const std::string& state, float x, float y, float size);
 
 		static std::string ToChessNotation(const Vector2& pos);
+		static bool IsPointInRect(const Vector2& mPos, float x, float y, float w, float h);
 	};
 
 }

@@ -137,6 +137,7 @@ namespace Layers {
 		float width = static_cast<float>(viewport.w);
 		float height = static_cast<float>(viewport.h);
 
+		Vector2 mousePos = SDLCore::Input::GetMousePosition();
 		float reservedTop = m_headerHeightPixel;
 		float usableHeight = height - reservedTop;
 
@@ -172,13 +173,16 @@ namespace Layers {
 		// Left panel (History)
 		RE::SetColor(30);
 		RE::FillRect(0, contentTop, leftWidth, contentHeight);
+		bool insideLeftPanel = IsPointInRect(mousePos,
+			leftWidth, contentTop, rightWidth, contentHeight);
 
 		const auto& history = agent->GetMoveHistory();
 		const auto& states = agent->GetNormilzedBoardStates();
 
 		float entryHeight = 140.0f;
 		m_historyScrollMax = std::max(0.0f, history.size() * entryHeight - contentHeight);
-		UpdateScroll(m_historyScrollOffset, m_historyScrollVelocity, m_historyScrollMax);
+		if(insideLeftPanel)
+			UpdateScroll(m_historyScrollOffset, m_historyScrollVelocity, m_historyScrollMax);
 
 		RE::SetClipRect(0, static_cast<int>(contentTop), static_cast<int>(leftWidth), static_cast<int>(contentHeight));
 		float y = contentTop - m_historyScrollOffset;
@@ -205,6 +209,8 @@ namespace Layers {
 		// Right panel (States & Moves)
 		RE::SetColor(28);
 		RE::FillRect(leftWidth, contentTop, rightWidth, contentHeight);
+		bool insideRightPanel = IsPointInRect(mousePos, 
+			leftWidth, contentTop, rightWidth, contentHeight);
 
 		// Layout constants
 		float miniBoardSize = 60.0f;
@@ -239,7 +245,8 @@ namespace Layers {
 		}
 
 		m_detailScrollMax = std::max(0.0f, estimatedH - contentHeight);
-		UpdateScroll(m_detailScrollOffset, m_detailScrollVelocity, m_detailScrollMax);
+		if(insideRightPanel)
+			UpdateScroll(m_detailScrollOffset, m_detailScrollVelocity, m_detailScrollMax);
 
 		RE::SetClipRect(static_cast<int>(leftWidth), static_cast<int>(contentTop),
 			static_cast<int>(rightWidth), static_cast<int>(contentHeight));
@@ -454,6 +461,11 @@ namespace Layers {
 		char col = 'A' + static_cast<int>(pos.x);
 		char row = '1' + (2 - static_cast<int>(pos.y));// flip y axis
 		return std::string(1, col) + row;
+	}
+
+	bool AIVisualizerLayer::IsPointInRect(const Vector2& mPos, float x, float y, float w, float h) {
+		return (mPos.x > x && mPos.x < x + w) &&
+			(mPos.y > y && mPos.y < y + h);
 	}
 
 }
