@@ -26,15 +26,6 @@ namespace Layers {
 		m_agentID1 = ctx->selectedAgentID1;
 		m_agentID2 = ctx->selectedAgentID2;
 
-		auto* win = ctx->app->CreateWindow(&m_winID, "Visualizer", 800, 500);
-		win->SetWindowMinSize(600, 400);
-
-		win->AddOnDestroy([&]() {
-			auto* app = App::GetInstance();
-			if(app)
-				app->PopLayer(LayerID::AI_VISUALIZER);
-		});
-
 		m_UICtx = UI::CreateContext();
 
 		m_styleHeader
@@ -44,6 +35,8 @@ namespace Layers {
 			.SetValue(Prop::layoutDirection, UI::UILayoutDir::ROW)
 			.SetValue(Prop::align, UI::UIAlignment::START, UI::UIAlignment::CENTER)
 			.SetValue(Prop::backgroundColor, Style::commanColorUIPanelDark);
+
+		SetupWindow(ctx);
 	}
 
 	void AIVisualizerLayer::OnUpdate(AppContext* ctx) {
@@ -115,6 +108,24 @@ namespace Layers {
 
 	LayerID AIVisualizerLayer::GetLayerID() const {
 		return LayerID::AI_VISUALIZER;
+	}
+
+	void AIVisualizerLayer::SetupWindow(AppContext* ctx) {
+		auto* win = ctx->app->CreateWindow(&m_winID, "Visualizer", 800, 500);
+		win->SetWindowMinSize(600, 400);
+
+		namespace RE = SDLCore::Render;
+		RE::SetWindowRenderer(m_winID);
+		RE::SetBlendMode(SDLCore::Render::BlendMode::BLEND);
+		RE::SetColor(25);
+		RE::Clear();
+		RE::Present();
+
+		win->AddOnDestroy([&]() {
+			auto* app = App::GetInstance();
+			if (app)
+				app->PopLayer(LayerID::AI_VISUALIZER);
+		});
 	}
 
 	void AIVisualizerLayer::RenderUIBody(const Agent* agent) {

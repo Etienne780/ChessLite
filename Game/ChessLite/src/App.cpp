@@ -120,6 +120,14 @@ size_t App::GetLayerCount() const {
 void App::InstantiateWindow() {
     auto* win = CreateWindow(&m_winID, "ChessLite", 800, 700);
     win->SetWindowMinSize(800, 700);
+
+    namespace RE = SDLCore::Render;
+    RE::SetWindowRenderer(m_winID);
+    RE::SetBlendMode(SDLCore::Render::BlendMode::BLEND);
+    RE::SetColor(25);
+    RE::Clear();
+    RE::Present();
+
     m_UICtx = SDLCore::UI::CreateContext();
 
     m_context.windowSize = win->GetSize();

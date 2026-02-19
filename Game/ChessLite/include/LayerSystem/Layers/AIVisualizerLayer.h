@@ -54,6 +54,7 @@ namespace Layers {
 		float m_clipBoardCopyTime = 1.5f;
 		float m_currentClipBoardCopyTimer = 0.0f;
 
+		void SetupWindow(AppContext* ctx);
 		void RenderUIBody(const Agent* agent);
 
 		void UpdateScroll(float& offset, float& velocity, float maxScroll);
