@@ -15,7 +15,8 @@ enum class LayerID {
 	GAME,
 	GAME_RESULT,
 	START_LOAD,
-	AI_VISUALIZER
+	AI_VISUALIZER,
+	GAME_SETUP_LAYER
 };
 
 class Layer {
