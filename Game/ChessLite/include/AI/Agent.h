@@ -16,6 +16,7 @@ public:
 
 	void GameFinished(bool won);
 
+	float GetExplorationChance() const;
 	const std::string& GetName() const;
 	const std::string& GetChessConfig() const;
 	const std::unordered_map<std::string, BoardState>& GetNormilzedBoardStates() const;
@@ -24,6 +25,7 @@ public:
 private:
 	bool m_gameFinished = false;
 	std::string m_name = "UNKOWN";
+	int m_gamesPlayed = 0;
 	std::string m_chessConfigString;
 	std::unordered_map<std::string, BoardState> m_boardStates;/* < normalized board position to board state*/
 

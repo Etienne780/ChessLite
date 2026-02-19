@@ -1,3 +1,4 @@
+#include <cmath>
 #include "AI/Agent.h"
 
 Agent::Agent(const std::string& name, const CoreChess::ChessContext& context)
@@ -28,7 +29,7 @@ const GameMove& Agent::GetBestMove(const CoreChess::ChessGame& game) {
 		boardStatePtr = &m_boardStates.emplace(state, std::move(newState)).first->second;
 	}
 
-	float explorationChance = 0.1f;
+	float explorationChance = GetExplorationChance();
 	size_t moveIndex = boardStatePtr->GetBestMove(explorationChance);
 
 	m_moveHistory.emplace_back(state, moveIndex);
@@ -37,16 +38,29 @@ const GameMove& Agent::GetBestMove(const CoreChess::ChessGame& game) {
 
 void Agent::GameFinished(bool won) {
 	float reward = won ? 1.0f : -1.0f;
+	float reductionAmount = 0.2f;
+	float currentReward = reward;
 
-	for (auto& [stateKey, moveIndex] : m_moveHistory) {
+	for (auto itHistory = m_moveHistory.rbegin(); itHistory != m_moveHistory.rend(); ++itHistory) {
+		auto& [stateKey, moveIndex] = *itHistory;
+
 		auto it = m_boardStates.find(stateKey);
 		if (it != m_boardStates.end()) {
-			auto& move = it->second.GetMove(moveIndex); 
-			move.AddEvaluation(reward);
+			auto& move = it->second.GetMove(moveIndex);
+			move.AddEvaluation(currentReward);
 		}
+
+		currentReward *= reductionAmount;
 	}
 
 	m_gameFinished = true;
+	m_gamesPlayed++;
+}
+
+float Agent::GetExplorationChance() const {
+	// hits null at ca 15 games played
+	double y = -0.005 * std::pow(m_gamesPlayed, 2) + 1;
+	return static_cast<float>(std::max(0.0, y));
 }
 
 const std::string& Agent::GetName() const {
