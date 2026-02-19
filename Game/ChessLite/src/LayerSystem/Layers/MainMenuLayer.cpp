@@ -1,9 +1,10 @@
 ﻿#include "LayerSystem/Layers/MainMenuLayer.h"
 #include "LayerSystem/Layers/OptionsMenuLayer.h"
-#include "LayerSystem/Layers/GameLayer.h"
+#include "LayerSystem/Layers/GameSetupLayer.h"
 
 #include "App.h"
 #include "Styles/Comman/Style.h"
+#include "Styles/Comman/Color.h"
 #include "Styles/Comman/Space.h"
 #include "UIComponents/Button.h"
 
@@ -22,6 +23,8 @@ namespace Layers {
 		m_styleMenu
 			.Merge(Style::commanBox)
 			.Merge(Style::commanStretch)
+			.SetValue(Prop::borderWidth, 2.0f)
+			.SetValue(Prop::borderColor, Style::commanColorOutlineLight)
 			.SetValue(Prop::layoutDirection, UI::UILayoutDir::COLUMN)
 			.SetValue(Prop::align, UI::UIAlignment::CENTER, UI::UIAlignment::CENTER)
 			.SetValue(Prop::padding, Style::commanSpaceL)
@@ -53,7 +56,7 @@ namespace Layers {
 				if (UIComp::DrawButton("btn_play", "Play", Style::commanBTNBase)) {
 					Log::Debug("MainMenu: Play");
 					ctx->app->ClearLayers();
-					ctx->app->PushLayer<GameLayer>(PlayerType::PLAYER, PlayerType::AI);
+					ctx->app->PushLayer<GameSetupLayer>();
 				}
 
 				if (UIComp::DrawButton("btn_skins", "Skins", Style::commanBTNBase)) {

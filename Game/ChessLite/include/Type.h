@@ -42,6 +42,12 @@ enum class ResourceType {
 	AUDIO
 };
 
+enum class AgentSelectMode {
+	AGENT_1_ONLY = 0,
+	AGENT_2_ONLY,
+	BOTH_AGENTS
+};
+
 template<>
 static inline std::string FormatUtils::toString<PlayerType>(PlayerType type) {
 	switch (type)

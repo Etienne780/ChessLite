@@ -9,6 +9,8 @@ const GameMove& Agent::GetBestMove(const CoreChess::ChessGame& game) {
 	if (m_gameFinished) {
 		m_moveHistory.clear();
 		m_gameFinished = false;
+
+		m_isWhite = game.IsWhiteTurn();
 	}
 	
 	if (game.GetContext().GetConfigString() != m_chessConfigString) {
@@ -54,13 +56,12 @@ void Agent::GameFinished(bool won) {
 	}
 
 	m_gameFinished = true;
-	m_gamesPlayed++;
-}
-
-float Agent::GetExplorationChance() const {
-	// hits null at ca 15 games played
-	double y = -0.005 * std::pow(m_gamesPlayed, 2) + 1;
-	return static_cast<float>(std::max(0.0, y));
+	
+	m_matchesPlayed++;
+	if (won)
+		m_matchesWon++;
+	if(m_isWhite)
+		m_matchesPlayedAsWhite++;
 }
 
 const std::string& Agent::GetName() const {
@@ -69,6 +70,32 @@ const std::string& Agent::GetName() const {
 
 const std::string& Agent::GetChessConfig() const {
 	return m_chessConfigString;
+}
+
+int Agent::GetMatchesPlayed() const {
+	return m_matchesPlayed;
+}
+
+int Agent::GetWonMatches() const {
+	return m_matchesWon;
+}
+
+int Agent::GetLostMatches() const {
+	return m_matchesPlayed - m_matchesWon;
+}
+
+int Agent::GetMatchesPlayedAsWhite() const {
+	return m_matchesPlayedAsWhite;
+}
+
+int Agent::GetMatchesPlayedAsBlack() const {
+	return m_matchesPlayed - m_matchesPlayedAsWhite;
+}
+
+float Agent::GetExplorationChance() const {
+	// hits null at ca 15 games played
+	double y = -0.005 * std::pow(m_matchesPlayed, 2) + 1;
+	return static_cast<float>(std::max(0.0, y));
 }
 
 const std::unordered_map<std::string, BoardState>& Agent::GetNormilzedBoardStates() const {

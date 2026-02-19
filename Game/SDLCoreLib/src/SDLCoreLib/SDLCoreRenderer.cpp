@@ -1428,7 +1428,7 @@ namespace SDLCore::Render {
     float GetTextBlockWidth(const std::string& text) {
         if (!s_isCalculatingTextCache)
             if (auto* ct = GetCachedText(text, false))
-            return ct->blockWidth; // cached block width
+                return ct->blockWidth; // cached block width
 
         auto lines = BuildLines(text);
         return GetTextBlockWidth(lines);

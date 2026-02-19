@@ -8,15 +8,15 @@ namespace SDLCore::UI {
 namespace UIComponent {
 
 	bool DrawButton(
-		std::string key,
-		const char* text,
+		const std::string& key,
+		const std::string& text,
 		const SDLCore::UI::UIStyle& style,
 		bool isDisabled = false
 	);
 
 	bool DrawTabButton(
-		std::string key,
-		const char* text,
+		const std::string& key,
+		const std::string& text,
 		bool isActive,
 		const SDLCore::UI::UIStyle& styleNormal,
 		const SDLCore::UI::UIStyle& styleActive,

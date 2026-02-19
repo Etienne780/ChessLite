@@ -5,10 +5,10 @@
 
 namespace Layers {
 
-	class AIVisualizerLayer : public Layer {
+	class AgentVisualizerLayer : public Layer {
 	public:
-		AIVisualizerLayer(PlayerType player1, PlayerType player2);
-		~AIVisualizerLayer() override = default;
+		AgentVisualizerLayer(PlayerType player1, PlayerType player2);
+		~AgentVisualizerLayer() override = default;
 
 		void OnStart(AppContext* ctx) override;
 		void OnUpdate(AppContext* ctx) override;
@@ -47,8 +47,8 @@ namespace Layers {
 		float m_detailScrollMax = 0.0f;
 
 		// Scroll tuning
-		float m_scrollSpeed = 450.0f;
-		float m_scrollDrag = 12.0f;
+		float m_scrollSpeed = 600.0f;
+		float m_scrollDrag = 10.0f;
 
 		// Clipboard timer
 		float m_clipBoardCopyTime = 1.5f;

@@ -1,4 +1,4 @@
-﻿#include "LayerSystem/Layers/AIVisualizerLayer.h"
+﻿#include "LayerSystem/Layers/AgentVisualizerLayer.h"
 #include "App.h"
 #include "Styles/Comman/Space.h"
 #include "Styles/Comman/Color.h"
@@ -10,7 +10,7 @@ namespace UIComp = UIComponent;
 
 namespace Layers {
 
-	AIVisualizerLayer::AIVisualizerLayer(PlayerType player1, PlayerType player2) 
+	AgentVisualizerLayer::AgentVisualizerLayer(PlayerType player1, PlayerType player2) 
 		: m_player1(player1), m_player2(player2) {
 
 		if (player1 == PlayerType::PLAYER && 
@@ -19,7 +19,7 @@ namespace Layers {
 		}
 	}
 
-	void AIVisualizerLayer::OnStart(AppContext* ctx) {
+	void AgentVisualizerLayer::OnStart(AppContext* ctx) {
 		using namespace SDLCore;
 		namespace Prop = UI::Properties;
 
@@ -39,12 +39,12 @@ namespace Layers {
 		SetupWindow(ctx);
 	}
 
-	void AIVisualizerLayer::OnUpdate(AppContext* ctx) {
+	void AgentVisualizerLayer::OnUpdate(AppContext* ctx) {
 		using namespace SDLCore;
 		Input::SetWindow(m_winID);
 	}
 
-	void AIVisualizerLayer::OnRender(AppContext* ctx) {
+	void AgentVisualizerLayer::OnRender(AppContext* ctx) {
 		namespace RE = SDLCore::Render;
 
 		if (m_winID.IsInvalid())
@@ -61,7 +61,7 @@ namespace Layers {
 		RenderUIBody(agent);
 	}
 
-	void AIVisualizerLayer::OnUIRender(AppContext* ctx) {
+	void AgentVisualizerLayer::OnUIRender(AppContext* ctx) {
 		namespace RE = SDLCore::Render;
 		typedef UI::UIKey Key;
 
@@ -100,17 +100,17 @@ namespace Layers {
 		RE::Present();
 	}
 
-	void AIVisualizerLayer::OnQuit(AppContext* ctx) {
+	void AgentVisualizerLayer::OnQuit(AppContext* ctx) {
 		ctx->app->DeleteWindow(m_winID);
 		UI::DestroyContext(m_UICtx);
 		m_UICtx = nullptr;
 	}
 
-	LayerID AIVisualizerLayer::GetLayerID() const {
-		return LayerID::AI_VISUALIZER;
+	LayerID AgentVisualizerLayer::GetLayerID() const {
+		return LayerID::AGENT_VISUALIZER;
 	}
 
-	void AIVisualizerLayer::SetupWindow(AppContext* ctx) {
+	void AgentVisualizerLayer::SetupWindow(AppContext* ctx) {
 		auto* win = ctx->app->CreateWindow(&m_winID, "Visualizer", 800, 500);
 		win->SetWindowMinSize(600, 400);
 
@@ -124,14 +124,16 @@ namespace Layers {
 		win->AddOnDestroy([&]() {
 			auto* app = App::GetInstance();
 			if (app)
-				app->PopLayer(LayerID::AI_VISUALIZER);
+				app->PopLayer(LayerID::AGENT_VISUALIZER);
 		});
 	}
 
-	void AIVisualizerLayer::RenderUIBody(const Agent* agent) {
+	void AgentVisualizerLayer::RenderUIBody(const Agent* agent) {
 		namespace RE = SDLCore::Render;
 		if (!agent)
 			return;
+
+		RE::ResetTextParams();
 
 		auto viewport = RE::GetViewport();
 		float width = static_cast<float>(viewport.w);
@@ -144,13 +146,34 @@ namespace Layers {
 		RE::SetColor(25);
 		RE::FillRect(0, reservedTop, width, usableHeight);
 
+		float textPadding = 5;
+		float horHeaderOffset = 20;
 		float localHeaderHeight = m_headerHeight;
 		RE::SetColor(35);
 		RE::FillRect(0, reservedTop, width, localHeaderHeight);
 		RE::SetColor(255);
 		RE::SetTextSize(36.0f);
-		RE::Text("Agent: " + agent->GetName(), 20, reservedTop + localHeaderHeight * 0.5f);
 
+		std::string agentNameStr = "Agent: " + agent->GetName();
+		RE::Text(agentNameStr, horHeaderOffset, reservedTop + localHeaderHeight * 0.5f);
+		RE::SetColor(200);
+
+		float headerHeight = RE::GetTextHeight();
+
+		horHeaderOffset += textPadding + RE::GetTextWidth(agentNameStr);
+		std::string matchesText = "Matches: " + std::to_string(agent->GetMatchesPlayed());
+		RE::SetTextSize(16.0f);
+
+		float currentTextHeight = RE::GetTextHeight();
+
+		RE::SetTextAlign(SDLCore::Align::START, SDLCore::Align::CENTER);
+		RE::Text(matchesText, horHeaderOffset, reservedTop + localHeaderHeight * 0.5f + headerHeight * 0.5f - currentTextHeight * 0.5f);
+
+		std::string whiteMatchesText = "Played as white: " + std::to_string(agent->GetMatchesPlayedAsWhite());
+		RE::Text(whiteMatchesText, horHeaderOffset, reservedTop + localHeaderHeight * 0.5f + headerHeight * 0.5f + currentTextHeight * 0.5f);
+
+		RE::SetTextSize(36.0f);
+		RE::SetTextAlign(SDLCore::Align::START);
 		float copyBTNWidth = 250.0f;
 		float copyBTNHeight = 48.0f;
 		std::string copyText = (m_currentClipBoardCopyTimer > 0) ? "Copied" : "Copy Config";
@@ -387,7 +410,7 @@ namespace Layers {
 		RE::ResetClipRect();
 	}
 
-	void AIVisualizerLayer::UpdateScroll(float& offset, float& velocity, float maxScroll) {
+	void AgentVisualizerLayer::UpdateScroll(float& offset, float& velocity, float maxScroll) {
 		int dir = 0;
 		if (SDLCore::Input::GetScrollDir(dir)) {
 			velocity -= dir * m_scrollSpeed;
@@ -408,7 +431,7 @@ namespace Layers {
 		}
 	}
 
-	bool AIVisualizerLayer::DrawButton(const std::string& text, float x, float y, float w, float h) {
+	bool AgentVisualizerLayer::DrawButton(const std::string& text, float x, float y, float w, float h) {
 		namespace RE = SDLCore::Render;
 
 		RE::SetColor(40, 40, 40);
@@ -430,7 +453,7 @@ namespace Layers {
 		return leftPressed && inside;
 	}
 
-	void AIVisualizerLayer::DrawBoard(const std::string& state, float x, float y, float size) {
+	void AgentVisualizerLayer::DrawBoard(const std::string& state, float x, float y, float size) {
 		namespace RE = SDLCore::Render;
 		float cell = size / 3.0f;
 
@@ -457,13 +480,13 @@ namespace Layers {
 		}
 	}
 
-	std::string AIVisualizerLayer::ToChessNotation(const Vector2& pos) {
+	std::string AgentVisualizerLayer::ToChessNotation(const Vector2& pos) {
 		char col = 'A' + static_cast<int>(pos.x);
 		char row = '1' + (2 - static_cast<int>(pos.y));// flip y axis
 		return std::string(1, col) + row;
 	}
 
-	bool AIVisualizerLayer::IsPointInRect(const Vector2& mPos, float x, float y, float w, float h) {
+	bool AgentVisualizerLayer::IsPointInRect(const Vector2& mPos, float x, float y, float w, float h) {
 		return (mPos.x > x && mPos.x < x + w) &&
 			(mPos.y > y && mPos.y < y + h);
 	}

@@ -15,8 +15,9 @@ enum class LayerID {
 	GAME,
 	GAME_RESULT,
 	START_LOAD,
-	AI_VISUALIZER,
-	GAME_SETUP_LAYER
+	AGENT_VISUALIZER,
+	GAME_SETUP_LAYER,
+	AGENT_SELECT
 };
 
 class Layer {
@@ -37,12 +38,17 @@ public:
 	/*
 	* @brief Gets called every frame of the application, after update
 	*/
-	virtual void OnRender(AppContext* ctx) = 0;
+	virtual void OnRender(AppContext* ctx) {};
 
 	/*
 	* @brief Gets called every frame of the application, after Render, Setups base UIctx
 	*/
 	virtual void OnUIRender(AppContext* ctx) {}
+
+	/*
+	* @brief Gets called every frame of the application, after UIRender
+	*/
+	virtual void OnLateRender(AppContext* ctx) {}
 
 	/*
 	* @brief Gets called when the layer closes quit (layers are being closed on application quit)

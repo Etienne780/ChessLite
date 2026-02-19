@@ -71,6 +71,15 @@ void App::OnUpdate() {
             });
         }
         UI::EndFrame();
+
+        ForeachLayer([&](Layer& layer) {
+            layer.OnLateRender(&m_context);
+
+            if (RE::GetActiveWindowID() != m_winID) {
+                Input::SetWindow(m_winID);
+                RE::SetWindowRenderer(m_winID);
+            }
+        });
         
         RE::Present();
 
@@ -195,7 +204,7 @@ void App::ProcessLayerCommands() {
             ForeachLayer([&](Layer& layer) {
                 eventBus.Emit(LayerEventType::CLOSED, layer.GetLayerID());
                 layer.OnQuit(&m_context);
-                });
+            });
             m_layerStack.clear();
             Log::Debug("App::Layer::Clear: - Clear");
             break;

@@ -16,16 +16,24 @@ public:
 
 	void GameFinished(bool won);
 
-	float GetExplorationChance() const;
 	const std::string& GetName() const;
 	const std::string& GetChessConfig() const;
+	int GetMatchesPlayed() const;
+	int GetWonMatches() const;
+	int GetLostMatches() const;
+	int GetMatchesPlayedAsWhite() const;
+	int GetMatchesPlayedAsBlack() const;
+	float GetExplorationChance() const;
 	const std::unordered_map<std::string, BoardState>& GetNormilzedBoardStates() const;
 	const std::vector<std::pair<std::string, size_t>>& GetMoveHistory() const;
 
 private:
 	bool m_gameFinished = false;
 	std::string m_name = "UNKOWN";
-	int m_gamesPlayed = 0;
+	int m_matchesPlayed = 0;
+	int m_matchesWon = 0;
+	int m_matchesPlayedAsWhite = 0;
+	bool m_isWhite = false;
 	std::string m_chessConfigString;
 	std::unordered_map<std::string, BoardState> m_boardStates;/* < normalized board position to board state*/
 

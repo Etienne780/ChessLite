@@ -18,7 +18,13 @@ namespace Layers {
 		LayerID GetLayerID() const override;
 
 	private:
+		SDLCore::UI::UIStyle m_styleRoot;
+		SDLCore::UI::UIStyle m_styleMenu;
+		SDLCore::UI::UIStyle m_stylePlayerContainer;
 		SDLCore::UI::UIStyle m_styleTitle;
+
+		PlayerType m_player1 = PlayerType::PLAYER;
+		PlayerType m_player2 = PlayerType::PLAYER;
 	};
 
 }

@@ -3,7 +3,7 @@
 #include "LayerSystem/Layers/GameLayer.h"
 #include "LayerSystem/Layers/GameResult.h"
 #include "LayerSystem/Layers/EscapeMenuLayer.h"
-#include "LayerSystem/Layers/AIVisualizerLayer.h"
+#include "LayerSystem/Layers/AgentVisualizerLayer.h"
 #include "Styles/Comman/Color.h"
 #include "Styles/Comman/Space.h"
 #include "Styles/Comman/Style.h"
@@ -34,7 +34,7 @@ namespace Layers {
 				m_isEscapeMenuOpen = false;
 			}
 
-			if (e.layerID == LayerID::AI_VISUALIZER) {
+			if (e.layerID == LayerID::AGENT_VISUALIZER) {
 				m_isAIVisualizerOpen = false;
 			}
 
@@ -100,7 +100,7 @@ namespace Layers {
 		if (!m_isAIVisualizerOpen && 
 			Input::KeyJustPressed(KeyCode::NUM_1)) {
 			m_isAIVisualizerOpen = true;
-			ctx->app->PushLayer<AIVisualizerLayer>(m_player1, m_player2);
+			ctx->app->PushLayer<AgentVisualizerLayer>(m_player1, m_player2);
 		}
 
 		if (!m_opendGameResult && 
