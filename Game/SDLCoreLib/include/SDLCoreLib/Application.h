@@ -22,7 +22,7 @@ namespace SDLCore {
 	*
 	* @return true if the application shutdown has been requested, false otherwise
 	*/
-	bool IsQuit();
+	bool IsApplicationQuit();
 
 	/**
 	* @brief Checks whether SDL has been fully shut down.

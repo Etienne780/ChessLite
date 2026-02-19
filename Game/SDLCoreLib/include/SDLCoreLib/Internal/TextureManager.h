@@ -17,15 +17,21 @@ namespace SDLCore {
 	friend class Application;
 	friend class TextureSurface;
 	private:
-		struct TextureAsset {
+		struct TextureEntry {
 			SDL_Surface* surface = nullptr;
 			uint32_t refCount = 0;
-			TextureAsset(SDL_Surface* surfaceVal, uint32_t initRefCount);
-			~TextureAsset();
+			TextureEntry(SDL_Surface* surfaceVal, uint32_t initRefCount);
+			~TextureEntry();
+
+			TextureEntry(const TextureEntry&) = delete;
+			TextureEntry(TextureEntry&&) noexcept;
+
+			TextureEntry& operator=(const TextureEntry&) = delete;
+			TextureEntry& operator=(TextureEntry&&) noexcept;
 		};
 
 		SDLCoreIDManager m_idManager;
-		std::unordered_map<TextureID, TextureAsset> m_textureAssets;
+		std::unordered_map<TextureID, TextureEntry> m_textureEntrys;
 		mutable std::mutex m_mutex;
 
 		TextureManager() = default;
@@ -40,7 +46,7 @@ namespace SDLCore {
 		SDL_Surface* GetSurface(TextureID id) const;
 
 		// should only be called at programm end
-		void ClearAllTexturesAssets();
+		void ClearAllTexturesEntries();
 	};
 
 }

@@ -87,8 +87,8 @@ namespace SDLCore::Render {
         bool s_isClipRectEnabled = false;
 
         // ========== Text ==========
-        std::shared_ptr<SDLCore::Font> s_font = std::make_shared<SDLCore::Font>(true);// loads the default font
-        float s_textSize = s_font->GetSelectedSize();
+        SDLCore::Font s_font(true);// loads the default font
+        float s_textSize = s_font.GetSelectedSize();
         Align s_textHorAlign = Align::START;
         Align s_textVerAlign = Align::START;
         float s_textLineHeightMultiplier = 0.4f;
@@ -866,10 +866,7 @@ namespace SDLCore::Render {
             return lines;
         }
 
-        if (!s_font)
-            return lines;
-
-        auto* asset = s_font->GetFontAsset();
+        auto* asset = s_font.GetFontAsset();
         if (!asset)
             return lines;
 
@@ -962,7 +959,7 @@ namespace SDLCore::Render {
     static inline CachedText* GetCachedText(const std::string& text, bool createOnNotFound = false) {
         TextCacheKey key{
             s_renderer,
-            s_font.get(),
+            &s_font,
             text,
             s_textSize,
             s_textClipWidth,
@@ -1016,7 +1013,7 @@ namespace SDLCore::Render {
                     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
                     SDL_RenderClear(renderer);
 
-                    SDL_Texture* atlas = s_font->GetFontAsset()->GetGlyphAtlasTexture(s_winID);
+                    SDL_Texture* atlas = s_font.GetFontAsset()->GetGlyphAtlasTexture(s_winID);
                     SDL_SetTextureColorMod(atlas, 255, 255, 255);
                     SDL_SetTextureAlphaMod(atlas, 255);
 
@@ -1034,7 +1031,7 @@ namespace SDLCore::Render {
                         }
 
                         for (char c : ct.lines[i]) {
-                            auto* m = s_font->GetFontAsset()->GetGlyphMetrics(c);
+                            auto* m = s_font.GetFontAsset()->GetGlyphMetrics(c);
                             if (!m) continue;
 
                             SDL_FRect dst{
@@ -1125,13 +1122,8 @@ namespace SDLCore::Render {
         auto renderer = GetActiveRenderer();
         if (!renderer)
             return;
-
-        if (!s_font) {
-            Log::Error("SDLCore::Renderer::Text: Faild to render text for text'{}', no font was set", text);
-            return;
-        }
         
-        auto* asset = s_font->GetFontAsset();
+        auto* asset = s_font.GetFontAsset();
         if (!asset)
             return;
 
@@ -1233,28 +1225,26 @@ namespace SDLCore::Render {
         SetTextClipWidth(-1);
     }
 
-    void SetFont(std::shared_ptr<Font> font) {
+    void SetFont(const Font& font) {
         s_font = font;
-        s_font->SelectSize(s_textSize);
+        s_font.SelectSize(s_textSize);
     }
 
     void SetFont(const SystemFilePath& path) {
-        s_font = std::make_shared<Font>(path);
-        s_font->SelectSize(s_textSize);
+        s_font = Font(path);
+        s_font.SelectSize(s_textSize);
     }
 
     void SetTextSize(float size) {
         s_textSize = std::max(size, 0.0f);
-        if (!s_font)
-            s_font = std::make_shared<SDLCore::Font>(true);// loads the default font
-        s_font->SelectSize(s_textSize);
+        s_font.SelectSize(s_textSize);
     }
 
     float GetActiveFontSize() {
-        return (s_font) ? s_font->GetSelectedSize() : s_textSize;
+        return s_font.GetSelectedSize();
     }
 
-    std::shared_ptr<Font> GetActiveFont() {
+    const Font& GetActiveFont() {
         return s_font;
     }
 
@@ -1333,12 +1323,7 @@ namespace SDLCore::Render {
         }
 
         case SDLCore::UnitType::PIXELS: {
-            if (!s_font) {
-                Log::Error("SDLCore::Renderer::GetTruncatedText: Failed to get truncated text for '{}', no font set", text);
-                return text;
-            }
-
-            auto* asset = s_font->GetFontAsset();
+            auto* asset = s_font.GetFontAsset();
             if (!asset)
                 return text;
 
@@ -1407,12 +1392,7 @@ namespace SDLCore::Render {
     }
 
     float GetCharWidth(char c) {
-        if (!s_font) {
-            Log::Error("SDLCore::Renderer::GetCharWidth: Faild to get char width for char'{}', no font was set", c);
-            return 0.0f;
-        }
-
-        auto* asset = s_font->GetFontAsset();
+        auto* asset = s_font.GetFontAsset();
         if (!asset)
             return 0.0f;
 
@@ -1425,13 +1405,8 @@ namespace SDLCore::Render {
             if (auto* ct = GetCachedText(text, false))
                 return ct->textWidth; // use cached width
 
-        if (!s_font) {
-            Log::Error("SDLCore::Renderer::GetTextWidth: Failed to get text width for text '{}', no font was set!", text);
-            return 0.0f;
-        }
-
         float width = 0.0f;
-        auto* asset = s_font->GetFontAsset();
+        auto* asset = s_font.GetFontAsset();
         if (!asset) 
             return 0.0f;
 
@@ -1443,12 +1418,7 @@ namespace SDLCore::Render {
     }
 
     float GetTextHeight() {
-        if (!s_font) {
-            Log::Error("SDLCore::Renderer::GetTextHeight: Faild to get text height, no font was set!");
-            return 0.0f;
-        }
-
-        auto* asset = s_font->GetFontAsset();
+        auto* asset = s_font.GetFontAsset();
         if (!asset)
             return 0.0f;
 
@@ -1469,11 +1439,6 @@ namespace SDLCore::Render {
             if (auto* ct = GetCachedText(lines.empty() ? "" : lines[0], false))
                 return ct->blockWidth; // approximate cache, fallback if lines are from a single text
 
-        if (!s_font) {
-            Log::Error("SDLCore::Renderer::GetTextBlockWidth: Faild to get block width for lines'{}', no font was set", lines);
-            return 0.0f;
-        }
-
         float maxWidth = 0.0f;
         for (const auto& line : lines)
             maxWidth = std::max(maxWidth, GetTextWidth(line));
@@ -1490,11 +1455,7 @@ namespace SDLCore::Render {
     }
 
     float GetTextBlockHeight(const std::vector<std::string>& lines) {
-        if (!s_font) {
-            Log::Error("SDLCore::Renderer::GetTextBlockHeight: Faild to get block height for lines'{}', no font was set", lines);
-            return 0.0f;
-        }
-        auto* asset = s_font->GetFontAsset();
+        auto* asset = s_font.GetFontAsset();
         if (!asset)
             return 0.0f;
 
@@ -1513,12 +1474,7 @@ namespace SDLCore::Render {
     }
 
     float GetLineHeight() {
-        if (!s_font) {
-            Log::Error("SDLCore::Renderer::GetLineHeight: Failed to get line height, no font was set!");
-            return 0.0f;
-        }
-
-        auto* asset = s_font->GetFontAsset();
+        auto* asset = s_font.GetFontAsset();
         if (!asset) 
             return 0.0f;
 

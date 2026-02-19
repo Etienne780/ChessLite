@@ -649,15 +649,16 @@ namespace SDLCore::Render {
 	* @brief Resets all text rendering parameters to their default values.
 	*
 	* Default values include font size 16, text alignment START, ellipsis "...", no maximum line count,
+	* 
 	* no truncation limits, and no clip width.
 	*/
 	void ResetTextParams();
 
 	/**
 	* @brief Sets the active font.
-	* @param font Shared pointer to the font to use.
+	* @param the font to use.
 	*/
-	void SetFont(std::shared_ptr<Font> font);
+	void SetFont(const Font& font);
 
 	/**
 	* @brief Sets the active font by loading it from a file path.
@@ -679,9 +680,9 @@ namespace SDLCore::Render {
 
 	/**
 	* @brief Returns the currently active font object.
-	* @return Shared pointer to the active font.
+	* @return The active font.
 	*/
-	std::shared_ptr<Font> GetActiveFont();
+	const Font& GetActiveFont();
 
 	/**
 	* @brief Sets the horizontal text alignment mode.

@@ -7,6 +7,7 @@
 
 #include "Types/Audio/SoundManager.h"
 #include "Internal/TextureManager.h"
+#include "Internal/FontManager.h"
 #include "Application.h"
 
 namespace SDLCore {
@@ -22,7 +23,7 @@ namespace SDLCore {
     static bool s_closeApplication = false;
     static bool s_sdlQuit = false;
 
-    bool IsQuit() {
+    bool IsApplicationQuit() {
         return s_closeApplication;
     }
 
@@ -135,7 +136,8 @@ namespace SDLCore {
         DeleteAllWindows();
 
         SoundManager::Quit();
-        TextureManager::GetInstance().ClearAllTexturesAssets();
+        TextureManager::GetInstance().ClearAllTexturesEntries();
+        FontManager::GetInstance().ClearAllFontEntries();
         MIX_Quit();
         TTF_Quit();
         SDL_Quit();

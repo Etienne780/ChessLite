@@ -1,24 +1,27 @@
 #include "Internal/TextureManager.h"
 #include "Types/TextureSurface.h"
+#include "Application.h"
 
 namespace SDLCore {
 
     TextureSurface::TextureSurface(SDL_Surface* surface) {
-        m_id = TextureManager::GetInstance().RegisterTexture(surface);
+        if(!IsApplicationQuit())
+            m_id = TextureManager::GetInstance().RegisterTexture(surface);
     }
 
     TextureSurface::TextureSurface(const TextureSurface& other)
         : m_id(other.m_id) {
-        TextureManager::GetInstance().IncreaseRef(m_id);
+        if(!IsApplicationQuit())
+            TextureManager::GetInstance().IncreaseRef(m_id);
     }
 
     TextureSurface::TextureSurface(TextureSurface&& other) noexcept
         : m_id(other.m_id){
-        other.m_id.value = SDLCORE_INVALID_ID;
+        other.m_id.SetInvalid();
     }
 
     TextureSurface::~TextureSurface() {
-        if (m_id != SDLCORE_INVALID_ID)
+        if (!m_id.IsInvalid() && !IsApplicationQuit())
             TextureManager::GetInstance().DecreaseRef(m_id);
     }
 
@@ -26,12 +29,12 @@ namespace SDLCore {
         if (this == &other)
             return *this;
 
-        if (m_id != SDLCORE_INVALID_ID)
+        if (!m_id.IsInvalid() && !IsApplicationQuit())
             TextureManager::GetInstance().DecreaseRef(m_id);
 
         m_id = other.m_id;
 
-        if (m_id != SDLCORE_INVALID_ID)
+        if (!m_id.IsInvalid() && !IsApplicationQuit())
             TextureManager::GetInstance().IncreaseRef(m_id);
 
         return *this;
@@ -41,7 +44,7 @@ namespace SDLCore {
         if (this == &other)
             return *this;
         
-        if (m_id != SDLCORE_INVALID_ID)
+        if (!m_id.IsInvalid() && !IsApplicationQuit())
             TextureManager::GetInstance().DecreaseRef(m_id);
 
         m_id = other.m_id;
@@ -51,7 +54,7 @@ namespace SDLCore {
     }
 
 	bool TextureSurface::IsInvalid() {
-		return (m_id == SDLCORE_INVALID_ID || GetSurface() == nullptr);
+		return (m_id.IsInvalid() || GetSurface() == nullptr);
 	}
 
 	TextureID TextureSurface::GetID() const {
@@ -59,6 +62,8 @@ namespace SDLCore {
 	}
 	
 	SDL_Surface* TextureSurface::GetSurface() const {
+        if (IsApplicationQuit())
+            return nullptr;
         return TextureManager::GetInstance().GetSurface(m_id);
 	}
 
