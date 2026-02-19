@@ -6,6 +6,7 @@
 #include <CoreLib/Algorithm.h>
 
 #include "Types/Audio/SoundManager.h"
+#include "Internal/TextureManager.h"
 #include "Application.h"
 
 namespace SDLCore {
@@ -134,6 +135,7 @@ namespace SDLCore {
         DeleteAllWindows();
 
         SoundManager::Quit();
+        TextureManager::GetInstance().ClearAllTexturesAssets();
         MIX_Quit();
         TTF_Quit();
         SDL_Quit();

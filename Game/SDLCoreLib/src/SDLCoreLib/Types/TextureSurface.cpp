@@ -3,24 +3,23 @@
 
 namespace SDLCore {
 
-    TextureSurface::TextureSurface(SDL_Surface* surface)
-        : m_surface(surface) {
+    TextureSurface::TextureSurface(SDL_Surface* surface) {
         m_id = TextureManager::GetInstance().RegisterTexture(surface);
     }
 
     TextureSurface::TextureSurface(const TextureSurface& other)
-        : m_id(other.m_id), m_surface(other.m_surface) {
+        : m_id(other.m_id) {
         TextureManager::GetInstance().IncreaseRef(m_id);
     }
 
     TextureSurface::TextureSurface(TextureSurface&& other) noexcept
-        : m_id(other.m_id), m_surface(other.m_surface) {
+        : m_id(other.m_id){
         other.m_id.value = SDLCORE_INVALID_ID;
-        other.m_surface = nullptr;
     }
 
     TextureSurface::~TextureSurface() {
-        TextureManager::GetInstance().DecreaseRef(m_id);
+        if (m_id != SDLCORE_INVALID_ID)
+            TextureManager::GetInstance().DecreaseRef(m_id);
     }
 
     TextureSurface& TextureSurface::operator=(const TextureSurface& other) {
@@ -31,7 +30,6 @@ namespace SDLCore {
             TextureManager::GetInstance().DecreaseRef(m_id);
 
         m_id = other.m_id;
-        m_surface = other.m_surface;
 
         if (m_id != SDLCORE_INVALID_ID)
             TextureManager::GetInstance().IncreaseRef(m_id);
@@ -47,16 +45,13 @@ namespace SDLCore {
             TextureManager::GetInstance().DecreaseRef(m_id);
 
         m_id = other.m_id;
-        m_surface = other.m_surface;
-
-        other.m_id.value = SDLCORE_INVALID_ID;
-        other.m_surface = nullptr;
+        other.m_id.SetInvalid();
 
         return *this;
     }
 
 	bool TextureSurface::IsInvalid() {
-		return (m_id == SDLCORE_INVALID_ID || m_surface == nullptr);
+		return (m_id == SDLCORE_INVALID_ID || GetSurface() == nullptr);
 	}
 
 	TextureID TextureSurface::GetID() const {
@@ -64,7 +59,7 @@ namespace SDLCore {
 	}
 	
 	SDL_Surface* TextureSurface::GetSurface() const {
-		return m_surface;
+        return TextureManager::GetInstance().GetSurface(m_id);
 	}
 
 }
