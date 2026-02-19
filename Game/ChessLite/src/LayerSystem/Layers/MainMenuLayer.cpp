@@ -44,38 +44,38 @@ namespace Layers {
 	void MainMenuLayer::OnUIRender(AppContext* ctx) {
 		typedef UI::UIKey Key;
 
-			UI::BeginFrame(Key("main_menu_root"), m_styleRoot);
+		UI::BeginFrame(Key("main_menu_root"), m_styleRoot);
+		{
+			UI::BeginFrame(Key("menu"), m_styleMenu);
 			{
-				UI::BeginFrame(Key("menu"), m_styleMenu);
-				{
-					UI::Text(Key("title"), "Chess Lite", m_styleTitle);
+				UI::Text(Key("title"), "Chess Lite", m_styleTitle);
 
-					if (UIComp::DrawButton("btn_play", "Play", Style::commanBTNBase)) {
-						Log::Debug("MainMenu: Play");
-						ctx->app->ClearLayers();
-						ctx->app->PushLayer<GameLayer>(PlayerType::PLAYER, PlayerType::AI);
-					}
+				if (UIComp::DrawButton("btn_play", "Play", Style::commanBTNBase)) {
+					Log::Debug("MainMenu: Play");
+					ctx->app->ClearLayers();
+					ctx->app->PushLayer<GameLayer>(PlayerType::PLAYER, PlayerType::AI);
+				}
 
-					if (UIComp::DrawButton("btn_skins", "Skins", Style::commanBTNBase)) {
-						Log::Debug("MainMenu: Skins");
-					}
+				if (UIComp::DrawButton("btn_skins", "Skins", Style::commanBTNBase)) {
+					Log::Debug("MainMenu: Skins");
+				}
 
-					if (UIComp::DrawButton("btn_settings", "Settings", Style::commanBTNBase)) {
-						Log::Debug("MainMenu: Settings");
-						ctx->app->PushLayer<OptionsMenuLayer>();
-					}
+				if (UIComp::DrawButton("btn_settings", "Settings", Style::commanBTNBase)) {
+					Log::Debug("MainMenu: Settings");
+					ctx->app->PushLayer<OptionsMenuLayer>();
+				}
 
-					if (UIComp::DrawButton("btn_quit", "Quit", Style::commanBTNBase)) {
-						Log::Debug("MainMenu: Quit");
+				if (UIComp::DrawButton("btn_quit", "Quit", Style::commanBTNBase)) {
+					Log::Debug("MainMenu: Quit");
 #ifdef NDEBUG
 						ctx->app->Quit();
 #endif
-					}
 				}
-				UI::EndFrame();
 			}
 			UI::EndFrame();
 		}
+		UI::EndFrame();
+	}
 
 	void MainMenuLayer::OnQuit(AppContext* ctx) {
 		
