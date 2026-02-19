@@ -254,9 +254,7 @@ namespace Layers {
 
 	void GameLayer::ProcessTurn(PlayerType type) {
 		bool movePlayed = false;
-		
-
-
+	
 		switch (type) {
 		case PlayerType::PLAYER:
 			movePlayed = PlayerLogic();
@@ -378,6 +376,8 @@ namespace Layers {
 		namespace RE = SDLCore::Render;
 		typedef SDLCore::UI::UIRegistry UIReg;
 
+		#pragma region Var Definitions
+
 		Vector4 colorBtnNormal;
 		Vector4 colorOverlay;
 		Vector4 colorHighlightSelected;
@@ -408,6 +408,10 @@ namespace Layers {
 			(m_windowSize.y * 0.5f) - (static_cast<float>(boardHeight) * boardTileSize * 0.5f)
 		};
 
+		#pragma endregion
+
+		#pragma region Render Board
+		
 		auto DrawCheckPattern = [&](int tileType, const Vector4& color) {
 			RE::SetColor(color);
 
@@ -425,11 +429,38 @@ namespace Layers {
 			}
 		};
 
-		// render board
+		
 		DrawCheckPattern(0, colorBoardLight);
 		DrawCheckPattern(1, colorBoardDark);
 
-		// render possible moves
+		#pragma endregion
+
+		#pragma region Render chess notations symbols
+
+		RE::SetColor(255);
+		RE::SetTextSize(m_notationTextSize * tileScaler);
+		RE::SetTextAlign(SDLCore::Align::CENTER, SDLCore::Align::START);
+		for (int i = 0; i < boardWidth; i++) {
+			float x = topLeftBoard.x + static_cast<float>(i) * boardTileSize + boardTileSize * 0.5f;
+			float y = topLeftBoard.y + m_boardOutlineWidth * tileScaler + m_boardNotationMargin * tileScaler + boardTileSize * boardHeight;
+
+			std::string symbol = ToChessNotationCol(i);
+			RE::Text(symbol, x, y);
+		}
+
+		RE::SetTextAlign(SDLCore::Align::START, SDLCore::Align::CENTER);
+		for (int i = 0; i < boardHeight; i++) {
+			float x = topLeftBoard.x + m_boardOutlineWidth * tileScaler + m_boardNotationMargin * tileScaler + boardTileSize * boardWidth;
+			float y = topLeftBoard.y + static_cast<float>(i) * boardTileSize + boardTileSize * 0.5f;
+
+			std::string symbol = ToChessNotationRow(i);
+			RE::Text(symbol, x, y);
+		}
+
+		#pragma endregion
+
+		#pragma region Render possible moves
+		
 		if (m_pieceSelected && m_options.showPossibleMoves) {
 			auto& reg = CoreChess::ChessPieceRegistry::GetInstance();
 			const CoreChess::ChessPiece* piece = reg.GetChessPiece(m_selectedPieceID);
@@ -450,17 +481,20 @@ namespace Layers {
 				}
 			}
 		}
+		
+		#pragma endregion
+		
 
-		// render board outline
+		// Render board outline
 		RE::SetColor(colorBtnNormal);
 		RE::SetInnerStroke(false);
-		RE::SetStrokeWidth(8.0f * tileScaler);
+		RE::SetStrokeWidth(m_boardOutlineWidth * tileScaler);
 		RE::Rect(topLeftBoard, Vector2(static_cast<float>(boardWidth), static_cast<float>(boardHeight)) * boardTileSize);
 
-		// render Figures
+		#pragma region Render Figures
+		
 		RE::SetColor(colorHighlightSelected);
 		RE::SetInnerStroke(true);
-		RE::SetStrokeWidth(4.0f * tileScaler);
 		for (int i = 0; i < boardHeight * boardWidth; i++) {
 			auto field = board.GetFieldAt(i);
 
@@ -491,6 +525,8 @@ namespace Layers {
 				RE::Texture(*m_pawnLightTexture, x, y, boardTileSize, boardTileSize);
 			}
 		}
+
+		#pragma endregion
 	}
 
 	void GameLayer::UpdateBoardTileSize() {
@@ -540,7 +576,17 @@ namespace Layers {
 		return m_game.MovePiece(toX, toY);
 	}
 
-	bool GameLayer::IsPointInRect(Vector2 mPos, float x, float y, float size) {
+	std::string GameLayer::ToChessNotationCol(int column) {
+		char col = 'A' + column;
+		return std::string(1, col);
+	}
+
+	std::string GameLayer::ToChessNotationRow(int row) {
+		char r = '1' + (2 - row);
+		return std::string(1, r);
+	}
+
+	bool GameLayer::IsPointInRect(const Vector2& mPos, float x, float y, float size) {
 		return (mPos.x > x && mPos.x < x + size) &&
 			(mPos.y > y && mPos.y < y + size);
 	}

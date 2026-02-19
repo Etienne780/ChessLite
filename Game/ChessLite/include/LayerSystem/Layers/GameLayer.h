@@ -34,6 +34,9 @@ namespace Layers {
 		std::shared_ptr<SDLCore::Texture> m_pawnDarkTexture = nullptr;
 		ChessOptions m_options;
 
+		float m_notationTextSize = 36.0f;
+		float m_boardNotationMargin = 2.0f;
+		float m_boardOutlineWidth = 8.0f;
 		float m_boardTileSize = 128.0f;
 		float m_boardTileSizeFinal = 0.0f;
 		float m_tileScaler = 0.0f;
@@ -76,7 +79,10 @@ namespace Layers {
 		// true on successful move
 		bool TryMovePiece(const Vector2& from, const Vector2& to);
 		bool TryMovePiece(const Vector2& from, float toX, float toY);
-		static bool IsPointInRect(Vector2 mPos, float x, float y, float size);
+
+		static std::string ToChessNotationCol(int column);
+		static std::string ToChessNotationRow(int row);
+		static bool IsPointInRect(const Vector2& mPos, float x, float y, float size);
 	};
 
 }
