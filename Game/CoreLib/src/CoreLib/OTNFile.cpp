@@ -1776,6 +1776,7 @@ namespace OTN {
 			}
 			break;
 		}
+		return true;
 	}
 
 	bool OTNReader::OTNTokenizer::AddToken(TokenType type, char c) {
