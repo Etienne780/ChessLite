@@ -1709,8 +1709,8 @@ namespace OTN {
 		bool WriteToFile(const OTNFilePath& path);
 		bool WriteToString(std::string& outText);
 		bool CreateWriteData(WriterData& data);
-		size_t AddObject(WriterData& data, OTNObject& object);
-		void ConvertToSerValue(WriterData& data, OTNValue& result, const OTNTypeDesc& colType, const OTNValue& val);
+		std::vector<size_t> AddObject(WriterData& data, OTNObject& object);
+		void ConvertToSerValue(WriterData& data, OTNValue& result, OTNTypeDesc& colType, const OTNValue& val);
 		bool CreateDefType();
 		bool CreateDefName();
 

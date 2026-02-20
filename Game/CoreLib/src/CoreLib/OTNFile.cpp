@@ -953,7 +953,7 @@ namespace OTN {
 			break;
 
 		case OTNBaseType::LIST: {
-			if(value.type != OTNBaseType::LIST) {
+			if (value.type != OTNBaseType::LIST) {
 				HashCombine(hash, 0);
 				break;
 			}
@@ -964,27 +964,32 @@ namespace OTN {
 				break;
 			}
 
-			// Include list size to distinguish {1,2} from {1,2,3}
 			HashCombine(hash, arrayPtr->values.size());
 			HashCombine(hash, static_cast<size_t>(colType.listDepth));
 
+			OTNTypeDesc elementType = colType;
+			elementType.listDepth = (colType.listDepth > 0) ? colType.listDepth - 1 : 0;
+
 			for (const auto& val : arrayPtr->values) {
-				HashCombine(hash, HashValue(colType, val));
+				HashCombine(hash, HashValue(elementType, val));
 			}
 			break;
 		}
-
 		case OTNBaseType::OBJECT: {
-			if (value.type != OTNBaseType::INT) {
+			// size_t wird als uint64_t oder int gespeichert - beide abdecken
+			if (value.type == OTNBaseType::INT) {
+				HashCombine(hash, std::hash<int>{}(std::get<int>(value.value)));
+			}
+			else if (value.type == OTNBaseType::UINT64) {
+				HashCombine(hash, std::hash<uint64_t>{}(std::get<uint64_t>(value.value)));
+			}
+			else {
 				HashCombine(hash, 0);
 #ifndef NDEBUG
-				assert(false && "HashValue: type for Object was invalid, should be an int");
+				assert(false && "HashValue: type for Object was invalid");
 #endif
-				break;
 			}
-			
-			HashCombine(hash, std::hash<int>{}(std::get<int>(value.value)));
-			break;
+		break;
 		}
 		case OTNBaseType::UNKNOWN:
 		default:
@@ -1138,7 +1143,7 @@ namespace OTN {
 		return true;
 	}
 
-	size_t OTNWriter::AddObject(WriterData& data, OTNObject& object) {
+	std::vector<size_t> OTNWriter::AddObject(WriterData& data, OTNObject& object) {
 		auto& objectMap = data.objects;
 
 		// Create or get SerializedObject
@@ -1153,7 +1158,7 @@ namespace OTN {
 			serObj.columnTypes = object.GetColumnTypes();
 		}
 
-		size_t lastIndex = 0;
+		std::vector<size_t> indices;
 		OTNValue outVal;
 		// Convert rows
 		for (const OTNRow& row : object.GetDataRows()) {
@@ -1184,13 +1189,13 @@ namespace OTN {
 				columnTypeIndex++;
 			}
 
-			lastIndex = serObj.AddOrGetRow(serRow, m_useDeduplicateRows);
+			indices.emplace_back(serObj.AddOrGetRow(serRow, m_useDeduplicateRows));
 		}
 
-		return lastIndex;
+		return indices;
 	}
 
-	void OTNWriter::ConvertToSerValue(WriterData& data, OTNValue & result, const OTNTypeDesc & colType, const OTNValue & val) {
+	void OTNWriter::ConvertToSerValue(WriterData& data, OTNValue & result, OTNTypeDesc& colType, const OTNValue & val) {
 		if (val.type == OTNBaseType::LIST) {
 			// resolve objects
 			if (!colType.refObjectName.empty()) {
@@ -1217,8 +1222,22 @@ namespace OTN {
 				return;
 
 			// Ensure referenced object exists
-			size_t refIndex = AddObject(data, *objPtr);
-			result = OTNValue(static_cast<int>(refIndex));
+			std::vector<size_t> refIndex = AddObject(data, *objPtr);
+			if (refIndex.size() == 1) {
+				result = OTNValue(refIndex[0]);
+				return;
+			}
+
+			colType.listDepth = 1;
+			OTNArrayPtr newArray = std::make_shared<OTNArray>();
+			if (!newArray)
+				return;
+
+			newArray->values.reserve(refIndex.size());
+			for (const auto& v : refIndex) {
+				newArray->values.emplace_back(v);
+			}
+			result = OTNValue(std::move(newArray));
 		}
 		else {
 			result = OTNValue(val);
