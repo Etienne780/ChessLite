@@ -66,7 +66,6 @@ ResourceLoader::GetOTNObjects() const {
 }
 
 void ResourceLoader::LoadInternal() {
-    int i;
     for (const auto& req : m_requests) {
 
         switch (req.type) {
