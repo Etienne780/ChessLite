@@ -1223,21 +1223,16 @@ namespace OTN {
 
 			// Ensure referenced object exists
 			std::vector<size_t> refIndex = AddObject(data, *objPtr);
-			if (refIndex.size() == 1) {
-				result = OTNValue(refIndex[0]);
-				return;
-			}
 
-			colType.listDepth = 1;
 			OTNArrayPtr newArray = std::make_shared<OTNArray>();
-			if (!newArray)
-				return;
-
 			newArray->values.reserve(refIndex.size());
 			for (const auto& v : refIndex) {
 				newArray->values.emplace_back(v);
 			}
 			result = OTNValue(std::move(newArray));
+
+			if (colType.listDepth == 0)
+				colType.listDepth = 1;
 		}
 		else {
 			result = OTNValue(val);
