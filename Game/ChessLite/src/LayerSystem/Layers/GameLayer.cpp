@@ -1,7 +1,7 @@
 #include <CoreLib/Random.h>
 
 #include "LayerSystem/Layers/GameLayer.h"
-#include "LayerSystem/Layers/GameResult.h"
+#include "LayerSystem/Layers/GameResultLayer.h"
 #include "LayerSystem/Layers/EscapeMenuLayer.h"
 #include "LayerSystem/Layers/AgentVisualizerLayer.h"
 #include "Styles/Comman/Color.h"
@@ -25,9 +25,6 @@ namespace Layers {
 			.SetValue(Prop::positionType, SDLCore::UI::UIPositionType::ABSOLUTE)
 			.SetValue(Prop::padding, Style::commanSpaceL);
 
-		m_pawnLightTexture = std::make_shared<SDLCore::Texture>(SDLCore::TEXTURE_FALLBACK_TEXTURE);
-		m_pawnDarkTexture = std::make_shared<SDLCore::Texture>(SDLCore::TEXTURE_FALLBACK_TEXTURE);
-
 		m_menuCloseEventID = ctx->app->SubscribeToLayerEvent<LayerEventType::CLOSED>(
 		[&](const LayerEvent& e) -> void {
 			if (e.layerID == LayerID::ESCAPE_MENU) {
@@ -44,31 +41,7 @@ namespace Layers {
 			}
 		});
 
-		SetupGame();
-		// setup Agents for testing
-		ctx->agentManager.AddAgent(AgentID(0), Agent("name1", m_game.GetContext()));
-		ctx->agentManager.AddAgent(AgentID(1), Agent("name2", m_game.GetContext()));
-		ctx->selectedAgentID1 = AgentID(0);
-		ctx->selectedAgentID2 = AgentID(1);
-
-		m_agentID1 = ctx->selectedAgentID1;
-		m_agentID2 = ctx->selectedAgentID2;
-
-		auto ensureValidAIPlayer = [](AppContext* ctx, PlayerType& type, AgentID agentID) -> void {
-			if (type == PlayerType::AI && agentID.IsInvalid()) {
-				type = PlayerType::PLAYER;
-				return;
-			}
-
-			auto* agent = ctx->agentManager.GetAgent(agentID);
-			if (!agent) {
-				type = PlayerType::PLAYER;
-			}
-		};
-
-		ensureValidAIPlayer(ctx, m_player1, m_agentID1);
-		ensureValidAIPlayer(ctx, m_player2, m_agentID2);
-
+		SetupGame(ctx);
 		StartGame();
 	}
 
@@ -141,59 +114,29 @@ namespace Layers {
 		return LayerID::GAME;
 	}
 
-	void GameLayer::SetupGame() {
-		using namespace CoreChess;
+	void GameLayer::SetupGame(AppContext* ctx) {
+		m_pawnLightTexture = std::make_shared<SDLCore::Texture>(SDLCore::TEXTURE_FALLBACK_TEXTURE);
+		m_pawnDarkTexture = std::make_shared<SDLCore::Texture>(SDLCore::TEXTURE_FALLBACK_TEXTURE);
+		
+		m_game.SetGameContext(ctx->currentContext);
 
-		auto& reg = ChessPieceRegistry::GetInstance();
+		m_agentID1 = ctx->selectedAgentID1;
+		m_agentID2 = ctx->selectedAgentID2;
 
-		// --- Pawn Setup ---
-		auto* pawn = reg.AddChessPiece(m_pawnID, "pawn", 1);
-		pawn->SetMoveProperties(1, false, false, TargetType::FREE);
-		pawn->AddMoveRule(0, 1); // forward
-		pawn->SetTargetType(TargetType::OPPONENT);
-		pawn->AddMoveRule(1, 1); // capture
-		pawn->AddMoveRule(-1, 1);
-
-		// --- Chess Board Setup ---
-		ChessContext chessCTX;
-		chessCTX.SetBoardSize(3, 3);
-		chessCTX.BoardCmdFillRow(0, m_pawnID);
-
-		//--- Win Condition Setup
-		chessCTX.SetWinCondition([this](const ChessGame& game) -> ChessWinResult {
-			if (game.IsWhiteTurn()) {
-				if (!game.HasAnyLegalMove(FieldType::BLACK)) {
-					return ChessWinResult::WHITE_WON;
-				}
-			}
-			else {
-				if (!game.HasAnyLegalMove(FieldType::WHITE)) {
-					return ChessWinResult::BLACK_WON;
-				}
+		auto ensureValidAIPlayer = [](AppContext* ctx, PlayerType& type, AgentID agentID) -> void {
+			if (type == PlayerType::AI && agentID.IsInvalid()) {
+				type = PlayerType::PLAYER;
+				return;
 			}
 
-			const auto& board = game.GetBoard();
-			int w = board.GetWidth();
-			int h = board.GetHeight();
-
-			// White reaches top row
-			for (size_t x = 0; x < w; ++x) {
-				ChessField f = board.GetFieldAt(static_cast<int>(x), 0);
-				if (f.GetFieldType() == FieldType::WHITE)
-					return ChessWinResult::WHITE_WON;
+			auto* agent = ctx->agentManager.GetAgent(agentID);
+			if (!agent) {
+				type = PlayerType::PLAYER;
 			}
+			};
 
-			// Black reaches bottom row
-			for (size_t x = 0; x < w; ++x) {
-				ChessField f = board.GetFieldAt(static_cast<int>(x), h - 1);
-				if (f.GetFieldType() == FieldType::BLACK)
-					return ChessWinResult::BLACK_WON;
-			}
-
-			return ChessWinResult::NONE;
-		});
-
-		m_game.SetGameContext(std::move(chessCTX));
+		ensureValidAIPlayer(ctx, m_player1, m_agentID1);
+		ensureValidAIPlayer(ctx, m_player2, m_agentID2);
 	}
 
 	void GameLayer::StartGame() {

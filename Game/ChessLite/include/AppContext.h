@@ -1,5 +1,6 @@
 #pragma once
 #include <SDLCoreLib/SDLCore.h>
+#include <CoreChessLib/ChessContext.h>
 
 #include "App.h"
 #include "LayerSystem/LayerEventBus.h"
@@ -21,7 +22,9 @@ public:
 	SkinManager skinManager;
 	ChessOptions options;
 	AgentManager agentManager;
-
+	CoreChess::ChessPieceID pieceID;
+	CoreChess::ChessContext currentContext;
+	
 	AgentID selectedAgentID1;
 	AgentID selectedAgentID2;
 

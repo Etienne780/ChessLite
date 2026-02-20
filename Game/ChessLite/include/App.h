@@ -82,6 +82,7 @@ private:
 	std::vector<LayerCommand> m_layerCommands;
 	SDLCore::UI::UIContext* m_UICtx = nullptr;
 
+	void InitChessContext();
 	void InstantiateWindow();
 	void WindowCleanup();
 

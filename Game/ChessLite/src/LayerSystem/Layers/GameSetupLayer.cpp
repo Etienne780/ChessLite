@@ -3,7 +3,7 @@
 #include "LayerSystem/Layers/GameSetupLayer.h"
 #include "LayerSystem/Layers/MainMenuLayer.h"
 #include "LayerSystem/Layers/GameLayer.h"
-#include "LayerSystem/Layers/AgentSelect.h"
+#include "LayerSystem/Layers/AgentSelectLayer.h"
 
 #include "App.h"
 #include "Styles/Comman/Style.h"
@@ -84,8 +84,8 @@ namespace Layers {
 				bool hasAgentSelected = 
 					m_player1 == PlayerType::AI || 
 					m_player2 == PlayerType::AI;
-
-				if (UIComp::DrawButton("btn_select_agent", "Select Agent", Style::commanBTNBase, false)) {
+			
+				if (UIComp::DrawButton("btn_select_agent", "Select Agent", Style::commanBTNBase) && hasAgentSelected) {
 					Log::Debug("GameSetupLayer: Select Agent");
 					AgentSelectMode selectMode = AgentSelectMode::AGENT_1_ONLY;
 

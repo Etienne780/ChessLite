@@ -22,6 +22,7 @@ AppContext* App::GetContext() {
 }
 
 void App::OnStart() {
+    InitChessContext();
     InstantiateWindow();
     Style::Comman_InitStyles();
 
@@ -30,7 +31,6 @@ void App::OnStart() {
 }
 
 void App::OnUpdate() {
-    
     if (!m_winID.IsInvalid()) {
         using namespace SDLCore;
         Input::SetWindow(m_winID);
@@ -124,6 +124,59 @@ SDLCore::WindowID App::GetWinID() const {
 
 size_t App::GetLayerCount() const {
     return m_layerStack.size();
+}
+
+void App::InitChessContext() {
+    using namespace CoreChess;
+
+    auto& reg = ChessPieceRegistry::GetInstance();
+
+    // --- Pawn Setup ---
+    auto* pawn = reg.AddChessPiece(m_context.pieceID, "pawn", 1);
+    pawn->SetMoveProperties(1, false, false, TargetType::FREE);
+    pawn->AddMoveRule(0, 1); // forward
+    pawn->SetTargetType(TargetType::OPPONENT);
+    pawn->AddMoveRule(1, 1); // capture
+    pawn->AddMoveRule(-1, 1);
+
+    // --- Chess Board Setup ---
+    ChessContext& chessCTX = m_context.currentContext;
+    chessCTX.SetBoardSize(3, 3);
+    chessCTX.BoardCmdFillRow(0, m_context.pieceID);
+
+    //--- Win Condition Setup
+    chessCTX.SetWinCondition([this](const ChessGame& game) -> ChessWinResult {
+        if (game.IsWhiteTurn()) {
+            if (!game.HasAnyLegalMove(FieldType::BLACK)) {
+                return ChessWinResult::WHITE_WON;
+            }
+        }
+        else {
+            if (!game.HasAnyLegalMove(FieldType::WHITE)) {
+                return ChessWinResult::BLACK_WON;
+            }
+        }
+
+        const auto& board = game.GetBoard();
+        int w = board.GetWidth();
+        int h = board.GetHeight();
+
+        // White reaches top row
+        for (size_t x = 0; x < w; ++x) {
+            ChessField f = board.GetFieldAt(static_cast<int>(x), 0);
+            if (f.GetFieldType() == FieldType::WHITE)
+                return ChessWinResult::WHITE_WON;
+        }
+
+        // Black reaches bottom row
+        for (size_t x = 0; x < w; ++x) {
+            ChessField f = board.GetFieldAt(static_cast<int>(x), h - 1);
+            if (f.GetFieldType() == FieldType::BLACK)
+                return ChessWinResult::BLACK_WON;
+        }
+
+        return ChessWinResult::NONE;
+    });
 }
 
 void App::InstantiateWindow() {

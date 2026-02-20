@@ -62,6 +62,12 @@ void Agent::GameFinished(bool won) {
 		m_matchesWon++;
 	if(m_isWhite)
 		m_matchesPlayedAsWhite++;
+	if (won && m_isWhite)
+		m_matchesWonAsWhite++;
+}
+
+AgentID Agent::GetID() const {
+	return m_id;
 }
 
 const std::string& Agent::GetName() const {
@@ -90,6 +96,22 @@ int Agent::GetMatchesPlayedAsWhite() const {
 
 int Agent::GetMatchesPlayedAsBlack() const {
 	return m_matchesPlayed - m_matchesPlayedAsWhite;
+}
+
+int Agent::GetMatchesWonAsWhite() const {
+	return m_matchesWonAsWhite;
+}
+
+int Agent::GetMatchesWonAsBlack() const {
+	return m_matchesWon - m_matchesWonAsWhite;
+}
+
+int Agent::GetMatchesLostAsWhite() const {
+	return GetMatchesWonAsBlack();
+}
+
+int Agent::GetMatchesLostAsBlack() const {
+	return GetMatchesWonAsWhite();
 }
 
 float Agent::GetExplorationChance() const {
@@ -130,4 +152,8 @@ std::string Agent::GetNormalizedBoardStr(const CoreChess::ChessBoard& board, boo
 	}
 
 	return result;
+}
+
+void Agent::SetID(AgentID id) {
+	m_id = id;
 }

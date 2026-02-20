@@ -63,7 +63,7 @@ namespace Layers {
 		Vector2 m_selectedPieceLocalPos = Vector2::zero;
 		Vector2 m_selectedPiecePos = Vector2::zero;
 
-		void SetupGame();
+		void SetupGame(AppContext* ctx);
 		void StartGame();
 		void GameLogic();
 		void EvaluateAIs();

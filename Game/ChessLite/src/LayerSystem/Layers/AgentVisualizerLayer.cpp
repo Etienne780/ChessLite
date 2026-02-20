@@ -448,7 +448,7 @@ namespace Layers {
 
 		Vector2 mPos = SDLCore::Input::GetMousePosition();
 		bool leftPressed = SDLCore::Input::MouseJustPressed(SDLCore::MouseButton::LEFT);
-		bool inside = (mPos.x >= x && mPos.x < (x + w)) && (mPos.y >= y && mPos.y < (y + h));
+		bool inside = IsPointInRect(mPos, x, y, w, h);
 
 		return leftPressed && inside;
 	}
@@ -486,7 +486,8 @@ namespace Layers {
 		return std::string(1, col) + row;
 	}
 
-	bool AgentVisualizerLayer::IsPointInRect(const Vector2& mPos, float x, float y, float w, float h) {
+	bool AgentVisualizerLayer::IsPointInRect(const Vector2& mPos, 
+		float x, float y, float w, float h) {
 		return (mPos.x > x && mPos.x < x + w) &&
 			(mPos.y > y && mPos.y < y + h);
 	}

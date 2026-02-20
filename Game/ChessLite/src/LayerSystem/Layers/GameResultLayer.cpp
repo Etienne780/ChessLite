@@ -1,4 +1,4 @@
-#include "LayerSystem/Layers/GameResult.h"
+#include "LayerSystem/Layers/GameResultLayer.h"
 #include "LayerSystem/Layers/GameLayer.h"
 #include "LayerSystem/Layers/MainMenuLayer.h"
 
