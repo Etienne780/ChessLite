@@ -1,5 +1,6 @@
 #pragma once
 #include <CoreLib/Math/Vector2.h>
+#include <CoreLib/OTNFile.h>
 
 class GameMove {
 public:
@@ -19,3 +20,24 @@ private:
 	Vector2 m_to{ 0.0f };
 	float m_evaluation = 1;
 };
+
+template<>
+inline void OTN::ToOTNDataType<GameMove>(OTN::OTNObjectBuilder& obj, GameMove& move) {
+	obj.SetObjectName("GameMove");
+	obj.AddNames("eval", "from_x", "from_y", "to_x", "to_y");
+
+	if (obj.IsBuildingOTNObject()) {
+		Vector2 from = move.GetFrom();
+		Vector2 to = move.GetTo();
+		obj.AddData(move.GetEvaluation(), from.x, from.y, to.x, to.y);
+	}
+	else {
+		Vector2 from, to;
+		float eval;
+
+		obj.AddData(eval, from.x, from.y, to.x, to.y);
+
+		move = GameMove(from, to);
+		move.SetEvaluation(eval);
+	}
+}
