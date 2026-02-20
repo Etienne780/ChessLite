@@ -1142,21 +1142,20 @@ namespace OTN {
 			serObj.columnNames = object.GetColumnNames();
 		}
 
-		const auto& objColumnType = object.GetColumnTypes();
+		if (serObj.columnTypes.empty()) {
+			serObj.columnTypes = object.GetColumnTypes();
+		}
+
 		size_t lastIndex = 0;
 		OTNValue outVal;
 		// Convert rows
 		for (const OTNRow& row : object.GetDataRows()) {
 			SerializedObject::Row serRow;
 			if (serObj.columnTypes.empty()) {
-				serObj.columnTypes = objColumnType;
-
-				if (serObj.columnTypes.empty()) {
-					serRow.reserve(row.size());
-					serObj.columnTypes.reserve(row.size());
-					for (const OTNValue& val : row) {
-						serObj.columnTypes.push_back(DeduceColumnType(val));
-					}
+				serRow.reserve(row.size());
+				serObj.columnTypes.reserve(row.size());
+				for (const OTNValue& val : row) {
+					serObj.columnTypes.push_back(DeduceColumnType(val));
 				}
 			}
 
@@ -1435,7 +1434,7 @@ namespace OTN {
 
 			AddIndent(stream);
 			if (obj.columnNames.size() != obj.columnTypes.size()) {
-				AddError("Could not body Section @Object, size of names(" + 
+				AddError("Could not save body Section @Object, size of names(" + 
 					std::to_string(obj.columnNames.size()) 
 					+ ") and types(" + 
 					std::to_string(obj.columnTypes.size()) 
