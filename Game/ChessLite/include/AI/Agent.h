@@ -26,7 +26,7 @@ public:
 
 	void GameFinished(bool won);
 
-	void LoadBoardState();
+	void LoadBoardState(const std::unordered_map<std::string, BoardState>& boardStates);
 	void LoadPersistentData(const AgentPersistentData& data);
 	const GameMove& GetBestMove(const CoreChess::ChessGame& game);
 
@@ -49,7 +49,7 @@ public:
 	const std::vector<std::pair<std::string, size_t>>& GetMoveHistory() const;
 
 private:
-	bool m_gameFinished = false;
+	bool m_gameFinished = true;
 	AgentID m_id;
 	std::string m_name = "UNKOWN";
 	int m_matchesPlayed = 0;

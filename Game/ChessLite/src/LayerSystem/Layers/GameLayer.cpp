@@ -145,7 +145,7 @@ namespace Layers {
 		m_gameEnded = false;
 
 		int random = Random::GetRangeNumber<int>(0, 1);
-		m_isPlayer1Turn = /*(random == 1)*/false;
+		m_isPlayer1Turn = (random == 1);
 		m_player1White = m_isPlayer1Turn;
 
 		m_game.StartGame();

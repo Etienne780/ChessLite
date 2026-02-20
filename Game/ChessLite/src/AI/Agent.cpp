@@ -33,6 +33,10 @@ void Agent::GameFinished(bool won) {
 		m_matchesWonAsWhite++;
 }
 
+void Agent::LoadBoardState(const std::unordered_map<std::string, BoardState>& boardStates) {
+	m_boardStates = boardStates;
+}
+
 void Agent::LoadPersistentData(const AgentPersistentData& data) {
 	m_matchesPlayed = data.matchesPlayed;
 	m_matchesWon = data.matchesWon;

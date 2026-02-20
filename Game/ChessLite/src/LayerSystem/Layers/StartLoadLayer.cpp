@@ -87,7 +87,7 @@ namespace Layers {
 			auto& next = m_loadingSections[m_currentSectionIndex];
 			m_currentSectionName = next.name;
 
-			m_progress = 0.0f;
+			m_progress = 0;
 			next.loader->LoadAsync();
 		}
 		else {
@@ -208,7 +208,7 @@ namespace Layers {
 		for (size_t i = 0; i < obj.GetColumnCount(); i++) {
 			auto id = obj.TryGetValue<int64_t>(i, "server_id");
 			auto name = obj.TryGetValue<std::string>(i, "name");
-			auto boardState = obj.TryGetValue<OTN::OTNObject>(i, "board_states");
+			auto boardStates = obj.TryGetValue<std::vector<OTN::OTNObject>>(i, "board_states");
 			auto config = obj.TryGetValue<std::string>(i, "config");
 
 			auto matchesPlayed = obj.TryGetValue<int>(i, "matches_played");
@@ -235,13 +235,12 @@ namespace Layers {
 			if (matchesWonWhite)
 				data.matchesWonAsWhite = *matchesWonWhite;
 
-			if (boardState) {
-				auto& bState = *boardState;
+			if (boardStates) {
 				std::unordered_map<std::string, BoardState> states;
-				for (size_t i = 0; i < bState.GetColumnCount(); i++) {
-					auto stateStr = bState.TryGetValue<std::string>(i, "board_state");
-					auto moves = bState.TryGetValue<std::vector<GameMove>>(i, "moves");
-
+				for (const auto& bState : *boardStates) {
+					auto stateStr = bState.TryGetValue<std::string>(0, "board_state");
+					auto moves = bState.TryGetValue<std::vector<GameMove>>(0, "moves");
+					
 					if (!stateStr || !moves)
 						continue;
 
@@ -249,6 +248,8 @@ namespace Layers {
 					b.LoadGameMoves(*moves);
 					states[*stateStr] = b;
 				}
+
+				agent.LoadBoardState(states);
 			}
 
 			agent.LoadPersistentData(data);

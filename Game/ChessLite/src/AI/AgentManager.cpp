@@ -22,7 +22,7 @@ bool AgentManager::Save(const OTN::OTNFilePath& path) {
             const auto& moves = boardState.GetPossibleMoves();
             boardStateObj.AddDataRow(stateStr, moves);
         }
-
+        
         agentObj.AddDataRow(
             static_cast<int64_t>(id.value),
             agent.GetName(),
@@ -42,6 +42,7 @@ bool AgentManager::Save(const OTN::OTNFilePath& path) {
 
     OTNWriter writer;
     writer.AppendObject(agentObj);
+    writer.UseDeduplicateRows(true);
 
     if (!writer.Save(path / "Agents")) {
         Log::Error("Failed to save agent data: {}", writer.GetError());
