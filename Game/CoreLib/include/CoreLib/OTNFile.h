@@ -1196,7 +1196,7 @@ namespace OTN {
 		* @return True if the operation succeeded.
 		*/
 		template<typename T>
-		bool AddSingleData(T& data);
+		bool AddSingleData(T&& data);
 
 		/**
 		* @brief Deserializes an OTNValue into the provided variable.
@@ -1246,6 +1246,7 @@ namespace OTN {
 	private:
 		void Construct(const U& value) {
 			using DT = std::decay_t<U>;
+
 			if constexpr (is_otn_list_v<DT>) {
 				OTNArrayPtr otnArray = std::make_shared<OTNArray>();
 				otnArray->values.reserve(value.size());
@@ -1268,9 +1269,14 @@ namespace OTN {
 			else if constexpr (is_otn_base_type_v<DT>) {
 				m_value = value;
 			}
+			else if constexpr (std::is_same_v<DT, uint32_t> ||
+				std::is_same_v<DT, unsigned int> ||
+				std::is_same_v<DT, uint64_t>) {
+				m_value = static_cast<int64_t>(value);
+			}
 			else {
 				OTNObjectBuilder builder;
-				// cast const, because ToOTNDataType needs a none const reference
+				// cast const, because ToOTNDataType needs a non-const reference
 				ToOTNDataType<DT>(builder, static_cast<U>(value));
 				if (!builder.IsValid()) {
 					AddError(builder.GetError());
@@ -1356,10 +1362,12 @@ namespace OTN {
 	}
 
 	template<typename T>
-	bool OTNObjectBuilder::AddSingleData(T& data) {
+	bool OTNObjectBuilder::AddSingleData(T&& data) {
+		using U = std::decay_t<T>;
+
 		if (m_otnObjectFromT) {
 			// Serialize: T -> OTNObject
-			OTNDataType<std::decay_t<T>> wrappedData(std::forward<T>(data));
+			OTNDataType<U> wrappedData(std::forward<T>(data));
 			if (!wrappedData.m_valid) {
 				AddError("OTNObjectBuilder: failed to serialize data: " + wrappedData.m_error);
 				return false;
@@ -1373,11 +1381,12 @@ namespace OTN {
 				return false;
 			}
 			OTNValue& val = m_data[m_dataPos++];
-			if (!DeserializeFromOTNValue<T>(val, data)) {
+			if (!DeserializeFromOTNValue<U>(val, data)) {
 				AddError("OTNObjectBuilder: failed to deserialize value");
 				return false;
 			}
 		}
+
 		return true;
 	}
 
