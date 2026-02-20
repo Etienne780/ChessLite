@@ -10,6 +10,10 @@ namespace CoreChess {
 
 	constexpr uint32_t CONFIG_VERSION = 1;
 
+	ChessContext::ChessContext(const std::string& config) {
+		SetPerConfigString(config);
+	}
+
 	ChessBoard ChessContext::GenerateBoard() {
 		ChessBoard board{ m_boardWidth, m_boardHeight };
 		ApplyBoardCommands(board);

@@ -3,6 +3,7 @@
 #include "LayerSystem/Layers/MainMenuLayer.h"
 
 #include "App.h"
+#include "FilePaths.h"
 #include "Styles/Comman/Style.h"
 #include "UIComponents/Button.h"
 
@@ -46,6 +47,7 @@ namespace Layers {
 
 			if (UIComp::DrawButton("btn_back_to_menu", "Back To Menu", Style::commanBTNBase)) {
 				Log::Debug("GameResult: BackToMenu");
+				ctx->agentManager.Save(FilePaths::GetDataPath());
 				ctx->app->ClearLayers();
 				ctx->app->PushLayer<MainMenuLayer>();
 			}

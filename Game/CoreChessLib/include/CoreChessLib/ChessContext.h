@@ -31,6 +31,7 @@ namespace CoreChess {
 	class ChessContext {
 	public:
 		ChessContext() = default;
+		ChessContext(const std::string& config);
 
 		/**
 		* @brief Generates a ChessBoard based on the current context setup.

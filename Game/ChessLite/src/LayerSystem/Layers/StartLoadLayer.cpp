@@ -87,6 +87,7 @@ namespace Layers {
 			auto& next = m_loadingSections[m_currentSectionIndex];
 			m_currentSectionName = next.name;
 
+			m_progress = 0.0f;
 			next.loader->LoadAsync();
 		}
 		else {
