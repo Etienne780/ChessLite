@@ -69,7 +69,7 @@ if (reader.ReadFile("data.otn")) {
 struct Vector2 { float x, y; };
 
 template<>
-void OTN::ToOTNDataType<Vector2>(OTN::OTNObjectBuilder& obj, Vector2& v) {
+inline void OTN::ToOTNDataType<Vector2>(OTN::OTNObjectBuilder& obj, Vector2& v) {
     obj.SetObjectName("Vector2");
     obj.AddNames("x", "y");
     obj.AddData(v.x, v.y);
@@ -81,7 +81,7 @@ void OTN::ToOTNDataType<Vector2>(OTN::OTNObjectBuilder& obj, Vector2& v) {
 *
 * @code
 template<>
-void OTN::ToOTNDataType<Vector2>(OTN::OTNObjectBuilder& obj, Vector2& e) {
+inline void OTN::ToOTNDataType<Vector2>(OTN::OTNObjectBuilder& obj, Vector2& e) {
     obj.SetObjectName("Vector2");
     obj.AddNames("list");
 
