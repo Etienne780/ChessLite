@@ -43,6 +43,7 @@ public:
 	int GetMatchesLostAsWhite() const;
 	int GetMatchesLostAsBlack() const;
 
+	bool IsAgentCurrentlyWhite() const;
 	float GetExplorationChance() const;
 	const std::unordered_map<std::string, BoardState>& GetNormilzedBoardStates() const;
 	const std::vector<std::pair<std::string, size_t>>& GetMoveHistory() const;

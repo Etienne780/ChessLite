@@ -121,6 +121,10 @@ int Agent::GetMatchesLostAsBlack() const {
 	return GetMatchesWonAsWhite();
 }
 
+bool Agent::IsAgentCurrentlyWhite() const {
+	return m_isWhite;
+}
+
 float Agent::GetExplorationChance() const {
 	// hits null at ca 15 games played
 	double y = -0.005 * std::pow(m_matchesPlayed, 2) + 1;
