@@ -17,6 +17,7 @@ namespace OTN {
 		static const std::unordered_map<std::string_view, OTNBaseType> table = {
 			{ SynTypes::INT,  OTNBaseType::INT },
 			{ SynTypes::INT64,  OTNBaseType::INT64 },
+			{ SynTypes::UINT64,  OTNBaseType::UINT64 },
 			{ SynTypes::FLOAT, OTNBaseType::FLOAT },
 			{ SynTypes::DOUBLE, OTNBaseType::DOUBLE },
 			{ SynTypes::BOOL,   OTNBaseType::BOOL },
@@ -36,6 +37,7 @@ namespace OTN {
 		switch (type) {
 		case OTN::OTNBaseType::INT:     return SynTypes::INT;
 		case OTN::OTNBaseType::INT64:     return SynTypes::INT64;
+		case OTN::OTNBaseType::UINT64:     return SynTypes::UINT64;
 		case OTN::OTNBaseType::FLOAT:   return SynTypes::FLOAT;
 		case OTN::OTNBaseType::DOUBLE:  return SynTypes::DOUBLE;
 		case OTN::OTNBaseType::BOOL:    return SynTypes::BOOL;
@@ -59,6 +61,7 @@ namespace OTN {
 		switch (type.baseType) {
 		case OTNBaseType::INT:
 		case OTNBaseType::INT64:
+		case OTNBaseType::UINT64:
 		case OTNBaseType::FLOAT:
 		case OTNBaseType::DOUBLE:
 		case OTNBaseType::BOOL:
@@ -929,6 +932,10 @@ namespace OTN {
 			HashCombine(hash, std::hash<int64_t>{}(std::get<int64_t>(value.value)));
 			break;
 
+		case OTNBaseType::UINT64:
+			HashCombine(hash, std::hash<uint64_t>{}(std::get<uint64_t>(value.value)));
+			break;
+
 		case OTNBaseType::FLOAT:
 			HashCombine(hash, std::hash<float>{}(std::get<float>(value.value)));
 			break;
@@ -1482,6 +1489,9 @@ namespace OTN {
 		case OTNBaseType::INT64:
 			WriteData(outStr, std::get<int64_t>(data.value));
 			break;
+		case OTNBaseType::UINT64:
+			WriteData(outStr, std::get<uint64_t>(data.value));
+			break;
 		case OTNBaseType::FLOAT:
 			WriteData(outStr, std::get<float>(data.value));
 			break;
@@ -1530,6 +1540,9 @@ namespace OTN {
 			outStr += ToString(data);
 		}
 		else if constexpr (std::is_same_v<DT, int64_t>) {
+			outStr += ToString(data);
+		}
+		else if constexpr (std::is_same_v<DT, uint64_t>) {
 			outStr += ToString(data);
 		}
 		else if constexpr (std::is_same_v<DT, float>) {
@@ -2454,6 +2467,7 @@ namespace OTN {
 		switch (type.baseType) {
 		case OTN::OTNBaseType::INT:
 		case OTN::OTNBaseType::INT64:
+		case OTN::OTNBaseType::UINT64:
 		case OTN::OTNBaseType::FLOAT:
 		case OTN::OTNBaseType::DOUBLE:
 		case OTN::OTNBaseType::BOOL:
@@ -2554,6 +2568,8 @@ namespace OTN {
 			return OTNValue(ParseNumericToken<int>(token, this));
 		case OTNBaseType::INT64:
 			return OTNValue(ParseNumericToken<int64_t>(token, this));
+		case OTNBaseType::UINT64:
+			return OTNValue(ParseNumericToken<uint64_t>(token, this));
 		case OTNBaseType::FLOAT:
 			return OTNValue(ParseNumericToken<float>(token, this));
 		case OTNBaseType::DOUBLE:

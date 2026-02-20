@@ -148,6 +148,7 @@ namespace OTN {
 		namespace Types {
 			inline constexpr std::string_view INT = "int";
 			inline constexpr std::string_view INT64 = "int64";
+			inline constexpr std::string_view UINT64 = "uint64";
 			inline constexpr std::string_view FLOAT = "float";
 			inline constexpr std::string_view DOUBLE = "double";
 			inline constexpr std::string_view BOOL = "bool";
@@ -179,6 +180,7 @@ namespace OTN {
 	enum class OTNBaseType {
 		UNKNOWN = 0,
 		INT,
+		UINT64,
 		INT64,
 		FLOAT,
 		DOUBLE,
@@ -313,6 +315,7 @@ namespace OTN {
 	using OTNValueVariant = std::variant<
 		int,
 		int64_t,
+		uint64_t,
 		float,
 		double,
 		bool,
@@ -333,6 +336,10 @@ namespace OTN {
 
 	template<> struct OTNTypeOf<int64_t> {
 		static constexpr OTNBaseType value = OTNBaseType::INT64;
+	};
+
+	template<> struct OTNTypeOf<uint64_t> {
+		static constexpr OTNBaseType value = OTNBaseType::UINT64;
 	};
 
 	template<> struct OTNTypeOf<float> {
@@ -473,6 +480,7 @@ namespace OTN {
 	
 	template<> struct is_otn_base_type<int> : std::true_type {};
 	template<> struct is_otn_base_type<int64_t> : std::true_type {};
+	template<> struct is_otn_base_type<uint64_t> : std::true_type {};
 	template<> struct is_otn_base_type<float> : std::true_type {};
 	template<> struct is_otn_base_type<double> : std::true_type {};
 	template<> struct is_otn_base_type<bool> : std::true_type {};
@@ -595,7 +603,7 @@ namespace OTN {
 		* the first row of data added.
 		*
 		* Supported type strings include for example:
-		* "int", "int64", "float", "String", "objectName", "int[]".
+		* "int", "int64", "uint64", "float", "String", "objectName", "int[]".
 		*
 		* Use "-", "", or "_" to indicate skip the definition of this type.
 		* Type will automaticly be deduced if a row is inserted.
@@ -1270,8 +1278,7 @@ namespace OTN {
 				m_value = value;
 			}
 			else if constexpr (std::is_same_v<DT, uint32_t> ||
-				std::is_same_v<DT, unsigned int> ||
-				std::is_same_v<DT, uint64_t>) {
+				std::is_same_v<DT, unsigned int>) {
 				m_value = static_cast<int64_t>(value);
 			}
 			else {
@@ -2015,6 +2022,9 @@ namespace OTN {
 					}
 					else if constexpr (std::is_same_v<T, int64_t>) {
 						value = std::stoll(text);
+					}
+					else if constexpr (std::is_same_v<T, uint64_t>) {
+						value = std::stoull(text);
 					}
 					else if constexpr (std::is_same_v<T, float>) {
 						value = std::stof(text);
