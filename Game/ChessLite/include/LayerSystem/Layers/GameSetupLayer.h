@@ -18,6 +18,8 @@ namespace Layers {
 		LayerID GetLayerID() const override;
 
 	private:
+		LayerEventSubscriptionID m_menuCloseEventID;
+
 		SDLCore::UI::UIStyle m_styleRoot;
 		SDLCore::UI::UIStyle m_styleMenu;
 		SDLCore::UI::UIStyle m_stylePlayerContainer;
@@ -25,6 +27,8 @@ namespace Layers {
 
 		PlayerType m_player1 = PlayerType::PLAYER;
 		PlayerType m_player2 = PlayerType::PLAYER;
+
+		bool m_agentSelectOpen = false;
 	};
 
 }

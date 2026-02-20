@@ -17,6 +17,13 @@ namespace UIComp = UIComponent;
 namespace Layers {
 	
 	void GameSetupLayer::OnStart(AppContext* ctx) {
+		m_menuCloseEventID = ctx->app->SubscribeToLayerEvent<LayerEventType::CLOSED>(
+		[&](const LayerEvent& e) -> void {
+			if (e.layerID == LayerID::AGENT_SELECT) {
+				m_agentSelectOpen = false;
+			}
+		});
+		
 		namespace Prop = UI::Properties;
 
 		m_styleRoot
@@ -65,7 +72,7 @@ namespace Layers {
 
 				UI::BeginFrame(Key("player_container"), m_stylePlayerContainer);
 				{
-					if (UIComp::DrawButton("player1", FormatUtils::toString(m_player1), Style::commanBTNBase)) {
+					if (UIComp::DrawButton("player1", FormatUtils::toString(m_player1), Style::commanBTNBase) && !m_agentSelectOpen) {
 						m_player1 = (m_player1 == PlayerType::PLAYER) ?
 							PlayerType::AI :
 							PlayerType::PLAYER;
@@ -73,7 +80,7 @@ namespace Layers {
 
 					UI::Text(Key("vs_text"), "vs", Style::commanTextBase);
 
-					if (UIComp::DrawButton("player2", FormatUtils::toString(m_player2), Style::commanBTNBase)) {
+					if (UIComp::DrawButton("player2", FormatUtils::toString(m_player2), Style::commanBTNBase) && !m_agentSelectOpen) {
 						m_player2 = (m_player2 == PlayerType::PLAYER) ?
 							PlayerType::AI :
 							PlayerType::PLAYER;
@@ -81,11 +88,17 @@ namespace Layers {
 				}
 				UI::EndFrame();
 
-				bool hasAgentSelected = 
-					m_player1 == PlayerType::AI || 
+				if (UIComp::DrawButton("btn_start_game", "Start Game", Style::commanBTNBase) && !m_agentSelectOpen) {
+					Log::Debug("GameSetupLayer: game");
+					ctx->app->ClearLayers();
+					ctx->app->PushLayer<GameLayer>(m_player1, m_player2);
+				}
+
+				bool hasAgentSelected =
+					m_player1 == PlayerType::AI ||
 					m_player2 == PlayerType::AI;
-			
-				if (UIComp::DrawButton("btn_select_agent", "Select Agent", Style::commanBTNBase) && hasAgentSelected) {
+
+				if (UIComp::DrawButton("btn_select_agent", "Select Agent", Style::commanBTNBase) && hasAgentSelected && !m_agentSelectOpen) {
 					Log::Debug("GameSetupLayer: Select Agent");
 					AgentSelectMode selectMode = AgentSelectMode::AGENT_1_ONLY;
 
@@ -95,16 +108,11 @@ namespace Layers {
 					else if (m_player2 == PlayerType::AI)
 						selectMode = AgentSelectMode::AGENT_2_ONLY;
 
+					m_agentSelectOpen = true;
 					ctx->app->PushLayer<AgentSelect>(selectMode);
 				}
 
-				if (UIComp::DrawButton("btn_start_game", "Start Game", Style::commanBTNBase)) {
-					Log::Debug("GameSetupLayer: game");
-					ctx->app->ClearLayers();
-					ctx->app->PushLayer<GameLayer>(m_player1, m_player2);
-				}
-
-				if (UIComp::DrawButton("btn_back", "Back", Style::commanBTNBase)) {
+				if (UIComp::DrawButton("btn_back", "Back", Style::commanBTNBase) && !m_agentSelectOpen) {
 					Log::Debug("GameSetupLayer: Back");
 					ctx->app->ClearLayers();
 					ctx->app->PushLayer<MainMenuLayer>();
@@ -116,7 +124,7 @@ namespace Layers {
 	}
 
 	void GameSetupLayer::OnQuit(AppContext* ctx) {
-
+		ctx->app->UnsubscribeToLayerEvent(LayerEventType::CLOSED, m_menuCloseEventID);
 	}
 
 	LayerID GameSetupLayer::GetLayerID() const {
