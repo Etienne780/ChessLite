@@ -1,8 +1,43 @@
 #include <cmath>
 #include "AI/Agent.h"
 
-Agent::Agent(const std::string& name, const CoreChess::ChessContext& context)
-	: m_name(name), m_chessConfigString(context.GetConfigString()) {
+Agent::Agent(const std::string& name, const std::string& config)
+	: m_name(name), m_chessConfigString(config) {
+}
+
+void Agent::GameFinished(bool won) {
+	float reward = won ? 1.0f : -1.0f;
+	float reductionAmount = 0.2f;
+	float currentReward = reward;
+
+	for (auto itHistory = m_moveHistory.rbegin(); itHistory != m_moveHistory.rend(); ++itHistory) {
+		auto& [stateKey, moveIndex] = *itHistory;
+
+		auto it = m_boardStates.find(stateKey);
+		if (it != m_boardStates.end()) {
+			auto& move = it->second.GetMove(moveIndex);
+			move.AddEvaluation(currentReward);
+		}
+
+		currentReward *= reductionAmount;
+	}
+
+	m_gameFinished = true;
+
+	m_matchesPlayed++;
+	if (won)
+		m_matchesWon++;
+	if (m_isWhite)
+		m_matchesPlayedAsWhite++;
+	if (won && m_isWhite)
+		m_matchesWonAsWhite++;
+}
+
+void Agent::LoadPersistentData(const AgentPersistentData& data) {
+	m_matchesPlayed = data.matchesPlayed;
+	m_matchesWon = data.matchesWon;
+	m_matchesPlayedAsWhite = data.matchesPlayedAsWhite;
+	m_matchesWonAsWhite = data.matchesWonAsWhite;
 }
 
 const GameMove& Agent::GetBestMove(const CoreChess::ChessGame& game) {
@@ -36,34 +71,6 @@ const GameMove& Agent::GetBestMove(const CoreChess::ChessGame& game) {
 
 	m_moveHistory.emplace_back(state, moveIndex);
 	return boardStatePtr->GetMove(moveIndex);
-}
-
-void Agent::GameFinished(bool won) {
-	float reward = won ? 1.0f : -1.0f;
-	float reductionAmount = 0.2f;
-	float currentReward = reward;
-
-	for (auto itHistory = m_moveHistory.rbegin(); itHistory != m_moveHistory.rend(); ++itHistory) {
-		auto& [stateKey, moveIndex] = *itHistory;
-
-		auto it = m_boardStates.find(stateKey);
-		if (it != m_boardStates.end()) {
-			auto& move = it->second.GetMove(moveIndex);
-			move.AddEvaluation(currentReward);
-		}
-
-		currentReward *= reductionAmount;
-	}
-
-	m_gameFinished = true;
-	
-	m_matchesPlayed++;
-	if (won)
-		m_matchesWon++;
-	if(m_isWhite)
-		m_matchesPlayedAsWhite++;
-	if (won && m_isWhite)
-		m_matchesWonAsWhite++;
 }
 
 AgentID Agent::GetID() const {

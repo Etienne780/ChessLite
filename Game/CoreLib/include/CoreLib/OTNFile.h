@@ -1316,27 +1316,55 @@ namespace OTN {
 		using DT = std::decay_t<T>;
 
 		if constexpr (is_otn_base_type_v<DT>) {
-			try { return std::get<DT>(val.value); }
-			catch (...) { return std::nullopt; }
+			try { 
+				return std::get<DT>(val.value); 
+			}
+			catch (...) { 
+				return std::nullopt; 
+			}
 		}
 		else if constexpr (otn_is_std_vector<DT>::value) {
-			if (val.type != OTNBaseType::LIST) return std::nullopt;
+			if (val.type != OTNBaseType::LIST) 
+				return std::nullopt;
+
 			OTNArrayPtr ptr = std::get<OTNArrayPtr>(val.value);
-			if (!ptr) return std::nullopt;
+			if (!ptr) 
+				return std::nullopt;
+
 			DT result;
 			using ElemType = typename DT::value_type;
 			result.reserve(ptr->values.size());
 			for (const OTNValue& elem : ptr->values) {
 				auto conv = TryDeserializeValue<ElemType>(elem);
-				if (!conv) return std::nullopt;
+				if (!conv) 
+					return std::nullopt;
 				result.push_back(std::move(*conv));
 			}
 			return result;
 		}
+		else if constexpr (std::is_same_v<DT, OTNObject>) {
+			if (val.type != OTNBaseType::OBJECT)
+				return std::nullopt;
+
+			try {
+				OTNObjectPtr ptr = std::get<OTNObjectPtr>(val.value);
+				if (!ptr)
+					return std::nullopt;
+
+				return *ptr;
+			}
+			catch (...) {
+				return std::nullopt;
+			}
+		}
 		else {
-			if (val.type != OTNBaseType::OBJECT) return std::nullopt;
+			if (val.type != OTNBaseType::OBJECT) 
+				return std::nullopt;
+
 			OTNObjectPtr ptr = std::get<OTNObjectPtr>(val.value);
-			if (!ptr || ptr->GetRowCount() != 1) return std::nullopt;
+			if (!ptr || ptr->GetRowCount() != 1) 
+				return std::nullopt;
+
 			OTNObjectBuilder builder{ *ptr };  // jetzt vollständig bekannt
 			T result{};
 			ToOTNDataType<DT>(builder, result);

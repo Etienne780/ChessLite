@@ -2096,6 +2096,9 @@ namespace OTN {
 		}
 
 		const auto& targetRows = targetObject->GetDataRows();
+		if (targetRows.empty())
+			return true;
+
 		if (ref.index >= targetRows.size()) {
 			AddError(
 				"Object reference index out of bounds: index " +

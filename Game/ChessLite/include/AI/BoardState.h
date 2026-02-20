@@ -9,6 +9,8 @@ public:
 	BoardState(const std::string& state, const CoreChess::ChessGame& game);
 	~BoardState() = default;
 
+	void LoadGameMoves(const std::vector<GameMove>& moves);
+
 	size_t GetBestMove(float explorationChance = 0.1f);
 
 	GameMove& GetMove(size_t index);

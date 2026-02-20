@@ -29,6 +29,8 @@ namespace Layers {
 		float m_listScrollVelocity = 0.0f;
 		float m_scrollSpeed = 600.0f;
 		float m_scrollDrag = 10.0f;
+		float m_saveTimer = 0.0f;
+		const float m_saveTimerDuration = 2.0f;
 
 		bool m_isAddingAgent = false;
 		std::string m_newAgentName = "";

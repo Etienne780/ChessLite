@@ -12,6 +12,136 @@ namespace Layers {
 	void StartLoadLayer::OnStart(AppContext* ctx) {
 		m_loadTime = Random::GetRangeNumber(m_loadTimeMin, m_loadTimeMax);
 
+		AddLoadingSectionAssets();
+		AddLoadingSectionData();
+
+		if (!m_loadingSections.empty()) {
+			m_currentSectionIndex = 0;
+			m_loadingSections[0].loader->LoadAsync();
+			m_currentSectionName = m_loadingSections[0].name;
+		}
+	}
+
+	void StartLoadLayer::OnUpdate(AppContext* ctx) {
+		m_RefDisplaySize = ctx->refDisplaySize;
+		m_displaySize = ctx->displaySize;
+		m_windowSize = ctx->windowSize;
+
+		float dt = SDLCore::Time::GetDeltaTimeSecF();
+
+		if (m_allSectionsFinished) {
+			// final delay before switching layer
+			m_currentStartDelay += dt;
+			if (m_currentStartDelay >= m_startDelay) {
+				RegistSkins(ctx);
+				ctx->app->ClearLayers();
+				ctx->app->PushLayer<MainMenuLayer>();
+			}
+			return;
+		}
+
+		if (m_currentSectionIndex >= m_loadingSections.size()) {
+			m_allSectionsFinished = true;
+			m_progress = 100;
+			m_currentStartDelay = 0.0f;
+			return;
+		}
+
+		auto& section = m_loadingSections[m_currentSectionIndex];
+		auto& loader = section.loader;
+
+		if (!loader->IsFinished()) {
+
+			float progress = float(loader->GetLoadedCount()) /
+				float(loader->GetTotalCount());
+
+			m_progress = static_cast<int>(progress * 100.0f);
+
+			if (m_progress >= 100)
+				m_progress = 99;
+
+			return;
+		}
+
+		if (!m_isHoldingSection) {
+			m_isHoldingSection = true;
+			m_loadTime = Random::GetRangeNumber(m_loadTimeMin, m_loadTimeMax);
+			m_currentLoadTime = 0.0f;
+			m_progress = 99;
+		}
+
+		m_currentLoadTime += dt;
+		if (m_currentLoadTime < m_loadTime)
+			return;
+
+		loader->Wait();
+		ctx->resourcesManager.RegisterLoadedResources(*loader);
+
+		if (section.onFinished)
+			section.onFinished(ctx, *loader);
+
+		m_currentSectionIndex++;
+		m_isHoldingSection = false;
+
+		if (m_currentSectionIndex < m_loadingSections.size()) {
+			auto& next = m_loadingSections[m_currentSectionIndex];
+			m_currentSectionName = next.name;
+
+			next.loader->LoadAsync();
+		}
+		else {
+			m_allSectionsFinished = true;
+			m_progress = 100;
+			m_currentStartDelay = 0.0f;
+		}
+	}
+
+	void StartLoadLayer::OnRender(AppContext* ctx) {
+		namespace RE = SDLCore::Render;
+
+		Vector4 colorAccent;
+		SDLCore::UI::UIRegistry::TryGetRegisteredColor(Style::commanColorAccent, colorAccent);
+
+		float scaleX = m_displaySize.x / m_RefDisplaySize.x;
+		float scaleY = m_displaySize.y / m_RefDisplaySize.y;
+		float displayScale = std::min(scaleX, scaleY);
+
+		float loadingBarYOffset = 25.0f * displayScale;
+		float winXHalf = m_windowSize.x * 0.5f;
+		float winYHalf = m_windowSize.y * 0.5f;
+
+		float loadingBarH = 56.0f * displayScale;
+		float loadingBarW = (m_windowSize.x - 128.0f) * displayScale;
+		float loadingFill = loadingBarW * (static_cast<float>(m_progress) / 100.0f);
+
+		RE::SetColor(colorAccent);
+		RE::SetStrokeWidth(4.0f * displayScale);
+		RE::FillRect(winXHalf - loadingBarW * 0.5f, winYHalf + loadingBarYOffset, loadingFill, loadingBarH);
+
+		RE::SetColor(255);
+		RE::SetTextAlign(SDLCore::Align::CENTER);
+		RE::SetTextSize(64.0f * displayScale);
+		RE::Text("ChessLite", winXHalf, winYHalf - 64.0f * displayScale);
+
+		RE::SetTextSize(48.0f * displayScale);
+		RE::Text(m_currentSectionName.c_str(), winXHalf, winYHalf - 16.0f * displayScale + loadingBarYOffset);
+
+		RE::SetTextSize(32.0f * displayScale);
+		RE::TextF(winXHalf, winYHalf + loadingBarH * 0.5f + loadingBarYOffset, "{}/100%", m_progress);
+		RE::Rect(winXHalf - loadingBarW * 0.5f, winYHalf + loadingBarYOffset, loadingBarW, loadingBarH);
+	}
+
+	void StartLoadLayer::OnUIRender(AppContext* ctx) {
+	}
+
+	void StartLoadLayer::OnQuit(AppContext* ctx) {
+	}
+	
+	LayerID StartLoadLayer::GetLayerID() const {
+		return LayerID::START_LOAD;
+	}
+
+	void StartLoadLayer::AddLoadingSectionAssets() {
 		SystemFilePath bPath = FilePaths::GetAssetsPath();
 
 		std::vector<ResourceRequest> requests{
@@ -27,82 +157,103 @@ namespace Layers {
 			{ ResourceType::TEXTURE, SkinKeys::SPACE_LIGHT, bPath / "Space_Light.png" },
 		};
 
-		m_loader = std::make_unique<ResourceLoader>(std::move(requests));
-		m_loader->LoadAsync();
+		AddLoadingSection("Assets", std::move(requests), nullptr);
 	}
 
-	void StartLoadLayer::OnUpdate(AppContext* ctx) {
-		m_RefDisplaySize = ctx->refDisplaySize;
-		m_displaySize = ctx->displaySize;
-		m_windowSize = ctx->windowSize;
+	void StartLoadLayer::AddLoadingSectionData() {
+		SystemFilePath bPath = FilePaths::GetDataPath();
 
-		m_currentLoadTime += SDLCore::Time::GetDeltaTimeSecF();
-		if (!m_loader->IsFinished()) {
-			float progress = float(m_loader->GetLoadedCount()) / float(m_loader->GetTotalCount());
-			m_progress = static_cast<int>(progress * 100.0f);
+		std::vector<ResourceRequest> requests{
+			{ ResourceType::DATA_OTN, bPath / "Agents.otn" }
+		};
+
+		AddLoadingSection(
+			"Data",
+			std::move(requests),
+			[this](AppContext* ctx, ResourceLoader& loader) {
+				RegisterData(ctx, loader);
+			}
+		);
+	}
+
+	void StartLoadLayer::AddLoadingSection(
+		std::string&& name,
+		std::vector<ResourceRequest>&& requests,
+		std::function<void(AppContext*, ResourceLoader&)> onFinished) {
+		m_loadingSections.emplace_back(
+			std::move(name),
+			std::move(requests),
+			std::move(onFinished)
+		);
+	}
+
+	void StartLoadLayer::RegisterData(AppContext* ctx, ResourceLoader& loader) {		
+		const auto& assets = loader.GetOTNObjects();
+		if (assets.empty())
 			return;
+
+		const auto& map = *(assets[0].asset);
+		for (const auto& [name, obj] : map) {
+			if (name == "Agent") {
+				RegisterAgent(ctx, obj);
+			}
 		}
-
-		m_progress = 99;
-		if (m_currentLoadTime < m_loadTime)
-			return;
-
-		m_progress = 100;
-		m_currentStartDelay += SDLCore::Time::GetDeltaTimeSecF();
-		if (m_currentStartDelay < m_startDelay)
-			return;
-
-		m_loader->Wait();
-
-		ctx->resourcesManager.RegisterLoadedResources(*m_loader.get());
-		
-		RegistSkins(ctx);
-		ctx->app->ClearLayers();
-		ctx->app->PushLayer<MainMenuLayer>();
 	}
 
-	void StartLoadLayer::OnRender(AppContext* ctx) {
-		namespace RE = SDLCore::Render;
+	void StartLoadLayer::RegisterAgent(AppContext* ctx, const OTN::OTNObject& agentOTN) {
+		auto& am = ctx->agentManager;
+		const auto& obj = agentOTN;
 
-		Vector4 colorAccent;
-		SDLCore::UI::UIRegistry::TryGetRegisteredColor(Style::commanColorAccent, colorAccent);
+		for (size_t i = 0; i < obj.GetColumnCount(); i++) {
+			auto id = obj.TryGetValue<int64_t>(i, "server_id");
+			auto name = obj.TryGetValue<std::string>(i, "name");
+			auto boardState = obj.TryGetValue<OTN::OTNObject>(i, "board_states");
+			auto config = obj.TryGetValue<std::string>(i, "config");
 
-		float scaleX = m_displaySize.x / m_RefDisplaySize.x;
-		float scaleY = m_displaySize.y / m_RefDisplaySize.y;
-		float displayScale = std::min(scaleX, scaleY);
+			auto matchesPlayed = obj.TryGetValue<int>(i, "matches_played");
+			auto matchesWon = obj.TryGetValue<int>(i, "matches_won");
 
-		float winXHalf = m_windowSize.x * 0.5f;
-		float winYHalf = m_windowSize.y * 0.5f;
+			auto matchesPlayedWhite = obj.TryGetValue<int>(i, "matches_played_white");
+			auto matchesWonWhite = obj.TryGetValue<int>(i, "matches_won_white");
 
-		float loadingBarH = 56.0f * displayScale;
-		float loadingBarW = (m_windowSize.x - 128.0f) * displayScale;
-		float loadingFill = loadingBarW * (static_cast<float>(m_progress) / 100.0f);
+			if (!id || !name || !config)
+				continue;
 
-		RE::SetColor(colorAccent);
-		RE::SetStrokeWidth(4.0f * displayScale);
-		RE::FillRect(winXHalf - loadingBarW * 0.5f, winYHalf, loadingFill, loadingBarH);
+			Agent agent{ *name, *config };
+			AgentPersistentData data;
 
-		RE::SetColor(255);
-		RE::SetTextAlign(SDLCore::Align::CENTER);
-		RE::SetTextSize(64.0f * displayScale);
-		
-		RE::Text("ChessLite", winXHalf, winYHalf - 64.0f * displayScale);
+			if (matchesPlayed)
+				data.matchesPlayed = *matchesPlayed;
 
-		RE::SetTextSize(32.0f * displayScale);
-		RE::TextF(winXHalf, winYHalf + loadingBarH * 0.5f, "{}/100%", m_progress);
-		RE::Rect(winXHalf - loadingBarW * 0.5f, winYHalf, loadingBarW, loadingBarH);
+			if (matchesWon)
+				data.matchesWon = *matchesWon;
+
+			if (matchesPlayedWhite)
+				data.matchesPlayedAsWhite = *matchesPlayedWhite;
+
+			if (matchesWonWhite)
+				data.matchesWonAsWhite = *matchesWonWhite;
+
+			if (boardState) {
+				auto& bState = *boardState;
+				std::unordered_map<std::string, BoardState> states;
+				for (size_t i = 0; i < bState.GetColumnCount(); i++) {
+					auto stateStr = bState.TryGetValue<std::string>(i, "board_state");
+					auto moves = bState.TryGetValue<std::vector<GameMove>>(i, "moves");
+
+					if (!stateStr || !moves)
+						continue;
+
+					BoardState b;
+					b.LoadGameMoves(*moves);
+					states[*stateStr] = b;
+				}
+			}
+
+			agent.LoadPersistentData(data);
+			ctx->agentManager.AddAgent(agent);
+		}
 	}
-
-	void StartLoadLayer::OnUIRender(AppContext* ctx) {
-	}
-
-	void StartLoadLayer::OnQuit(AppContext* ctx) {
-	}
-	
-	LayerID StartLoadLayer::GetLayerID() const {
-		return LayerID::START_LOAD;
-	}
-
 
 	void StartLoadLayer::RegistSkins(AppContext* ctx) {
 		ctx->skinManager.AddSkin(

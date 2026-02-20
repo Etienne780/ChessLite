@@ -1,5 +1,13 @@
 #include "ResourcesManagement/ResourceLoader.h"
 
+ResourceRequest::ResourceRequest(ResourceType _type, SystemFilePath _path) 
+    : type(_type), path(_path) {
+}
+
+ResourceRequest::ResourceRequest(ResourceType _type, const std::string& _key, SystemFilePath _path) 
+    : type(_type), key(_key), path(_path) {
+}
+
 ResourceLoader::ResourceLoader(std::vector<ResourceRequest>&& request)
     : m_requests(std::move(request)) {
 }
@@ -13,16 +21,18 @@ void ResourceLoader::AddRequest(const ResourceRequest& request) {
 }
 
 void ResourceLoader::LoadAsync() {
-    Wait();// Joins old thread
+    Wait(); // join old thread
 
     m_textures.clear();
     m_sounds.clear();
+    m_otnObjects.clear();
+
     m_finishedLoad = false;
     m_loadedCount = 0;
     m_totalCount = m_requests.size();
+
     m_thread = std::thread(&ResourceLoader::LoadInternal, this);
 }
-
 void ResourceLoader::Wait() {
     if (m_thread.joinable())
         m_thread.join();
@@ -50,19 +60,41 @@ ResourceLoader::GetSounds() const {
     return m_sounds;
 }
 
+const std::vector<LoadedOTNObjects>&
+ResourceLoader::GetOTNObjects() const {
+    return m_otnObjects;
+}
+
 void ResourceLoader::LoadInternal() {
-    for (auto& req : m_requests) {
+    int i;
+    for (const auto& req : m_requests) {
+
         switch (req.type) {
         case ResourceType::TEXTURE:
             m_textures.emplace_back(
-                std::move(req.key),
+                req.key,
                 std::make_shared<SDLCore::Texture>(req.path)
             );
             break;
 
+        case ResourceType::DATA_OTN: {
+            OTN::OTNReader reader;
+            if (reader.ReadFile(req.path)) {
+
+                auto objects = std::make_shared<
+                    std::unordered_map<std::string, OTN::OTNObject>
+                >(reader.GetObjects());
+
+                std::string msg = reader.GetError();
+
+                m_otnObjects.emplace_back(req.key, objects);
+            }
+            break;
+        }
+
         case ResourceType::AUDIO:
             m_sounds.emplace_back(
-                std::move(req.key),
+                req.key,
                 std::make_shared<SDLCore::SoundClip>(req.path)
             );
             break;
@@ -70,8 +102,9 @@ void ResourceLoader::LoadInternal() {
         default:
             break;
         }
+
         m_loadedCount++;
-        
+
         // Delay to slow down loading for testing
         // std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }

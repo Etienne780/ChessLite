@@ -9,16 +9,26 @@
 
 class AgentManager;
 
+struct AgentPersistentData {
+	int matchesPlayed = 0;
+	int matchesWon = 0;
+	int matchesPlayedAsWhite = 0;
+	int matchesWonAsWhite = 0;
+};
+
 class Agent {
 friend class AgentManager;
 public:
 	Agent() = default;
-	Agent(const std::string& name, const CoreChess::ChessContext& context);
+	Agent(const std::string& name, const std::string& config);
 	~Agent() = default;
 
-	const GameMove& GetBestMove(const CoreChess::ChessGame& game);
 
 	void GameFinished(bool won);
+
+	void LoadBoardState();
+	void LoadPersistentData(const AgentPersistentData& data);
+	const GameMove& GetBestMove(const CoreChess::ChessGame& game);
 
 	AgentID GetID() const;
 	const std::string& GetName() const;

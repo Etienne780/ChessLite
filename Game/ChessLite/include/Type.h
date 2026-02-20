@@ -39,6 +39,7 @@ enum class PlayerType {
 enum class ResourceType {
 	UNKOWN = 0,
 	TEXTURE,
+	DATA_OTN,
 	AUDIO
 };
 

@@ -1,5 +1,6 @@
 ﻿#include "LayerSystem/Layers/AgentSelectLayer.h"
 #include "App.h"
+#include "FilePaths.h"
 
 namespace Layers {
 
@@ -24,14 +25,65 @@ namespace Layers {
         RE::FillRect(0, 0, W, H);
 
         float headerH = 60.0f;
-        RE::SetColor(30);
-        RE::FillRect(0, 0, W, headerH);
+        const float backBtnW = 100.0f;
+        const float backBtnH = 38.0f;
+        float backBtnX = 15.0f;
+        float backBtnY = headerH * 0.5f - backBtnH * 0.5f;
+
+        bool backHovered = IsPointInRect(SDLCore::Input::GetMousePosition(), backBtnX, backBtnY, backBtnW, backBtnH);
+        RE::SetColor(backHovered ? 45 : 30);
+        RE::FillRect(backBtnX, backBtnY, backBtnW, backBtnH);
+        RE::SetStrokeWidth(1);
+        RE::SetColor(backHovered ? 100 : 55);
+        RE::Rect(backBtnX, backBtnY, backBtnW, backBtnH);
+
+        RE::SetTextSize(22.0f);
+        std::string backLabel = "< Back";
+        float blw = RE::GetTextWidth(backLabel);
+        RE::SetColor(backHovered ? 220 : 150);
+        RE::Text(backLabel, backBtnX + (backBtnW - blw) * 0.5f, backBtnY + (backBtnH - RE::GetTextHeight()) * 0.5f);
+
+        if (SDLCore::Input::MouseJustPressed(SDLCore::MouseButton::LEFT)
+            && IsPointInRect(SDLCore::Input::GetMousePosition(), backBtnX, backBtnY, backBtnW, backBtnH)) {
+            ctx->app->PopLayer();
+        }
+
         RE::SetTextSize(32.0f);
         RE::SetColor(220);
-        RE::Text("Select Agent", 20, headerH * 0.5f - RE::GetTextHeight() * 0.5f);
+        float titleW = RE::GetTextWidth("Select Agent");
+        RE::Text("Select Agent", (W - titleW) * 0.5f, headerH * 0.5f - RE::GetTextHeight() * 0.5f);
+
+        const float saveBtnW = 130.0f;
+        const float saveBtnH = 38.0f;
+        float saveBtnX = W - saveBtnW - 15.0f;
+        float saveBtnY = headerH * 0.5f - saveBtnH * 0.5f;
+
+        bool saveHovered = IsPointInRect(SDLCore::Input::GetMousePosition(), saveBtnX, saveBtnY, saveBtnW, saveBtnH);
+        RE::SetColor(m_saveTimer > 0.0f ? 30 : (saveHovered ? 40 : 28),
+            m_saveTimer > 0.0f ? 65 : (saveHovered ? 55 : 40),
+            m_saveTimer > 0.0f ? 30 : (saveHovered ? 40 : 28));
+        RE::FillRect(saveBtnX, saveBtnY, saveBtnW, saveBtnH);
+        RE::SetStrokeWidth(1);
+        RE::SetColor(m_saveTimer > 0.0f ? Vector3(60, 180, 60) : Vector3(55));
+        RE::Rect(saveBtnX, saveBtnY, saveBtnW, saveBtnH);
+
+        RE::SetTextSize(22.0f);
+        std::string saveLabel = (m_saveTimer > 0.0f) ? "Saved!" : "Save";
+        float slw = RE::GetTextWidth(saveLabel);
+        RE::SetColor(m_saveTimer > 0.0f ? Vector3(120, 220, 120) : Vector3(180));
+        RE::Text(saveLabel, saveBtnX + (saveBtnW - slw) * 0.5f, saveBtnY + (saveBtnH - RE::GetTextHeight()) * 0.5f);
+
+        if (SDLCore::Input::MouseJustPressed(SDLCore::MouseButton::LEFT)
+            && IsPointInRect(SDLCore::Input::GetMousePosition(), saveBtnX, saveBtnY, saveBtnW, saveBtnH)) {
+            ctx->agentManager.Save(FilePaths::GetDataPath());
+            m_saveTimer = m_saveTimerDuration;
+        }
+
+        if (m_saveTimer > 0.0f) {
+            m_saveTimer -= SDLCore::Time::GetDeltaTimeSecF();
+        }
 
         float y = headerH + 16.0f;
-
         float selBarH = 90.0f;
         RenderSelectionBar(ctx, 20, y, W - 40.0f, selBarH);
         y += selBarH + 12.0f;
@@ -58,8 +110,9 @@ namespace Layers {
         RenderAgentList(ctx, 20, y, W - 40.0f, H - y - 10.0f);
     }
 
-    void AgentSelect::OnQuit(AppContext* ctx) {}
-
+    void AgentSelect::OnQuit(AppContext* ctx) {
+        ctx->agentManager.Save(FilePaths::GetDataPath());
+    }
     LayerID AgentSelect::GetLayerID() const {
         return LayerID::AGENT_SELECT;
     }
@@ -165,7 +218,7 @@ namespace Layers {
             }
 
             if (SDLCore::Input::KeyJustPressed(SDLCore::KeyCode::RETURN) && !m_newAgentName.empty()) {
-                ctx->agentManager.AddAgent(Agent(m_newAgentName, ctx->currentContext));
+                ctx->agentManager.AddAgent(Agent(m_newAgentName, ctx->currentContext.GetConfigString()));
                 m_isAddingAgent = false;
                 m_newAgentName.clear();
                 m_cursorBlinkTimer = 0.0f;
@@ -213,7 +266,7 @@ namespace Layers {
         if (SDLCore::Input::MouseJustPressed(SDLCore::MouseButton::LEFT)
             && IsPointInRect(mPos, btnX, y, btnW, h)) {
             if (m_isAddingAgent && canConfirm) {
-                ctx->agentManager.AddAgent(Agent(m_newAgentName, ctx->currentContext));
+                ctx->agentManager.AddAgent(Agent(m_newAgentName, ctx->currentContext.GetConfigString()));
                 m_isAddingAgent = false;
                 m_newAgentName.clear();
                 m_cursorBlinkTimer = 0.0f;

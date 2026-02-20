@@ -3,6 +3,7 @@
 #include <atomic>
 #include <thread>
 #include <CoreLib/File.h>
+#include <CoreLib/OTNFile.h>
 #include <SDLCoreLib/SDLCore.h>
 
 #include "Type.h"
@@ -11,6 +12,9 @@ struct ResourceRequest {
     ResourceType type = ResourceType::UNKOWN;
     std::string key;
     SystemFilePath path;
+
+    ResourceRequest(ResourceType type, SystemFilePath path);
+    ResourceRequest(ResourceType type, const std::string& key, SystemFilePath path);
 };
 
 class ResourceLoader {
@@ -22,6 +26,10 @@ public:
 
         LoadedAsset(std::string _key, std::shared_ptr<T> _asset)
             : key(std::move(_key)), asset(std::move(_asset)) {
+        }
+
+        LoadedAsset(std::shared_ptr<T> _asset)
+            : asset(std::move(_asset)) {
         }
     };
 
@@ -40,6 +48,7 @@ public:
 
     const std::vector<LoadedAsset<SDLCore::Texture>>& GetTextures() const;
     const std::vector<LoadedAsset<SDLCore::SoundClip>>& GetSounds() const;
+    const std::vector<LoadedAsset<std::unordered_map<std::string, OTN::OTNObject>>>& GetOTNObjects() const;
 
 private:
     std::thread m_thread;
@@ -51,9 +60,11 @@ private:
 
     std::vector<LoadedAsset<SDLCore::Texture>> m_textures;
     std::vector<LoadedAsset<SDLCore::SoundClip>> m_sounds;
+    std::vector<LoadedAsset<std::unordered_map<std::string, OTN::OTNObject>>> m_otnObjects;
 
     void LoadInternal();
 };
 
 typedef ResourceLoader::LoadedAsset<SDLCore::Texture> LoadedTexture;
 typedef ResourceLoader::LoadedAsset<SDLCore::SoundClip> LoadedSoundClip;
+typedef ResourceLoader::LoadedAsset<std::unordered_map<std::string, OTN::OTNObject>> LoadedOTNObjects;

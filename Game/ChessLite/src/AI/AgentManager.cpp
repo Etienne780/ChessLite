@@ -4,12 +4,8 @@
 bool AgentManager::Save(const OTN::OTNFilePath& path) {
     using namespace OTN;
 
-    auto* app = App::GetInstance();
-    if (!app)
-        return false;
-
     OTNObject agentObj{ "Agent" };
-    agentObj.SetNames("id", "name", "board_states", "config",
+    agentObj.SetNames("server_id", "name", "board_states", "config",
         "matches_played", "matches_won", "matches_played_white", "matches_won_white");
     agentObj.SetTypes("int64", "String", "-", "String", "int", "int", "int", "int");
 
@@ -47,8 +43,7 @@ bool AgentManager::Save(const OTN::OTNFilePath& path) {
     OTNWriter writer;
     writer.AppendObject(agentObj);
 
-    auto exePath = app->GetBasePath();
-    if (!writer.Save(exePath / path / "Agents")) {
+    if (!writer.Save(path / "Agents")) {
         Log::Error("Failed to save agent data: {}", writer.GetError());
         return false;
     }

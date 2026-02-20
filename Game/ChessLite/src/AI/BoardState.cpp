@@ -10,6 +10,10 @@ BoardState::BoardState(const std::string& state,
 	m_possibleMoves = CalculatePossibleMoves(game);
 }
 
+void BoardState::LoadGameMoves(const std::vector<GameMove>& moves) {
+	m_possibleMoves = moves;
+}
+
 size_t BoardState::GetBestMove(float explorationChance) {
 	if (m_possibleMoves.empty())
 		throw std::runtime_error("No moves available");
