@@ -1,4 +1,5 @@
 ﻿#include "App.h"
+#include "FilePaths.h"
 #include "LayerSystem/Layers.h"
 #include "Styles/Comman/Style.h"
 #include "UIComponents/Button.h"
@@ -22,6 +23,9 @@ AppContext* App::GetContext() {
 }
 
 void App::OnStart() {
+    if(!FilePaths::InitPaths())
+        throw std::runtime_error("Failed to initialises paths");
+
     InitChessContext();
     InstantiateWindow();
     Style::Comman_InitStyles();
