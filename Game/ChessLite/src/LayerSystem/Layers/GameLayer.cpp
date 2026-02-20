@@ -115,10 +115,11 @@ namespace Layers {
 	}
 
 	void GameLayer::SetupGame(AppContext* ctx) {
+		m_game.SetGameContext(ctx->currentContext);
+		
 		m_pawnLightTexture = std::make_shared<SDLCore::Texture>(SDLCore::TEXTURE_FALLBACK_TEXTURE);
 		m_pawnDarkTexture = std::make_shared<SDLCore::Texture>(SDLCore::TEXTURE_FALLBACK_TEXTURE);
-		
-		m_game.SetGameContext(ctx->currentContext);
+		m_pawnID = ctx->pieceID;
 
 		m_agentID1 = ctx->selectedAgentID1;
 		m_agentID2 = ctx->selectedAgentID2;
@@ -174,25 +175,40 @@ namespace Layers {
 		if (!app) {
 			throw std::runtime_error("EvaluateAIs: app was nullptr!");
 		}
+
+		auto evaluateAI = [&](Agent* agent) {
+			if (!agent)
+				return;
+
+			ChessCoreResult result = ChessCoreResult::NONE;
+			if (m_game.IsGameEnd(&result)) {
+				bool agentIsWhite = agent->IsAgentCurrentlyWhite();
+
+				// Determine if the agent won
+				bool agentWon = false;
+				switch (result) {
+				case ChessCoreResult::WHITE_WON:
+					agentWon = agentIsWhite;
+					break;
+				case ChessCoreResult::BLACK_WON:
+					agentWon = !agentIsWhite;
+					break;
+				case ChessCoreResult::DRAW:
+				case ChessCoreResult::NONE:
+					agentWon = false;
+					break;
+				}
+
+				agent->GameFinished(agentWon);
+			}
+		};
+
 		auto* ctx = app->GetContext();
 		Agent* agent1 = ctx->agentManager.GetAgent(m_agentID1);
 		Agent* agent2 = ctx->agentManager.GetAgent(m_agentID2);
-		if (!agent1 || !agent2) {
-			throw std::runtime_error("EvaluateAIs: agent with id doesnt exist!");
-		}
-		
-		ChessCoreResult result = ChessCoreResult::NONE;
-		if (m_game.IsGameEnd(&result)) {
-			agent1->GameFinished(
-				(m_player1White && result == ChessCoreResult::WHITE_WON) ||
-				(!m_player1White && result == ChessCoreResult::BLACK_WON)
-			);
 
-			agent2->GameFinished(
-				(!m_player1White && result == ChessCoreResult::WHITE_WON) ||
-				(m_player1White && result == ChessCoreResult::BLACK_WON)
-			);
-		}
+		evaluateAI(agent1);
+		evaluateAI(agent2);
 	}
 
 	void GameLayer::ProcessTurn(PlayerType type) {
