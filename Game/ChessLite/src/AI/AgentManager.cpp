@@ -1,95 +1,79 @@
 #include "AI/AgentManager.h"
 #include "App.h"
 
-template<>
-void OTN::ToOTNDataType<GameMove>(OTN::OTNObjectBuilder& obj, GameMove& move) {
-	obj.SetObjectName("GameMove");
-	obj.AddNames("eval", "from_x", "from_y", "to_x", "to_y");
-
-	if (obj.IsBuildingOTNObject()) {
-		Vector2 from = move.GetFrom();
-		Vector2 to = move.GetTo();
-		obj.AddData(move.GetEvaluation(), from.x, from.y, to.x, to.y);
-	}
-	else {
-		Vector2 from, to;
-		float eval;
-		
-		obj.AddData(eval, from.x, from.y, to.x, to.y);
-		
-		move = GameMove(from, to);
-		move.SetEvaluation(eval);
-	}
-}
-
 bool AgentManager::Save(const OTN::OTNFilePath& path) {
-	using namespace OTN;
+    using namespace OTN;
 
-	auto* app = App::GetInstance();
-	if (!app)
-		return false;
+    auto* app = App::GetInstance();
+    if (!app)
+        return false;
 
-	OTNObject agentObj{ "Agent" };
-	agentObj.SetNames("id", "name", "board_states", "config", "matches_played", "matches_won", "matches_played_white", "matches_won_white");
-	agentObj.SetTypes("int", "string", "-", "string", "int", "int", "int", "int");
+    OTNObject agentObj{ "Agent" };
+    agentObj.SetNames("id", "name", "board_states", "config",
+        "matches_played", "matches_won", "matches_played_white", "matches_won_white");
+    agentObj.SetTypes("int64", "String", "-", "String", "int", "int", "int", "int");
 
-	agentObj.ReserveDataRows(m_agents.size());
-	for (const auto& [id, a] : m_agents) {
-		OTNObject boardStateObj{ "BoardState" };
-		boardStateObj.SetNames("board_state", "moves");
-		
-		auto& states = a.GetNormilzedBoardStates();
-		boardStateObj.ReserveDataRows(states.size());
-		for (const auto& [stateStr, boardState] : states) {
-			const auto& moves = boardState.GetPossibleMoves();
-			boardStateObj.AddDataRow(stateStr, moves);
-		}
+    agentObj.ReserveDataRows(m_agents.size());
 
-		agentObj.AddDataRow(
-			id.value,
-			a.GetName(),
-			boardStateObj,
-			a.GetChessConfig(),
-			a.GetMatchesPlayed(),
-			a.GetWonMatches(),
-			a.GetMatchesPlayedAsWhite(),
-			a.GetMatchesWonAsWhite()
-		);
-	}
+    for (const auto& [id, agent] : m_agents) {
+        OTNObject boardStateObj{ "BoardState" };
+        boardStateObj.SetNames("board_state", "moves");
+        boardStateObj.SetTypes("String", "GameMove[]");
+        const auto& states = agent.GetNormilzedBoardStates();
+        boardStateObj.ReserveDataRows(states.size());
 
-	if (!agentObj.IsValid())
-		return false;
+        for (const auto& [stateStr, boardState] : states) {
+            const auto& moves = boardState.GetPossibleMoves();
+            boardStateObj.AddDataRow(stateStr, moves);
+        }
 
-	OTN::OTNWriter writer;
-	writer.AppendObject(agentObj);
+        agentObj.AddDataRow(
+            static_cast<int64_t>(id.value),
+            agent.GetName(),
+            boardStateObj,
+            agent.GetChessConfig(),
+            agent.GetMatchesPlayed(),
+            agent.GetWonMatches(),
+            agent.GetMatchesPlayedAsWhite(),
+            agent.GetMatchesWonAsWhite()
+        );
+    }
 
-	auto exePath = app->GetBasePath();
-	writer.Save(exePath / path / "SaveData");
+    if (!agentObj.IsValid()) {
+        Log::Error("Failed to save agent data: {}", agentObj.GetError());
+        return false;
+    }
 
-	return true;
+    OTNWriter writer;
+    writer.AppendObject(agentObj);
+
+    auto exePath = app->GetBasePath();
+    if (!writer.Save(exePath / path / "Agents")) {
+        Log::Error("Failed to save agent data: {}", writer.GetError());
+        return false;
+    }
+    return true;
 }
 
 void AgentManager::AddAgent(Agent agent) {
-	AgentID id = AgentID(m_idManager.GetNewUniqueIdentifier());
-	agent.SetID(id);
-	m_agents[id] = std::move(agent);
+    AgentID id{ m_idManager.GetNewUniqueIdentifier() };
+    agent.SetID(id);
+    m_agents[id] = std::move(agent);
 }
 
 bool AgentManager::RemoveAgent(AgentID id) {
-	auto it = m_agents.find(id);
-	if (it == m_agents.end())
-		return false;
-	m_agents.erase(it);
-	return true;
+    auto it = m_agents.find(id);
+    if (it == m_agents.end())
+        return false;
+    m_agents.erase(it);
+    return true;
 }
 
 Agent* AgentManager::GetAgent(AgentID id) {
-	auto it = m_agents.find(id);
-	if (it == m_agents.end())
-		return nullptr;
-	return &it->second;
+    auto it = m_agents.find(id);
+    return (it != m_agents.end()) ? &it->second : nullptr;
 }
 
 const std::unordered_map<AgentID, Agent>& AgentManager::GetAgents() const {
-	return m_agents;
+    return m_agents;
 }
