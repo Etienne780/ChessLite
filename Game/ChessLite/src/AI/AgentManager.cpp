@@ -65,6 +65,8 @@ bool AgentManager::RemoveAgent(AgentID id) {
 }
 
 Agent* AgentManager::GetAgent(AgentID id) {
+    if (id.IsInvalid())
+        return nullptr;
     auto it = m_agents.find(id);
     return (it != m_agents.end()) ? &it->second : nullptr;
 }
