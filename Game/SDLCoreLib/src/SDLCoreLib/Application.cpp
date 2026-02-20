@@ -135,6 +135,7 @@ namespace SDLCore {
         Render::SetWindowRenderer();
         DeleteAllWindows();
 
+        Input::Quit();
         SoundManager::Quit();
         TextureManager::GetInstance().ClearAllTexturesEntries();
         FontManager::GetInstance().ClearAllFontEntries();
