@@ -5,25 +5,26 @@
 #include "LayerSystem/Layers/StartLoadLayer.h"
 #include "Styles/Comman/Color.h"
 #include "App.h"
+#include "FilePaths.h"
 
 namespace Layers {
 
 	void StartLoadLayer::OnStart(AppContext* ctx) {
 		m_loadTime = Random::GetRangeNumber(m_loadTimeMin, m_loadTimeMax);
 
-		SystemFilePath bPath = ctx->app->GetBasePath();
+		SystemFilePath bPath = FilePaths::GetAssetsPath();
 
 		std::vector<ResourceRequest> requests{
-			{ ResourceType::TEXTURE, SkinKeys::CHESS_ECKIG_DARK,  bPath / "assets\\ChessEckig_Dark.png" },
-			{ ResourceType::TEXTURE, SkinKeys::CHESS_ECKIG_LIGHT, bPath / "assets\\ChessEckig_Light.png" },
-			{ ResourceType::TEXTURE, SkinKeys::LIGHT_DARK,  bPath / "assets\\Light_Dark.png" },
-			{ ResourceType::TEXTURE, SkinKeys::LIGHT_LIGHT, bPath / "assets\\Light_Light.png" },
-			{ ResourceType::TEXTURE, SkinKeys::NEO_DARK,  bPath / "assets\\Neo_Dark.png" },
-			{ ResourceType::TEXTURE, SkinKeys::NEO_LIGHT, bPath / "assets\\Neo_Light.png" },
-			{ ResourceType::TEXTURE, SkinKeys::SIMPLE_DARK,  bPath / "assets\\Simple_Dark.png" },
-			{ ResourceType::TEXTURE, SkinKeys::SIMPLE_LIGHT, bPath / "assets\\Simple_Light.png" },
-			{ ResourceType::TEXTURE, SkinKeys::SPACE_DARK,  bPath / "assets\\Space_Dark.png" },
-			{ ResourceType::TEXTURE, SkinKeys::SPACE_LIGHT, bPath / "assets\\Space_Light.png" },
+			{ ResourceType::TEXTURE, SkinKeys::CHESS_ECKIG_DARK,  bPath / "ChessEckig_Dark.png" },
+			{ ResourceType::TEXTURE, SkinKeys::CHESS_ECKIG_LIGHT, bPath / "ChessEckig_Light.png" },
+			{ ResourceType::TEXTURE, SkinKeys::LIGHT_DARK,  bPath / "Light_Dark.png" },
+			{ ResourceType::TEXTURE, SkinKeys::LIGHT_LIGHT, bPath / "Light_Light.png" },
+			{ ResourceType::TEXTURE, SkinKeys::NEO_DARK,  bPath / "Neo_Dark.png" },
+			{ ResourceType::TEXTURE, SkinKeys::NEO_LIGHT, bPath / "Neo_Light.png" },
+			{ ResourceType::TEXTURE, SkinKeys::SIMPLE_DARK,  bPath / "Simple_Dark.png" },
+			{ ResourceType::TEXTURE, SkinKeys::SIMPLE_LIGHT, bPath / "Simple_Light.png" },
+			{ ResourceType::TEXTURE, SkinKeys::SPACE_DARK,  bPath / "Space_Dark.png" },
+			{ ResourceType::TEXTURE, SkinKeys::SPACE_LIGHT, bPath / "Space_Light.png" },
 		};
 
 		m_loader = std::make_unique<ResourceLoader>(std::move(requests));
