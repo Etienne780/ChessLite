@@ -29,19 +29,33 @@ namespace Layers {
 		float m_listScrollVelocity = 0.0f;
 		float m_scrollSpeed = 600.0f;
 		float m_scrollDrag = 10.0f;
-		float m_saveTimer = 0.0f;
-		const float m_saveTimerDuration = 2.0f;
 
+		bool m_isInputBarActive = false;
 		bool m_isAddingAgent = false;
-		std::string m_newAgentName = "";
+		std::string m_inputBarText = "";
 		float m_cursorBlinkTimer = 0.0f;
 
+		std::string m_sortedAgentsSearchInput;
+		std::vector<Agent> m_cachedSortedAgents;
+
 		void RenderSelectionBar(AppContext* ctx, float x, float y, float w, float h);
-		void RenderAddBar(AppContext* ctx, float x, float y, float w, float h);
+		void RenderInputBar(AppContext* ctx, float x, float y, float w, float h);
 		void RenderAgentList(AppContext* ctx, float x, float y, float w, float h);
+		
+		const std::vector<Agent>& SortAgents(
+			const std::string& searchInput, const std::unordered_map<AgentID, Agent>& agents);
+		std::vector<std::string> SplitTokens(const std::string& input);
+
+		template<typename T, typename ConvertFunc>
+		bool EvaluateNumberFilter(const std::string& token, 
+			T value, ConvertFunc convertFunc, int& outScore);
+		bool EvaluateIntFilter(const std::string& token, int value, int& outScore);
+		bool EvaluateFloatFilter(const std::string& token, float value, int& outScore);
+
 		void UpdateScroll(float& offset, float& velocity, float maxScroll);
 		bool DrawButton(const std::string& text, float x, float y, float w, float h);
 		bool IsPointInRect(const Vector2& mPos, float x, float y, float w, float h);
+		std::string ToLower(std::string str);
 	};
 
 }

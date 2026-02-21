@@ -26,14 +26,14 @@ namespace Layers {
 			.SetValue(Prop::borderWidth, 2.0f)
 			.SetValue(Prop::borderColor, Style::commanColorOutlineLight)
 			.SetValue(Prop::layoutDirection, UI::UILayoutDir::COLUMN)
-			.SetValue(Prop::align, UI::UIAlignment::CENTER, UI::UIAlignment::CENTER)
+			.SetValue(Prop::align, UI::UIAlignment::CENTER, UI::UIAlignment::START)
 			.SetValue(Prop::padding, Style::commanSpaceL)
 			.SetValue(Prop::sizeUnit, UI::UISizeUnit::PX, UI::UISizeUnit::PX)
 			.SetValue(Prop::size, 600.0f, 500.0f);
 
 		m_styleTitle
 			.Merge(Style::commanTextTitle)
-			.SetValue(Prop::margin, Vector4(0, 0, 20, 0));
+			.SetValue(Prop::margin, Vector4(12.0f, 0.0f, 24.5f, 0.0f));
 	}
 
 	void MainMenuLayer::OnUpdate(AppContext* ctx) {

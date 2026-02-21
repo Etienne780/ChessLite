@@ -36,20 +36,20 @@ namespace Layers {
 			.SetValue(Prop::borderWidth, 2.0f)
 			.SetValue(Prop::borderColor, Style::commanColorOutlineLight)
 			.SetValue(Prop::layoutDirection, UI::UILayoutDir::COLUMN)
-			.SetValue(Prop::align, UI::UIAlignment::CENTER, UI::UIAlignment::CENTER)
+			.SetValue(Prop::align, UI::UIAlignment::CENTER, UI::UIAlignment::START)
 			.SetValue(Prop::padding, Style::commanSpaceL)
 			.SetValue(Prop::sizeUnit, UI::UISizeUnit::PX, UI::UISizeUnit::PX)
 			.SetValue(Prop::size, 600.0f, 500.0f);
 
 		m_styleTitle
 			.Merge(Style::commanTextTitle)
-			.SetValue(Prop::margin, Vector4(0, 0, 20, 0));
+			.SetValue(Prop::margin, Vector4(12.0f, 0.0f, 12.0f, 0.0f));
 
 		m_stylePlayerContainer
 			.Merge(Style::commanStretchX)
 			.SetValue(Prop::heightUnit, UI::UISizeUnit::PX)
-			.SetValue(Prop::height, 125.0f)
-			.SetValue(Prop::margin, Vector4(24.0f, 0.0f, 24.0f, 0.0f))
+			.SetValue(Prop::height, 100.0f)
+			.SetValue(Prop::margin, Vector4(0.0f, 0.0f, 12.0f, 0.0f))
 			.SetValue(Prop::align, UI::UIAlignment::CENTER, UI::UIAlignment::CENTER);
 	}
 
@@ -94,11 +94,11 @@ namespace Layers {
 					ctx->app->PushLayer<GameLayer>(m_player1, m_player2);
 				}
 
-				bool hasAgentSelected =
-					m_player1 == PlayerType::AI ||
-					m_player2 == PlayerType::AI;
+				bool noAgentSelected =
+					m_player1 != PlayerType::AI &&
+					m_player2 != PlayerType::AI;
 
-				if (UIComp::DrawButton("btn_select_agent", "Select Agent", Style::commanBTNBase) && hasAgentSelected && !m_agentSelectOpen) {
+				if (UIComp::DrawButton("btn_select_agent", "Select Agent", Style::commanBTNBase, noAgentSelected) && !m_agentSelectOpen) {
 					Log::Debug("GameSetupLayer: Select Agent");
 					AgentSelectMode selectMode = AgentSelectMode::AGENT_1_ONLY;
 

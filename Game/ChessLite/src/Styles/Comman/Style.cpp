@@ -86,6 +86,7 @@ namespace Style {
 
 		// --- Button base ---
 		commanBTNBase
+			.SetValue(Prop::positionType, CoreUI::UIPositionType::RELATIVE)
 			.SetValue(Prop::sizeUnit, CoreUI::UISizeUnit::PX, CoreUI::UISizeUnit::PX)
 			.SetValue(Prop::size, 250.0f, 75.0f)
 			.SetValue(Prop::align, CoreUI::UIAlignment::CENTER, CoreUI::UIAlignment::CENTER)

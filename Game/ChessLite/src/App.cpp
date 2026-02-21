@@ -97,6 +97,8 @@ void App::OnUpdate() {
 
 void App::OnQuit() {
     ClearLayers();
+    m_context.agentManager.Save(FilePaths::GetDataPath());
+
     SDLCore::UI::DestroyContext(m_UICtx);
     m_UICtx = nullptr;
     WindowCleanup();

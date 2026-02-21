@@ -1,4 +1,8 @@
-﻿#include "LayerSystem/Layers/AgentSelectLayer.h"
+﻿#include <sstream>
+#include <algorithm>
+#include <cctype>
+
+#include "LayerSystem/Layers/AgentSelectLayer.h"
 #include "App.h"
 #include "FilePaths.h"
 
@@ -53,36 +57,6 @@ namespace Layers {
         float titleW = RE::GetTextWidth("Select Agent");
         RE::Text("Select Agent", (W - titleW) * 0.5f, headerH * 0.5f - RE::GetTextHeight() * 0.5f);
 
-        const float saveBtnW = 130.0f;
-        const float saveBtnH = 38.0f;
-        float saveBtnX = W - saveBtnW - 15.0f;
-        float saveBtnY = headerH * 0.5f - saveBtnH * 0.5f;
-
-        bool saveHovered = IsPointInRect(SDLCore::Input::GetMousePosition(), saveBtnX, saveBtnY, saveBtnW, saveBtnH);
-        RE::SetColor(m_saveTimer > 0.0f ? 30 : (saveHovered ? 40 : 28),
-            m_saveTimer > 0.0f ? 65 : (saveHovered ? 55 : 40),
-            m_saveTimer > 0.0f ? 30 : (saveHovered ? 40 : 28));
-        RE::FillRect(saveBtnX, saveBtnY, saveBtnW, saveBtnH);
-        RE::SetStrokeWidth(1);
-        RE::SetColor(m_saveTimer > 0.0f ? Vector3(60, 180, 60) : Vector3(55));
-        RE::Rect(saveBtnX, saveBtnY, saveBtnW, saveBtnH);
-
-        RE::SetTextSize(22.0f);
-        std::string saveLabel = (m_saveTimer > 0.0f) ? "Saved!" : "Save";
-        float slw = RE::GetTextWidth(saveLabel);
-        RE::SetColor(m_saveTimer > 0.0f ? Vector3(120, 220, 120) : Vector3(180));
-        RE::Text(saveLabel, saveBtnX + (saveBtnW - slw) * 0.5f, saveBtnY + (saveBtnH - RE::GetTextHeight()) * 0.5f);
-
-        if (SDLCore::Input::MouseJustPressed(SDLCore::MouseButton::LEFT)
-            && IsPointInRect(SDLCore::Input::GetMousePosition(), saveBtnX, saveBtnY, saveBtnW, saveBtnH)) {
-            ctx->agentManager.Save(FilePaths::GetDataPath());
-            m_saveTimer = m_saveTimerDuration;
-        }
-
-        if (m_saveTimer > 0.0f) {
-            m_saveTimer -= SDLCore::Time::GetDeltaTimeSecF();
-        }
-
         float y = headerH + 16.0f;
         float selBarH = 90.0f;
         RenderSelectionBar(ctx, 20, y, W - 40.0f, selBarH);
@@ -104,7 +78,7 @@ namespace Layers {
         y += RE::GetTextHeight() + 8.0f;
 
         float addBarH = 52.0f;
-        RenderAddBar(ctx, 20, y, W - 40.0f, addBarH);
+        RenderInputBar(ctx, 20, y, W - 40.0f, addBarH);
         y += addBarH + 6.0f;
 
         RenderAgentList(ctx, 20, y, W - 40.0f, H - y - 10.0f);
@@ -173,76 +147,71 @@ namespace Layers {
         }
     }
 
-    void AgentSelect::RenderAddBar(AppContext* ctx, float x, float y, float w, float h) {
+    void AgentSelect::RenderInputBar(AppContext* ctx, float x, float y, float w, float h) {
         namespace RE = SDLCore::Render;
 
-        const float btnW = 120.0f;
+        const float btnW = 150.0f;
         const float gap = 8.0f;
         const float fieldW = w - btnW - gap;
         float textY = y + h * 0.5f - RE::GetTextHeight() * 0.5f;
 
         // Input field
-        RE::SetColor(m_isAddingAgent ? 32 : 24);
+        RE::SetColor(m_isInputBarActive ? 32 : 24);
         RE::FillRect(x, y, fieldW, h);
         RE::SetStrokeWidth(1);
-        RE::SetColor(m_isAddingAgent ? Vector3(90, 150, 255) : Vector3(50));
+        RE::SetColor(m_isInputBarActive ? Vector3(90, 150, 255) : Vector3(50));
         RE::Rect(x, y, fieldW, h);
+
+        Vector2 mPos = SDLCore::Input::GetMousePosition();
+        bool isInputBarHover = IsPointInRect(mPos, x, y, fieldW, h);
+        bool canConfirm = m_isAddingAgent && m_inputBarText.size() > 3;
 
         RE::SetTextSize(22.0f);
 
-        if (m_isAddingAgent) {
+        if (m_isInputBarActive) {
             m_cursorBlinkTimer += SDLCore::Time::GetDeltaTimeSecF();
-            std::string display = m_newAgentName;
+            std::string display = m_inputBarText;
             if (std::fmod(m_cursorBlinkTimer, 1.0f) < 0.5f) display += "|";
 
             RE::SetColor(220);
             RE::Text(display.empty() ? "|" : display, x + 10, textY);
 
-            if (!SDLCore::Input::IsTextInputActive())
-                SDLCore::Input::StartTextInput();
-
             std::string typed = SDLCore::Input::GetTextInputBuffer();
             for (char c : typed) {
-                if (std::isprint(static_cast<unsigned char>(c))) m_newAgentName += c;
+                if (std::isprint(static_cast<unsigned char>(c))) m_inputBarText += c;
             }
 
-            if (SDLCore::Input::KeyRepeating(SDLCore::KeyCode::BACKSPACE) && !m_newAgentName.empty()) {
-                m_newAgentName.pop_back();
+            if (SDLCore::Input::KeyRepeating(SDLCore::KeyCode::BACKSPACE) && !m_inputBarText.empty()) {
+                m_inputBarText.pop_back();
             }
 
             if (SDLCore::Input::KeyJustPressed(SDLCore::KeyCode::ESCAPE)) {
                 m_isAddingAgent = false;
-                m_newAgentName.clear();
+                m_isInputBarActive = false;
+                m_inputBarText.clear();
                 m_cursorBlinkTimer = 0.0f;
                 SDLCore::Input::StopTextInput();
             }
 
-            if (SDLCore::Input::KeyJustPressed(SDLCore::KeyCode::RETURN) && !m_newAgentName.empty()) {
-                ctx->agentManager.AddAgent(Agent(m_newAgentName, ctx->currentContext.GetConfigString()));
+            if (SDLCore::Input::KeyJustPressed(SDLCore::KeyCode::RETURN)) {
+                if(canConfirm)
+                    ctx->agentManager.AddAgent(Agent(m_inputBarText, ctx->currentContext.GetConfigString()));
                 m_isAddingAgent = false;
-                m_newAgentName.clear();
+                m_isInputBarActive = false;
+                m_inputBarText.clear();
                 m_cursorBlinkTimer = 0.0f;
                 SDLCore::Input::StopTextInput();
             }
         }
         else {
             RE::SetColor(60);
-            RE::Text("Agent name...", x + 10, textY);
-
-            Vector2 mPos = SDLCore::Input::GetMousePosition();
-            if (SDLCore::Input::MouseJustPressed(SDLCore::MouseButton::LEFT)
-                && IsPointInRect(mPos, x, y, fieldW, h)) {
-                m_isAddingAgent = true;
-                m_newAgentName.clear();
-                m_cursorBlinkTimer = 0.0f;
-                SDLCore::Input::StartTextInput();
-            }
+            RE::Text("Search/Create Agent...", x + 10, textY);
         }
 
         // Button
         float btnX = x + fieldW + gap;
-        bool canConfirm = m_isAddingAgent && !m_newAgentName.empty();
-        std::string btnLabel = m_isAddingAgent ? "Add" : "+ New Agent";
+        std::string btnLabel = m_isAddingAgent ? "Create Agent" : "+ New Agent";
+        bool isHoverCreateBTN = IsPointInRect(mPos, btnX, y, btnW, h);
 
         if (m_isAddingAgent) {
             RE::SetColor(canConfirm ? 35 : 25, canConfirm ? 60 : 35, 25);
@@ -262,21 +231,37 @@ namespace Layers {
             : Vector3(130));
         RE::Text(btnLabel, btnX + (btnW - lw) * 0.5f, textY);
 
-        Vector2 mPos = SDLCore::Input::GetMousePosition();
-        if (SDLCore::Input::MouseJustPressed(SDLCore::MouseButton::LEFT)
-            && IsPointInRect(mPos, btnX, y, btnW, h)) {
+        if (SDLCore::Input::MouseJustPressed(SDLCore::MouseButton::LEFT) 
+            && isHoverCreateBTN) {
             if (m_isAddingAgent && canConfirm) {
-                ctx->agentManager.AddAgent(Agent(m_newAgentName, ctx->currentContext.GetConfigString()));
+                ctx->agentManager.AddAgent(Agent(m_inputBarText, ctx->currentContext.GetConfigString()));
                 m_isAddingAgent = false;
-                m_newAgentName.clear();
+                m_inputBarText.clear();
                 m_cursorBlinkTimer = 0.0f;
                 SDLCore::Input::StopTextInput();
             }
             else if (!m_isAddingAgent) {
+                if (!m_isInputBarActive) {
+                    m_inputBarText.clear();
+                    m_cursorBlinkTimer = 0.0f;
+                    SDLCore::Input::StartTextInput();
+                }
                 m_isAddingAgent = true;
-                m_newAgentName.clear();
-                m_cursorBlinkTimer = 0.0f;
+                m_isInputBarActive = true;
+            }
+        }
+
+        if (SDLCore::Input::MouseJustPressed(SDLCore::MouseButton::LEFT) && !isHoverCreateBTN) {
+            m_inputBarText.clear();
+            m_cursorBlinkTimer = 0.0f;
+
+            if (isInputBarHover) {
                 SDLCore::Input::StartTextInput();
+                m_isInputBarActive = true;
+            }
+            else {
+                SDLCore::Input::StopTextInput();
+                m_isInputBarActive = false;
             }
         }
     }
@@ -293,24 +278,26 @@ namespace Layers {
             return;
         }
 
-        const float rowH = 62.0f;
-        const float totalH = static_cast<float>(agents.size()) * rowH;
-        const float scrollMax = std::max(0.0f, totalH - h);
+        const float rowH = 72.0f;
+        const auto& sortedAgents = SortAgents(m_inputBarText, agents);
+
+        float totalH = static_cast<float>(sortedAgents.size()) * rowH;
+        float scrollMax = std::max(0.0f, totalH - h);
         UpdateScroll(m_listScrollOffset, m_listScrollVelocity, scrollMax);
 
-        const float sbW = 6.0f;
+        const float scrollBarW = 6.0f;
         float listW = w;
         if (scrollMax > 0.0f) {
-            float trackX = x + w - sbW;
+            float trackX = x + w - scrollBarW;
             float thumbH = h * (h / totalH);
             float thumbY = y + (m_listScrollOffset / scrollMax) * (h - thumbH);
 
             RE::SetColor(35);
-            RE::FillRect(trackX, y, sbW, h);
+            RE::FillRect(trackX, y, scrollBarW, h);
             RE::SetColor(70);
-            RE::FillRect(trackX, thumbY, sbW, thumbH);
+            RE::FillRect(trackX, thumbY, scrollBarW, thumbH);
 
-            listW = w - sbW - 4.0f;
+            listW = w - scrollBarW - 4.0f;
         }
 
         RE::SetClipRect(static_cast<int>(x), static_cast<int>(y),
@@ -321,33 +308,69 @@ namespace Layers {
         Vector2 mPos = SDLCore::Input::GetMousePosition();
         bool clicked = SDLCore::Input::MouseJustPressed(SDLCore::MouseButton::LEFT);
 
-        for (const auto& [id, agent] : agents) {
-            if (rowY + rowH < y) { rowY += rowH; ++index; continue; }
-            if (rowY > y + h) break;
+        for (const auto& agent : sortedAgents) {
+            float elementBottom = rowY + rowH;
+            if (elementBottom < y) {
+                rowY += rowH;
+                ++index;
+                continue;
+            }
+            if (rowY > y + h) 
+                break;
+
+            AgentID agentID = agent.GetID();
 
             bool isHovered = IsPointInRect(mPos, x, rowY, listW, rowH - 2.0f);
-            bool isAgent1 = (ctx->selectedAgentID1 == id);
-            bool isAgent2 = (ctx->selectedAgentID2 == id);
+            bool isAgent1 = (ctx->selectedAgentID1 == agentID);
+            bool isAgent2 = (ctx->selectedAgentID2 == agentID);
             bool isAssigned = isAgent1 || isAgent2;
+            float selectLineWidth = 4.0f;
 
-            if (isAssigned) RE::SetColor(28, 45, 28);
-            else if (isHovered) RE::SetColor(35, 35, 42);
-            else RE::SetColor(index % 2 == 0 ? 24 : 28);
+            if (isAssigned) 
+                RE::SetColor(28, 45, 28);
+            else if (isHovered) 
+                RE::SetColor(35, 35, 42);
+            else 
+                RE::SetColor(index % 2 == 0 ? 24 : 28);
             RE::FillRect(x, rowY, listW, rowH - 2.0f);
 
-            if (isAgent1) { RE::SetColor(90, 150, 255); RE::FillRect(x, rowY, 4.0f, rowH - 2.0f); }
-            if (isAgent2) { RE::SetColor(180, 90, 255); RE::FillRect(x + (isAgent1 ? 4.0f : 0.0f), rowY, 4.0f, rowH - 2.0f); }
+            if (isAgent1) { 
+                RE::SetColor(90, 150, 255); 
+                RE::FillRect(x, rowY, selectLineWidth, rowH - 2.0f);
+            }
 
-            RE::SetTextSize(26.0f);
+            if (isAgent2) { 
+                RE::SetColor(180, 90, 255); 
+                RE::FillRect(x + (isAgent1 ? selectLineWidth : 0.0f), rowY, selectLineWidth, rowH - 2.0f);
+            }
+
+            // Name
+            RE::SetTextSize(24.0f);
             RE::SetColor(isAssigned ? 230 : 190);
-            RE::Text(agent.GetName(), x + 14, rowY + 8);
+            RE::Text(agent.GetName(), x + 14, rowY + 6);
 
-            RE::SetTextSize(19.0f);
-            RE::SetColor(100);
-            char statsBuf[64];
-            std::snprintf(statsBuf, sizeof(statsBuf), "W: %d   L: %d",
-                agent.GetWonMatches(), agent.GetLostMatches());
-            RE::Text(statsBuf, x + 14, rowY + rowH - 24.0f);
+            // Winrate + Matches
+            int played = agent.GetMatchesPlayed();
+            int won = agent.GetWonMatches();
+            int lost = agent.GetLostMatches();
+            float winrate = (played > 0) ? (won * 100.0f / played) : 0.0f;
+
+            char line1[80];
+            std::snprintf(line1, sizeof(line1),
+                "Win: %.1f%%   Won: %d   Lost: %d   Played: %d",
+                winrate, won, lost, played);
+            RE::SetTextSize(17.0f);
+            RE::SetColor(isAssigned ? 140 : 110);
+            RE::Text(line1, x + 14, rowY + rowH * 0.45f);
+
+            // Zeile 2: Weiß / Schwarz
+            char line2[80];
+            std::snprintf(line2, sizeof(line2),
+                "White — Won: %d  Lost: %d     Black — Won: %d  Lost: %d",
+                agent.GetMatchesWonAsWhite(), agent.GetMatchesLostAsWhite(),
+                agent.GetMatchesWonAsBlack(), agent.GetMatchesLostAsBlack());
+            RE::SetColor(isAssigned ? 110 : 80);
+            RE::Text(line2, x + 14, rowY + rowH * 0.72f);
 
             // Delete button
             RE::SetTextSize(18.0f);
@@ -365,9 +388,9 @@ namespace Layers {
                 delBtnY + (delBtnH - RE::GetTextHeight()) * 0.5f);
 
             if (clicked && delHovered) {
-                if (ctx->selectedAgentID1 == id) ctx->selectedAgentID1 = AgentID{};
-                if (ctx->selectedAgentID2 == id) ctx->selectedAgentID2 = AgentID{};
-                ctx->agentManager.RemoveAgent(id);
+                if (ctx->selectedAgentID1 == agentID) ctx->selectedAgentID1 = AgentID{};
+                if (ctx->selectedAgentID2 == agentID) ctx->selectedAgentID2 = AgentID{};
+                ctx->agentManager.RemoveAgent(agentID);
                 RE::ResetClipRect();
                 return;
             }
@@ -392,18 +415,18 @@ namespace Layers {
             // Click to assign
             if (clicked && isHovered && !delHovered) {
                 if (m_selectMode == AgentSelectMode::AGENT_1_ONLY) {
-                    ctx->selectedAgentID1 = id;
+                    ctx->selectedAgentID1 = agentID;
                 }
                 else if (m_selectMode == AgentSelectMode::AGENT_2_ONLY) {
-                    ctx->selectedAgentID2 = id;
+                    ctx->selectedAgentID2 = agentID;
                 }
                 else {
                     if (m_activeSlot == 0) {
-                        ctx->selectedAgentID1 = id;
-                        if (ctx->selectedAgentID2 == AgentID{}) m_activeSlot = 1;
+                        ctx->selectedAgentID1 = agentID;
+                        if (ctx->selectedAgentID2.IsInvalid()) m_activeSlot = 1;
                     }
                     else {
-                        ctx->selectedAgentID2 = id;
+                        ctx->selectedAgentID2 = agentID;
                     }
                 }
             }
@@ -434,6 +457,247 @@ namespace Layers {
         return leftPressed && IsPointInRect(mPos, x, y, w, h);
     }
 
+    const std::vector<Agent>& AgentSelect::SortAgents(
+        const std::string& searchInput,
+        const std::unordered_map<AgentID, Agent>& agents)
+    {
+        std::string normalizedInput = ToLower(searchInput);
+
+        if (m_sortedAgentsSearchInput == normalizedInput &&
+            m_cachedSortedAgents.size() == agents.size()) {
+            return m_cachedSortedAgents;
+        }
+
+        // empty search -> show all agents
+        if (normalizedInput.empty() || m_isAddingAgent) {
+            m_sortedAgentsSearchInput = normalizedInput;
+            m_cachedSortedAgents.clear();
+            m_cachedSortedAgents.reserve(agents.size());
+
+            for (const auto& [_, agent] : agents)
+                m_cachedSortedAgents.push_back(agent);
+
+            return m_cachedSortedAgents;
+        }
+
+        std::vector<std::pair<int, Agent>> scoredAgents;
+        std::vector<std::string> tokens = SplitTokens(normalizedInput);
+
+        for (const auto& [_, agent] : agents) {
+            std::string name = ToLower(agent.GetName());
+            int matchesPlayed = agent.GetMatchesPlayed();
+            int wonMatches = agent.GetWonMatches();
+            int lostMatches = agent.GetLostMatches();
+
+            int matchesPlayedAsWhite = agent.GetMatchesPlayedAsWhite();
+            int matchesPlayedAsBlack = agent.GetMatchesPlayedAsBlack();
+
+            int matchesWonAsWhite = agent.GetMatchesWonAsWhite();
+            int matchesWonAsBlack = agent.GetMatchesWonAsBlack();
+
+            int matchesLostAsWhite = agent.GetMatchesLostAsWhite();
+            int matchesLostAsBlack = agent.GetMatchesLostAsBlack();
+
+            float explorationChance = agent.GetExplorationChance();
+
+            bool valid = true;
+            int finalScore = 0;
+
+            for (const std::string& token : tokens) {
+                int score = 0;
+
+                if (token.find("matchesplayed") == 0) {
+                    if (!EvaluateIntFilter(token, matchesPlayed, score)) {
+                        valid = false;
+                        break;
+                    }
+                    finalScore += score;
+                }
+                else if (token.find("matcheswon") == 0) {
+                    if (!EvaluateIntFilter(token, wonMatches, score)) {
+                        valid = false;
+                        break;
+                    }
+                    finalScore += score;
+                }
+                else if (token.find("matcheslost") == 0) {
+                    if (!EvaluateIntFilter(token, lostMatches, score)) {
+                        valid = false;
+                        break;
+                    }
+                    finalScore += score;
+                }
+                else if (token.find("matchesplayedaswhite") == 0) {
+                    if (!EvaluateIntFilter(token, matchesPlayedAsWhite, score)) {
+                        valid = false;
+                        break;
+                    }
+                    finalScore += score;
+                }
+                else if (token.find("matchesplayedasblack") == 0) {
+                    if (!EvaluateIntFilter(token, matchesPlayedAsBlack, score)) {
+                        valid = false;
+                        break;
+                    }
+                    finalScore += score;
+                }
+                else if (token.find("matcheswonaswhite") == 0) {
+                    if (!EvaluateIntFilter(token, matchesWonAsWhite, score)) {
+                        valid = false;
+                        break;
+                    }
+                    finalScore += score;
+                }
+                else if (token.find("matcheswonasblack") == 0) {
+                    if (!EvaluateIntFilter(token, matchesWonAsBlack, score)) {
+                        valid = false;
+                        break;
+                    }
+                    finalScore += score;
+                }
+                else if (token.find("matcheslostaswhite") == 0) {
+                    if (!EvaluateIntFilter(token, matchesLostAsBlack, score)) {
+                        valid = false;
+                        break;
+                    }
+                    finalScore += score;
+                }
+                else if (token.find("matcheslostasblack") == 0) {
+                    if (!EvaluateIntFilter(token, matchesLostAsBlack, score)) {
+                        valid = false;
+                        break;
+                    }
+                    finalScore += score;
+                }
+                else if (token.find("explorationchance") == 0) {
+                    if (!EvaluateFloatFilter(token, explorationChance, score)) {
+                        valid = false;
+                        break;
+                    }
+                    finalScore += score;
+                }
+                else {
+                    size_t pos = name.find(token);
+
+                    if (pos == std::string::npos) {
+                        valid = false;
+                        break;
+                    }
+
+                    if (pos == 0) {
+                        finalScore += 100;
+                    }
+                    else {
+                        finalScore += 50;
+                    }
+                }
+            }
+
+            if (valid)
+                scoredAgents.emplace_back(finalScore, agent);
+        }
+
+        // sort descending by score
+        std::sort(scoredAgents.begin(), scoredAgents.end(),
+            [](const auto& a, const auto& b) {
+                return a.first > b.first;
+            });
+
+        m_cachedSortedAgents.clear();
+        m_cachedSortedAgents.reserve(scoredAgents.size());
+
+        for (const auto& [score, agent] : scoredAgents) {
+            m_cachedSortedAgents.push_back(agent);
+        }
+
+        m_sortedAgentsSearchInput = normalizedInput;
+
+        return m_cachedSortedAgents;
+    }
+
+    std::vector<std::string> AgentSelect::SplitTokens(const std::string& input) {
+        std::vector<std::string> tokens;
+        std::istringstream stream(input);
+        std::string token;
+
+        while (stream >> token) {
+            tokens.push_back(token);
+        }
+
+        return tokens;
+    }
+
+    template<typename T, typename ConvertFunc>
+    bool AgentSelect::EvaluateNumberFilter(
+        const std::string& token,
+        T value,
+        ConvertFunc convertFunc,
+        int& outScore)
+    {
+        const int weight = 10;
+        outScore = 0;
+
+        try {
+            size_t pos;
+
+            if ((pos = token.find("<")) != std::string::npos) {
+                T compare = convertFunc(token.substr(pos + 1));
+
+                if (value < compare) {
+                    outScore = weight;
+                    return true;
+                }
+
+                return false;
+            }
+            else if ((pos = token.find(">")) != std::string::npos) {
+                T compare = convertFunc(token.substr(pos + 1));
+
+                if (value > compare) {
+                    outScore = weight;
+                    return true;
+                }
+
+                return false;
+            }
+            else if ((pos = token.find("=")) != std::string::npos) {
+                T compare = convertFunc(token.substr(pos + 1));
+
+                if (value == compare) {
+                    outScore = weight;
+                    return true;
+                }
+
+                return false;
+            }
+        }
+        catch (...) {
+            return false;
+        }
+
+        return false;
+    }
+
+    bool AgentSelect::EvaluateIntFilter(const std::string& token, int value, int& outScore) {
+        return EvaluateNumberFilter<int>(
+            token,
+            value,
+            [](const std::string& s) {
+                return std::stoi(s);
+            },
+            outScore);
+    }
+
+    bool AgentSelect::EvaluateFloatFilter(const std::string& token, float value, int& outScore) {
+        return EvaluateNumberFilter<float>(
+            token,
+            value,
+            [](const std::string& s) {
+                return std::stof(s);
+            },
+            outScore);
+    }
+
     void AgentSelect::UpdateScroll(float& offset, float& velocity, float maxScroll) {
         int dir = 0;
         if (SDLCore::Input::GetScrollDir(dir)) velocity -= dir * m_scrollSpeed;
@@ -446,7 +710,14 @@ namespace Layers {
     }
 
     bool AgentSelect::IsPointInRect(const Vector2& mPos, float x, float y, float w, float h) {
-        return (mPos.x > x && mPos.x < x + w) && (mPos.y > y && mPos.y < y + h);
+        return (mPos.x > x && mPos.x < x + w) && 
+            (mPos.y > y && mPos.y < y + h);
+    }
+
+    std::string AgentSelect::ToLower(std::string str) {
+        std::transform(str.begin(), str.end(), str.begin(),
+            [](unsigned char c) { return std::tolower(c); });
+        return str;
     }
 
 }

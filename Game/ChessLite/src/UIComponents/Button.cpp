@@ -13,10 +13,14 @@ namespace UIComponent {
 		const UI::UIStyle& style,
 		bool isDisabled
 	) {
-		UI::BeginFrame(UI::UIKey(key), style)
-			->SetOverride(SDLCore::UI::Properties::disabled, isDisabled);
+		UI::BeginFrame(UI::UIKey(key), style);
 		{
 			UI::Text(UI::UIKey("label"), text, Style::commanTextBase);
+
+			if (isDisabled) {
+				UI::BeginFrame(UI::UIKey("overlay"), Style::commanOverlay);
+				UI::EndFrame();
+			}
 		}
 		UI::UIEvent event = UI::EndFrame();
 		return event.IsClick();
@@ -31,10 +35,14 @@ namespace UIComponent {
 		bool isDisabled
 	) {
 		const SDLCore::UI::UIStyle& style = (isActive) ? styleActive : styleNormal;
-		UI::BeginFrame(UI::UIKey(key), style)
-			->SetOverride(SDLCore::UI::Properties::disabled, isDisabled);
+		UI::BeginFrame(UI::UIKey(key), style);
 		{
 			UI::Text(UI::UIKey("label"), text, Style::commanTextBase);
+
+			if (isDisabled) {
+				UI::BeginFrame(UI::UIKey("overlay"), Style::commanOverlay);
+				UI::EndFrame();
+			}
 		}
 		UI::UIEvent event = UI::EndFrame();
 		return event.IsClick();
