@@ -606,8 +606,14 @@ namespace SDLCore::UI {
 		float size = 0.0f;
 
 		for (int i = 0; i < upToIndex && i < static_cast<int>(childs.size()); ++i) {
-			const auto& cMargin = childs[i]->m_margin + childs[i]->GetBorderLayoutMargin();
-			size += horizontal ? childs[i]->m_size.x + cMargin.y + cMargin.w : childs[i]->m_size.y + cMargin.x + cMargin.z;
+			auto& c = childs[i];
+			
+			// absolute elements are not part of the normal layout
+			if (c->GetPositionType() == UIPositionType::ABSOLUTE)
+				continue;
+
+			const auto& cMargin = c->m_margin + c->GetBorderLayoutMargin();
+			size += horizontal ? c->m_size.x + cMargin.y + cMargin.w : c->m_size.y + cMargin.x + cMargin.z;
 		}
 
 		return size;
@@ -621,6 +627,10 @@ namespace SDLCore::UI {
 		float size = 0.0f;
 
 		for (const auto& c : childs) {
+			// absolute elements are not part of the normal layout
+			if (c->GetPositionType() == UIPositionType::ABSOLUTE)
+				continue;
+
 			const auto& cMargin = c->m_margin + c->GetBorderLayoutMargin();
 			size += horizontal ? c->m_size.x + cMargin.y + cMargin.w : c->m_size.y + cMargin.x + cMargin.z;
 		}
