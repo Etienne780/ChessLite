@@ -40,8 +40,7 @@ namespace Layers {
 	}
 
 	void AgentVisualizerLayer::OnUpdate(AppContext* ctx) {
-		using namespace SDLCore;
-		Input::SetWindow(m_winID);
+
 	}
 
 	void AgentVisualizerLayer::OnRender(AppContext* ctx) {

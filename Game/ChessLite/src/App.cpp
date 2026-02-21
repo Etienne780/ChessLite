@@ -223,7 +223,8 @@ void App::WindowCleanup() {
 void App::ProcessLayerCommands() {
     auto& eventBus = m_context.m_eventBus;
 
-    for (auto& cmd : m_layerCommands) {
+    auto copy = m_layerCommands;
+    for (auto& cmd : copy) {
         switch (cmd.type) {
         case LayerCmdType::PUSH: {
             m_layerStack.push_back(std::move(cmd.factory()));
