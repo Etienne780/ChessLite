@@ -19,6 +19,13 @@ namespace Layers {
 
 	private:
 		SDLCore::UI::UIStyle m_styleRoot;
+		SDLCore::UI::UIStyle m_styleTitle;
+		SDLCore::UI::UIStyle m_styleRowBTNContainer;
+		SDLCore::UI::UIStyle m_styleTrimmer;
+		SDLCore::UI::UIStyle m_largerBTNTabNormal;
+		SDLCore::UI::UIStyle m_largerBTNTabActive;
+
+		static inline const float m_largeTabBTNWidth = 508.0f;
 	};
 
 }
