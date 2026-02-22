@@ -75,6 +75,11 @@ namespace SDLCore::UI {
 		auto tex = std::make_shared<Texture>(path);
 		return RegisterValue<UITextureID>(tex, g_textures, g_texturesMutex);
 	}
+
+	UITextureID UIRegistry::RegisterTexture(const Texture & texture) {
+		auto tex = std::make_shared<Texture>(texture);
+		return RegisterValue<UITextureID>(tex, g_textures, g_texturesMutex);
+	}
 	
 	UINumberID UIRegistry::RegisterNumber(int number) {
 		return RegisterValue<UINumberID>(static_cast<double>(number), g_numbers, g_numbersMutex);

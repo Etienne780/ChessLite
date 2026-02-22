@@ -55,6 +55,7 @@ namespace SDLCore::UI {
 
 	void UINode::ResetState() {
 		m_state = UIState::NORMAL;
+		m_eventState.Reset();
 	}
 
 	bool UINode::ContainsChildAtPos(uint16_t pos, uintptr_t id, UINode*& outNode) {

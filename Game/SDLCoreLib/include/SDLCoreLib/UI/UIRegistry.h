@@ -38,6 +38,7 @@ namespace SDLCore::UI {
 		* @return UITextureID Identifier for the registered texture.
 		*/
 		static UITextureID RegisterTexture(const SystemFilePath& path);
+		static UITextureID RegisterTexture(const Texture& texture);
 
 		/**
 		* @brief Registers a numeric value as a double in the registry.

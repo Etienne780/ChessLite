@@ -1,6 +1,7 @@
 ﻿#include "LayerSystem/Layers/MainMenuLayer.h"
 #include "LayerSystem/Layers/OptionsMenuLayer.h"
 #include "LayerSystem/Layers/GameSetupLayer.h"
+#include "LayerSystem/Layers/SkinSelectLayer.h"
 
 #include "App.h"
 #include "Styles/Comman/Style.h"
@@ -61,6 +62,8 @@ namespace Layers {
 
 				if (UIComp::DrawButton("btn_skins", "Skins", Style::commanBTNBase)) {
 					Log::Debug("MainMenu: Skins");
+					ctx->app->ClearLayers();
+					ctx->app->PushLayer<SkinSelectLayer>();
 				}
 
 				if (UIComp::DrawButton("btn_settings", "Settings", Style::commanBTNBase)) {
