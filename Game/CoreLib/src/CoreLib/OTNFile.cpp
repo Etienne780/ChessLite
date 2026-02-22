@@ -1,4 +1,4 @@
-#include <algorithm>
+﻿#include <algorithm>
 #include <functional>
 #include <unordered_map>
 #include <cassert>
@@ -1195,39 +1195,49 @@ namespace OTN {
 		return indices;
 	}
 
-	void OTNWriter::ConvertToSerValue(WriterData& data, OTNValue & result, OTNTypeDesc& colType, const OTNValue & val) {
+	void OTNWriter::ConvertToSerValue(WriterData& data, OTNValue& result, OTNTypeDesc& colType, const OTNValue& val) {
 		if (val.type == OTNBaseType::LIST) {
-			// resolve objects
-			if (!colType.refObjectName.empty()) {
-				const OTNArrayPtr& arrayPtr = std::get<OTNArrayPtr>(val.value);
-				OTNArrayPtr newArray = std::make_shared<OTNArray>();
-				if (!arrayPtr || !newArray)
-					return;
+			const OTNArrayPtr& arrayPtr = std::get<OTNArrayPtr>(val.value);
+			OTNArrayPtr newArray = std::make_shared<OTNArray>();
+			if (!arrayPtr || !newArray)
+				return;
 
-				newArray->values.reserve(arrayPtr->values.size());
-				for (const auto& v : arrayPtr->values) {
-					OTNValue newValue;
-					ConvertToSerValue(data, newValue, colType, v);
-					newArray->values.emplace_back(std::move(newValue));
+			newArray->values.reserve(arrayPtr->values.size());
+
+			for (const auto& v : arrayPtr->values) {
+				if (v.type == OTNBaseType::OBJECT) {
+					OTNValue converted;
+					ConvertToSerValue(data, converted, colType, v);
+
+					if (converted.type == OTNBaseType::LIST) {
+						const OTNArrayPtr& indices = std::get<OTNArrayPtr>(converted.value);
+						if (indices) {
+							for (auto& idx : indices->values) {
+								newArray->values.emplace_back(std::move(idx));
+							}
+						}
+					}
 				}
-				result = OTNValue(std::move(newArray));
+				else {
+					OTNValue converted;
+					ConvertToSerValue(data, converted, colType, v);
+					newArray->values.emplace_back(std::move(converted));
+				}
 			}
-			else {
-				result = OTNValue(val);
-			}
+
+			result = OTNValue(std::move(newArray));
 		}
 		else if (val.type == OTNBaseType::OBJECT) {
 			const OTNObjectPtr& objPtr = std::get<OTNObjectPtr>(val.value);
 			if (!objPtr)
 				return;
 
-			// Ensure referenced object exists
 			std::vector<size_t> refIndex = AddObject(data, *objPtr);
 
 			OTNArrayPtr newArray = std::make_shared<OTNArray>();
 			newArray->values.reserve(refIndex.size());
-			for (const auto& v : refIndex) {
-				newArray->values.emplace_back(v);
+			for (const auto& idx : refIndex) {
+				newArray->values.emplace_back(idx);
 			}
 			result = OTNValue(std::move(newArray));
 
