@@ -95,8 +95,8 @@ namespace Layers {
 
 		std::string playerTypeStr = "Turn: ";
 		playerTypeStr += (m_isPlayer1Turn) ? 
-			FormatUtils::formatString("Player1 ({})", m_player1) :
-			FormatUtils::formatString("Player2 ({})", m_player2);
+			FormatUtils::formatString("Player1 {} ({})", (m_player1White ? "White" : "Black"), m_player1) :
+			FormatUtils::formatString("Player2 {} ({})", (!m_player1White ? "White" : "Black"), m_player2);
 
 		UI::BeginFrame(Key("game_ui_overlay"), m_root);
 		{

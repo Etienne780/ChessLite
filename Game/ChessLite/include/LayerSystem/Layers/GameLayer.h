@@ -34,7 +34,7 @@ namespace Layers {
 		std::shared_ptr<SDLCore::Texture> m_pawnDarkTexture = nullptr;
 		ChessOptions m_options;
 
-		float m_currentAgnetMoveDelayMin = 0.3;
+		float m_currentAgnetMoveDelayMin = 0.3f;
 		float m_currentAgnetMoveDelayMax = 1.0f;
 		float m_currentAgentMoveDelay = 0.0f;// gets set by m_currentAgnetMoveDelayMin/m_currentAgnetMoveDelayMax
 		float m_currentAgnetMovetime = 0.0f;
