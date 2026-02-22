@@ -304,6 +304,20 @@ namespace Layers {
 	}
 
 	bool GameLayer::AILogic() {
+		if (m_currentAgentMoveDelay == 0.0f) {
+			m_currentAgentMoveDelay = Random::GetRangeNumber(
+				m_currentAgnetMoveDelayMin, m_currentAgnetMoveDelayMax);
+			m_currentAgnetMovetime = 0.0f;
+		}
+
+		m_currentAgnetMovetime += SDLCore::Time::GetDeltaTimeSecF();
+		if (m_currentAgnetMovetime < m_currentAgentMoveDelay) {
+			return false;
+		}
+
+		m_currentAgentMoveDelay = 0.0f;
+		m_currentAgnetMovetime = 0.0f;
+
 		AgentID agentID = (m_isPlayer1Turn) ? m_agentID1 : m_agentID2;
 		bool agentIsWhite = m_game.IsWhiteTurn();
 
