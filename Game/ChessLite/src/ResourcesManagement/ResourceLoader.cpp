@@ -88,6 +88,11 @@ void ResourceLoader::LoadInternal() {
 
                 m_otnObjects.emplace_back(req.key, objects);
             }
+            else {
+#ifndef NDEBUG
+                std::cout << reader.GetError() << "\n";
+#endif
+            }
             break;
         }
 
