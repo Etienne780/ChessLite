@@ -14,6 +14,9 @@ namespace Layers {
 
     void AgentSelect::OnStart(AppContext* ctx) {
         m_activeSlot = (m_selectMode == AgentSelectMode::AGENT_2_ONLY) ? 1 : 0;
+
+        ctx->selectedAgentID1.SetInvalid();
+        ctx->selectedAgentID2.SetInvalid();
     }
 
     void AgentSelect::OnUpdate(AppContext* ctx) {}
