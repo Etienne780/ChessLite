@@ -259,6 +259,7 @@ namespace SDLCore::UI {
         std::string m_typeName = "-";
         uint32_t m_typeID = SDLCORE_INVALID_ID;
         FrameNode* m_parent = nullptr;
+        UINode* m_relativeParent = nullptr;
 
         std::vector<std::shared_ptr<UINode>> m_children;
         std::vector<UIStyle> m_appliedStyles;
@@ -337,6 +338,7 @@ namespace SDLCore::UI {
         void SetTransitionTime(float time, UITimeUnit unit);
         // is set in UI context begin call
         void SetClippingRect(const Vector4& clipRect);
+        void SetRelativeParent(UINode* node);
 
         // is size + margin
         float GetAccumulatedChildSize(bool horizontal, int upToIndex) const;

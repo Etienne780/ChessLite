@@ -240,8 +240,9 @@ namespace SDLCore::UI {
     }
 
     UIEvent UIContext::EndFrame() {
-        if (!m_relativeStack.empty()) {
+        if (!m_relativeStack.empty() && !m_lastNodeStack.empty()) {
             if (m_relativeStack.back() == m_lastNodeStack.back()) {
+                m_lastNodeStack.back()->SetRelativeParent(m_relativeStack.back());
                 m_relativeStack.pop_back();
             }
         }
@@ -287,8 +288,8 @@ namespace SDLCore::UI {
         return m_rootNode.get();
     }
 
-    const UINode* UIContext::GetLastRelativeNode() const {
-        return m_relativeStack.empty() ? m_rootNode.get() : m_relativeStack.back();
+    const UINode* UIContext::GetLastRelativeNode(const UINode* node) const {
+        return (node && node->m_relativeParent) ? node->m_relativeParent : m_rootNode.get();
     }
 
     void UIContext::SetWindowParams(WindowID id) {

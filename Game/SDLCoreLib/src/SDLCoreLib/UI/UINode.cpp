@@ -340,7 +340,7 @@ namespace SDLCore::UI {
 		const UINode* baseNode = m_parent;
 
 		if (m_positionType == UIPositionType::ABSOLUTE) {
-			baseNode = ctx->GetLastRelativeNode();
+			baseNode = ctx->GetLastRelativeNode(this);
 			if (!baseNode)
 				baseNode = m_parent;
 		}
@@ -599,6 +599,10 @@ namespace SDLCore::UI {
 		m_clippingMask = clipRect;
 	}
 
+	void UINode::SetRelativeParent(UINode* node) {
+		m_relativeParent = node;
+	}
+
 	float UINode::GetAccumulatedChildSize(bool horizontal, int upToIndex) const {
 		if (!m_parent)
 			return 0.0f;
@@ -725,7 +729,7 @@ namespace SDLCore::UI {
 	}
 
 	void UINode::CalculateLayoutAbsolute(const UIContext* ctx) {
-		const UINode* relNode = ctx->GetLastRelativeNode();
+		const UINode* relNode = ctx->GetLastRelativeNode(this);
 		if (!relNode)
 			return;
 

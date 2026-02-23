@@ -162,7 +162,7 @@ namespace SDLCore::UI {
 		}
 
 		UINode* GetRootNode() const;
-		const UINode* GetLastRelativeNode() const;
+		const UINode* GetLastRelativeNode(const UINode* node) const;
 		void SetWindowParams(WindowID id);
 		void RemoveWindowCB();
 
