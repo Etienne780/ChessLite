@@ -4,6 +4,8 @@
 #include <CoreLib/IDManager.h>
 #include <SDLCoreLib/Types/Types.h>
 
+#include "ChessOptions.h"
+
 using CoreAppIDManager = IDManager<uint32_t, SDLCORE_INVALID_ID>;
 
 template<typename Tag>
@@ -14,13 +16,6 @@ struct AgentTag {};
 
 using LayerEventSubscriptionID = CoreAppID<LayerEventSubscriptionTag>;
 using AgentID = CoreAppID<AgentTag>;
-
-struct ChessOptions {
-	bool showPossibleMoves = true;
-
-	ChessOptions() = default;
-	ChessOptions(const ChessOptions& options) = default;
-};
 
 enum class ChessSkinType {
 	UNKOWN = 0,

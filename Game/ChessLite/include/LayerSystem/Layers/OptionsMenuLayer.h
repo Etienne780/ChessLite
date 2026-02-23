@@ -2,6 +2,7 @@
 #include <SDLCoreLib/SDLCoreUI.h>
 
 #include "LayerSystem/Layer.h"
+#include "ChessOptions.h"
 
 namespace Layers {
 
@@ -26,6 +27,8 @@ namespace Layers {
 		SDLCore::UI::UIStyle m_largerBTNTabActive;
 
 		static inline const float m_largeTabBTNWidth = 508.0f;
+
+		ChessOptions m_localOptions;
 	};
 
 }

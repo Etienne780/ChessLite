@@ -26,7 +26,6 @@ public:
 	*/
 	template<typename T, typename ...Args>
 	void PushLayer(Args&& ...args) {
-		// Capture arguments in a tuple to safely forward them later
 		auto argsTuple = std::make_shared<std::tuple<std::decay_t<Args>...>>(std::forward<Args>(args)...);
 
 		m_layerCommands.emplace_back(LayerCommand(
@@ -68,6 +67,8 @@ public:
 	void PopLayer(LayerID layerID);
 
 	void ClearLayers();
+
+	bool SaveUserData();
 
 	SDLCore::WindowID GetWinID() const;
 	size_t GetLayerCount() const;

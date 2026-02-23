@@ -1,4 +1,6 @@
-﻿#include "App.h"
+﻿#include <CoreLib/OTNFile.h>
+
+#include "App.h"
 #include "FilePaths.h"
 #include "LayerSystem/Layers.h"
 #include "Styles/Comman/Style.h"
@@ -122,6 +124,10 @@ void App::PopLayer(LayerID layerID) {
 
 void App::ClearLayers() {
     m_layerCommands.emplace_back(LayerCmdType::CLEAR);
+}
+
+bool App::SaveUserData() {
+    return true;
 }
 
 SDLCore::WindowID App::GetWinID() const {

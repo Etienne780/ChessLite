@@ -84,8 +84,6 @@ void ResourceLoader::LoadInternal() {
                     std::unordered_map<std::string, OTN::OTNObject>
                 >(reader.GetObjects());
 
-                std::string msg = reader.GetError();
-
                 m_otnObjects.emplace_back(req.key, objects);
             }
             else {

@@ -165,7 +165,8 @@ namespace Layers {
 		SystemFilePath bPath = FilePaths::GetDataPath();
 
 		std::vector<ResourceRequest> requests{
-			{ ResourceType::DATA_OTN, bPath / "Agents.otn" }
+			{ ResourceType::DATA_OTN, bPath / FilePaths::agentsFileName },
+			{ ResourceType::DATA_OTN, bPath / FilePaths::optionsFileName }
 		};
 
 		AddLoadingSection(
@@ -196,13 +197,15 @@ namespace Layers {
 		const auto& map = *(assets[0].asset);
 		for (const auto& [name, obj] : map) {
 			if (name == "Agent") {
-				RegisterAgent(ctx, obj);
+				LoadAgent(ctx, obj);
+			}
+			else if(name == "Options") {
+				LoadOptions(ctx, obj);
 			}
 		}
 	}
 
-	void StartLoadLayer::RegisterAgent(AppContext* ctx, const OTN::OTNObject& agentOTN) {
-		auto& am = ctx->agentManager;
+	void StartLoadLayer::LoadAgent(AppContext* ctx, const OTN::OTNObject& agentOTN) {
 		const auto& obj = agentOTN;
 
 		for (size_t i = 0; i < obj.GetColumnCount(); i++) {
@@ -254,6 +257,12 @@ namespace Layers {
 
 			agent.LoadPersistentData(data);
 			ctx->agentManager.AddAgent(agent);
+		}
+	}
+
+	void StartLoadLayer::LoadOptions(AppContext* ctx, const OTN::OTNObject& optionsOTN) {
+		if (auto obj = optionsOTN.TryGetValue<bool>(0, "showPossibleMoves")) {
+			ctx->options.showPossibleMoves = *obj;
 		}
 	}
 

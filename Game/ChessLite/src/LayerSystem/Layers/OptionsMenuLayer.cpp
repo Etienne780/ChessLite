@@ -13,6 +13,8 @@ namespace UIComp = UIComponent;
 namespace Layers {
 
 	void OptionsMenuLayer::OnStart(AppContext* ctx) {
+		m_localOptions = ctx->options;
+		
 		namespace Prop = UI::Properties;
 
 		m_styleRoot
@@ -55,16 +57,14 @@ namespace Layers {
 	void OptionsMenuLayer::OnUIRender(AppContext* ctx) {
 		typedef UI::UIKey Key;
 
-		auto& options = ctx->options;
-
 		UI::BeginFrame(Key("options_menu"), m_styleRoot);
 		{
 			UI::Text(Key("title"), "Options", m_styleTitle);
 
 			std::string textPossibleMoves = "Show Possible Moves: ";
-			textPossibleMoves += (options.showPossibleMoves) ? "true" : "false";
-			if (UIComp::DrawTabButton("btn_back", textPossibleMoves, options.showPossibleMoves, m_largerBTNTabNormal, m_largerBTNTabActive)) {
-				options.showPossibleMoves = !options.showPossibleMoves;
+			textPossibleMoves += (m_localOptions.showPossibleMoves) ? "true" : "false";
+			if (UIComp::DrawTabButton("btn_back", textPossibleMoves, m_localOptions.showPossibleMoves, m_largerBTNTabNormal, m_largerBTNTabActive)) {
+				m_localOptions.showPossibleMoves = !m_localOptions.showPossibleMoves;
 			}
 
 			UI::BeginFrame(Key("trimline"), m_styleTrimmer);
@@ -72,12 +72,18 @@ namespace Layers {
 			
 			UI::BeginFrame(Key("save_btn_container"), m_styleRowBTNContainer); 
 			{
-				if (UIComp::DrawButton("btn_save", "Save", Style::commanBTNBase)) {
+				bool optionsDiff = m_localOptions != ctx->options;
+
+				if (UIComp::DrawButton("btn_save", "Save", Style::commanBTNBase, !optionsDiff)) {
 					Log::Debug("OptinsMenu: Save");
+					ctx->options = m_localOptions;
+					ctx->options.SaveOptions();
 				}
 
-				if (UIComp::DrawButton("btn_save_back", "Save and back", Style::commanBTNBase)) {
+				if (UIComp::DrawButton("btn_save_back", "Save and back", Style::commanBTNBase, !optionsDiff)) {
 					Log::Debug("OptinsMenu: Save and back");
+					ctx->options = m_localOptions;
+					ctx->options.SaveOptions();
 					ctx->app->PopLayer();
 				}
 			}

@@ -4,6 +4,9 @@
 
 namespace FilePaths {
 
+	extern const char* agentsFileName;
+	extern const char* optionsFileName;
+
 	/*
 	* @brief Gets the path where the application (exe) is located
 	* @return SystemFilePath reference

@@ -2,6 +2,10 @@
 #include "App.h"
 
 namespace FilePaths {
+
+	const char* agentsFileName = "Agents.otn";
+	const char* optionsFileName = "Settings.otn";
+
 	static SystemFilePath s_exePath;
 	static SystemFilePath s_assetsPath;
 	static SystemFilePath s_dataPath;

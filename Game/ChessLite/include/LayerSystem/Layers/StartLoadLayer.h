@@ -63,7 +63,8 @@ namespace Layers {
 			std::function<void(AppContext*, ResourceLoader&)> onFinished);
 
 		void RegisterData(AppContext* ctx, ResourceLoader& loader);
-		void RegisterAgent(AppContext* ctx, const OTN::OTNObject& agentOTN);
+		void LoadAgent(AppContext* ctx, const OTN::OTNObject& agentOTN);
+		void LoadOptions(AppContext* ctx, const OTN::OTNObject& optionsOTN);
 
 		void RegistSkins(AppContext* ctx);
 	};

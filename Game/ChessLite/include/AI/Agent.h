@@ -23,7 +23,6 @@ public:
 	Agent(const std::string& name, const std::string& config);
 	~Agent() = default;
 
-
 	void GameFinished(bool won);
 
 	void LoadBoardState(const std::unordered_map<std::string, BoardState>& boardStates);
