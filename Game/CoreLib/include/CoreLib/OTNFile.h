@@ -1765,7 +1765,7 @@ namespace OTN {
 		void AddSpace(std::string& outStr) const;
 		void AddIndent(std::string& outStr, uint32_t level = 1) const;
 
-		void AddError(const std::string& error, bool linebreak = true);
+		void AddError(const std::string& error);
 
 		void CountObjectType(const SerializedObject& obj, std::unordered_map<OTNBaseType, uint32_t>& typeUsage);
 		static OTNTypeDesc DeduceColumnType(const OTNValue& value);
@@ -2112,7 +2112,7 @@ namespace OTN {
 		bool ReadData(std::istream& input, ReaderData& data);
 		bool SetDataVersion(const std::vector<Token>& tokens, ReaderData& data);
 
-		void AddError(const std::string& error, bool linebreak = true);
+		void AddError(const std::string& error);
 	};
 	
 	#pragma endregion

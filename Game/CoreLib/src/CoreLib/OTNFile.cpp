@@ -117,7 +117,7 @@ namespace OTN {
 		fs::path parentDir = finalPath.parent_path();
 		if (!parentDir.empty() && !fs::exists(parentDir)) {
 			if (!createMissingDir) {
-				errorOut = "file path dose not exist!";
+				errorOut = "file path does not exist!";
 				return false;
 			}
 
@@ -481,7 +481,7 @@ namespace OTN {
 
 	bool OTNObject::DeduceTypesFromRow(const OTNRow& row) {
 		if (m_columnNames.size() != row.size()) {
-			AddError("Faild to deduce type for row");
+			AddError("Failed to deduce type for row");
 			return false;
 		}
 		
@@ -647,12 +647,12 @@ namespace OTN {
 	
 		const std::vector<OTNRow>& rows = obj.GetDataRows();
 		if (rows.empty()) {
-			AddError("OTNObjectBuilder: Faild to create OTNObjectBuilder from OTNObject! Rows empty");
+			AddError("OTNObjectBuilder: Failed to create OTNObjectBuilder from OTNObject! Rows empty");
 			return;
 		}
 
 		if (rows.size() > 1) {
-			AddError("OTNObjectBuilder: Faild to create OTNObjectBuilder from OTNObject! Has more than 1 row");
+			AddError("OTNObjectBuilder: Failed to create OTNObjectBuilder from OTNObject! Has more than 1 row");
 			return;
 		}
 		
@@ -1620,7 +1620,7 @@ namespace OTN {
 			outStr.push_back('\t');
 	}
 
-	void OTNWriter::AddError(const std::string& error, bool linebreak) {
+	void OTNWriter::AddError(const std::string& error) {
 		if (!m_error.empty())
 			m_error += "\n";		
 		m_error += error;
@@ -2372,7 +2372,7 @@ namespace OTN {
 					AddError(Peek(), "Row '" 
 						+ std::to_string(currentRowCount)
 						+ "' of object '" + obj.GetName() 
-						+ "' has to manay values! '" 
+						+ "' has t0o many values! '" 
 						+ std::to_string(types.size()) 
 						+ "' '" + std::to_string(pos) + "'");
 					return false;
@@ -2461,13 +2461,13 @@ namespace OTN {
 
 		Token temp = Next();
 		if (temp.type != TokenType::REF_BEGIN) {
-			AddError(temp, "Invalid Refernce definition!");
+			AddError(temp, "Invalid Reference definition!");
 			return;
 		}
 
 		temp = Next();
 		if (temp.type != TokenType::IDENTIFIER) {
-			AddError(temp, "Invalid Refernce definition!");
+			AddError(temp, "Invalid Reference definition!");
 			return;
 		}
 
@@ -2485,7 +2485,7 @@ namespace OTN {
 		
 		while (Match(TokenType::LIST_BEGIN)) {
 			if (!Match(TokenType::LIST_END)) {
-				AddError("error oder so");
+				AddError("Invalid list tokens");
 				break;
 			}
 
@@ -2767,7 +2767,7 @@ namespace OTN {
 		return fileVersion > 0;
 	}
 
-	void OTNReader::AddError(const std::string& error, bool linebreak) {
+	void OTNReader::AddError(const std::string& error) {
 		if (!m_error.empty())
 			m_error += "\n";
 		m_error += error;
