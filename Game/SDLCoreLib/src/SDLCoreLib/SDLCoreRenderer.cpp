@@ -956,6 +956,39 @@ namespace SDLCore::Render {
         return lines;
     }
 
+    static inline void RenderLineGlyphs(
+        SDL_Renderer* renderer,
+        SDL_Texture* atlas,
+        FontAsset* asset,
+        const std::string& line,
+        float penX,
+        float penY)
+    {
+        const float ascent = static_cast<float>(asset->m_ascent);
+
+        for (char c : line) {
+            auto* m = asset->GetGlyphMetrics(static_cast<uint8_t>(c));
+            if (!m) continue;
+            
+            SDL_FRect dst{
+                penX,
+                penY,
+                static_cast<float>(m->atlasWidth),
+                static_cast<float>(m->atlasHeight)
+            };
+
+            SDL_FRect src{
+                static_cast<float>(m->atlasX),
+                static_cast<float>(m->atlasY),
+                static_cast<float>(m->atlasWidth),
+                static_cast<float>(m->atlasHeight)
+            };
+
+            SDL_RenderTexture(renderer, atlas, &src, &dst);
+            penX += m->advance;
+        }
+    }
+
     // text musst be in finale version. Truncated applyed, ...
     static inline CachedText* GetCachedText(const std::string& text, bool createOnNotFound = false) {
         TextCacheKey key{
@@ -1008,7 +1041,6 @@ namespace SDLCore::Render {
                 );
 
                 if (ct.preRenderedTexture) {
-                    // Save old render target
                     SDL_Texture* oldTarget = SDL_GetRenderTarget(renderer);
                     SDL_SetRenderTarget(renderer, ct.preRenderedTexture);
                     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
@@ -1020,43 +1052,22 @@ namespace SDLCore::Render {
 
                     float lineH = GetLineHeight();
                     float penY = 0.0f;
+
                     for (size_t i = 0; i < ct.lines.size(); ++i) {
-                        float lineWidth = ct.lineWidths[i];
                         float penX = 0.0f;
-
                         switch (s_textHorAlign) {
-                        case Align::START:  penX = 0.0f; break;
-                        case Align::CENTER: penX = (ct.blockWidth - lineWidth) * 0.5f; break;
-                        case Align::END:    penX = ct.blockWidth - lineWidth; break;
-                        default:            penX = 0.0f; break;
+                        case Align::START:  penX = 0.0f;                                         break;
+                        case Align::CENTER: penX = (ct.blockWidth - ct.lineWidths[i]) * 0.5f;   break;
+                        case Align::END:    penX = ct.blockWidth - ct.lineWidths[i];            break;
+                        default:            penX = 0.0f;                                         break;
                         }
 
-                        for (char c : ct.lines[i]) {
-                            auto* m = s_font.GetFontAsset()->GetGlyphMetrics(c);
-                            if (!m) continue;
-
-                            SDL_FRect dst{
-                                penX,
-                                penY,
-                                static_cast<float>(m->atlasWidth),
-                                static_cast<float>(m->atlasHeight)
-                            };
-
-                            SDL_FRect src{
-                                static_cast<float>(m->atlasX),
-                                static_cast<float>(m->atlasY),
-                                static_cast<float>(m->atlasWidth),
-                                static_cast<float>(m->atlasHeight)
-                            };
-                            
-                            SDL_RenderTexture(renderer, atlas, &src, &dst);
-                            penX += m->advance;
-                        }
+                        RenderLineGlyphs(renderer, atlas, s_font.GetFontAsset(),
+                            ct.lines[i], penX, penY);
 
                         penY += lineH;
                     }
 
-                    // Restore old render target
                     SDL_SetRenderTarget(renderer, oldTarget);
                 }
             }
@@ -1139,44 +1150,23 @@ namespace SDLCore::Render {
         if (lines.empty())
             return;
 
-        float blockOffsetY = CalculateVerOffset(lines, s_textVerAlign);
+        const float lineH = static_cast<float>(asset->m_lineSkip)
+            + s_textLineHeightMultiplier * s_textSize;
+        const float blockH = GetTextBlockHeight(lines);
+        const float blockOffsetY = CalcOffsetCached(blockH, s_textVerAlign);
 
-        float penY = y;
-        float lineH = static_cast<float>(asset->m_lineSkip);
-        size_t currentLine = 0;
+        float penY = y - blockOffsetY;
 
-        for (const auto& line : lines) {
-            if (s_textMaxLines != 0 && currentLine >= s_textMaxLines)
-                break;
+        for (size_t i = 0; i < lines.size(); ++i) {
+            if (s_textMaxLines != 0 && i >= s_textMaxLines) break;
 
-            float blockOffsetX = CalculateHorOffset(line, s_textHorAlign);
-            float penX = x;
+            float lineWidth = GetTextWidth(lines[i]);
+            float blockOffsetX = CalcOffsetCached(lineWidth, s_textHorAlign);
+            float penX = x - blockOffsetX;
 
-            for (char c : line) {
-                auto* m = asset->GetGlyphMetrics(c);
-                if (!m)
-                    continue;
+            RenderLineGlyphs(renderer, atlas, asset, lines[i], penX, penY);
 
-                SDL_FRect dst{
-                    penX - blockOffsetX,
-                    penY - blockOffsetY,
-                    static_cast<float>(m->atlasWidth),
-                    static_cast<float>(m->atlasHeight)
-                };
-
-                SDL_FRect src{
-                    static_cast<float>(m->atlasX),
-                    static_cast<float>(m->atlasY),
-                    static_cast<float>(m->atlasWidth),
-                    static_cast<float>(m->atlasHeight)
-                };
-
-                SDL_RenderTexture(renderer, atlas, &src, &dst);
-                penX += m->advance;
-            }
-
-            penY += lineH + (s_textLineHeightMultiplier * s_textSize);
-            currentLine++;
+            penY += lineH;
         }
     }
 
