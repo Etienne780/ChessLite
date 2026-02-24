@@ -425,7 +425,7 @@ namespace SDLCore {
 
 #ifndef NDEBUG
 		if (tag.empty()) {
-			Log::Warn("SDLCore::SoundManager::PauseTag: The given tag is empty!");
+			Log::Warn("SDLCore::SoundManager::ResumeTag: The given tag is empty!");
 		}
 #endif
 

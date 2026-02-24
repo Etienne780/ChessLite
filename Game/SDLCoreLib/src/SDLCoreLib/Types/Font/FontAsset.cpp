@@ -84,7 +84,7 @@ namespace SDLCore {
         obj.m_fontSize = other.m_fontSize;
         obj.m_lastUseTick = other.m_lastUseTick;
         obj.m_ascent = other.m_ascent;
-        obj.m_descent = other.m_ascent;
+        obj.m_descent = other.m_descent;
         obj.m_lineSkip = other.m_lineSkip;
 
         obj.m_font = other.m_font;

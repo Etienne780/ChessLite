@@ -1411,7 +1411,7 @@ namespace SDLCore::Render {
     }
 
     float CalculateTextSizeForBounds(const std::string& text, const Vector2& targetSize) {
-        return CalculateTextSizeForBounds(text, targetSize.x, targetSize.x);
+        return CalculateTextSizeForBounds(text, targetSize.x, targetSize.y);
     }
 
     float GetCharWidth(char c) {
