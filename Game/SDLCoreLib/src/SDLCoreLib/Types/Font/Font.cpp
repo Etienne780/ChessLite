@@ -227,7 +227,8 @@ namespace SDLCore {
 	}
 
 	void Font::CheckFilePath(const SystemFilePath& path) {
-		m_isFilePathInvalidValid = (path.empty()|| !File::Exists(path));
+		File file{ path };
+		m_isFilePathInvalidValid = (path.empty()|| !file.Exists());
 	}
 
 	bool Font::MarkAsInvalid() {

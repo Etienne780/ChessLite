@@ -278,7 +278,7 @@ namespace Layers {
                     m_inputBarText.end());
 
                 if (m_inputBarText.size() > m_agentNameMaxChars) {
-                    m_inputBarText.resize(m_agentNameMaxChars);
+                    m_inputBarText.resize(static_cast<size_t>(m_agentNameMaxChars));
                 }
             }
         }
@@ -468,25 +468,6 @@ namespace Layers {
         }
 
         RE::ResetClipRect();
-    }
-
-    bool AgentSelect::DrawButton(const std::string& text, float x, float y, float w, float h) {
-        namespace RE = SDLCore::Render;
-
-        RE::SetColor(40, 40, 40);
-        RE::FillRect(x, y, w, h);
-        RE::SetColor(80, 80, 80);
-        RE::SetStrokeWidth(2);
-        RE::Rect(x, y, w, h);
-
-        float textWidth = RE::GetTextWidth(text);
-        float textHeight = RE::GetTextHeight();
-        RE::SetColor(255);
-        RE::Text(text, x + (w - textWidth) * 0.5f, y + (h - textHeight) * 0.5f);
-
-        Vector2 mPos = SDLCore::Input::GetMousePosition();
-        bool leftPressed = SDLCore::Input::MouseJustPressed(SDLCore::MouseButton::LEFT);
-        return leftPressed && IsPointInRect(mPos, x, y, w, h);
     }
 
     const std::vector<Agent>& AgentSelect::SortAgents(
@@ -730,7 +711,7 @@ namespace Layers {
             outScore);
     }
 
-    void AgentSelect::UpdateScroll(float& offset, float& velocity, float maxScroll) {
+    void AgentSelect::UpdateScroll(float& offset, float& velocity, float maxScroll) const {
         int dir = 0;
         if (SDLCore::Input::GetScrollDir(dir)) velocity -= dir * m_scrollSpeed;
 
@@ -739,6 +720,25 @@ namespace Layers {
 
         if (offset < 0.0f) { offset = 0.0f; velocity = 0.0f; }
         if (offset > maxScroll) { offset = maxScroll; velocity = 0.0f; }
+    }
+
+    bool AgentSelect::DrawButton(const std::string& text, float x, float y, float w, float h) const {
+        namespace RE = SDLCore::Render;
+
+        RE::SetColor(40, 40, 40);
+        RE::FillRect(x, y, w, h);
+        RE::SetColor(80, 80, 80);
+        RE::SetStrokeWidth(2);
+        RE::Rect(x, y, w, h);
+
+        float textWidth = RE::GetTextWidth(text);
+        float textHeight = RE::GetTextHeight();
+        RE::SetColor(255);
+        RE::Text(text, x + (w - textWidth) * 0.5f, y + (h - textHeight) * 0.5f);
+
+        Vector2 mPos = SDLCore::Input::GetMousePosition();
+        bool leftPressed = SDLCore::Input::MouseJustPressed(SDLCore::MouseButton::LEFT);
+        return leftPressed && IsPointInRect(mPos, x, y, w, h);
     }
 
     bool AgentSelect::IsPointInRect(const Vector2& mPos, float x, float y, float w, float h) {
@@ -752,7 +752,7 @@ namespace Layers {
         return str;
     }
 
-    bool AgentSelect::IsValidAgentNameChar(char c) const {
+    bool AgentSelect::IsValidAgentNameChar(char c) {
         if (c >= 'a' && c <= 'z')
             return true;
 

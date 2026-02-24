@@ -56,11 +56,11 @@ namespace Layers {
 		bool EvaluateIntFilter(const std::string& token, int value, int& outScore);
 		bool EvaluateFloatFilter(const std::string& token, float value, int& outScore);
 
-		void UpdateScroll(float& offset, float& velocity, float maxScroll);
-		bool DrawButton(const std::string& text, float x, float y, float w, float h);
-		bool IsPointInRect(const Vector2& mPos, float x, float y, float w, float h);
-		std::string ToLower(std::string str);
-		bool IsValidAgentNameChar(char c) const;
+		void UpdateScroll(float& offset, float& velocity, float maxScroll) const;
+		bool DrawButton(const std::string& text, float x, float y, float w, float h) const;
+		static bool IsPointInRect(const Vector2& mPos, float x, float y, float w, float h);
+		static std::string ToLower(std::string str);
+		static bool IsValidAgentNameChar(char c);
 	};
 
 }
