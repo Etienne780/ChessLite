@@ -139,7 +139,7 @@ public:
 		switch (m_order) {
 		case IDOrder::RANDOM:
 			m_idCounter = startValue;
-			m_idFallback = true;
+			m_idFallback = false;
 			break;
 		case IDOrder::ASCENDING:
 			m_idCounter = startValue;
