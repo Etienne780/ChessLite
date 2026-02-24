@@ -1,4 +1,5 @@
 #pragma once
+#include <tuple>
 #include <SDLCoreLib/SDLCoreUI.h>
 
 #include "LayerSystem/Layer.h"
@@ -7,7 +8,7 @@ namespace Layers {
 
 	class GameResult : public Layer {
 	public:
-		GameResult(bool whiteWon);
+		GameResult(bool whiteWon, AgentID id);
 		~GameResult() override = default;
 
 		void OnStart(AppContext* ctx) override;
@@ -19,7 +20,14 @@ namespace Layers {
 
 	private:
 		bool m_whiteWon = false;
+		SDLCore::WindowCallbackID m_windowResizeCBID;
+		AgentID m_agentWonID;
+		float m_windowWidth = 0.0f;
+
+		std::string m_wonTitel;
 		SDLCore::UI::UIStyle m_styleTitle;
+
+		std::pair<std::string, float> CalculateWonTitel(AppContext* ctx);
 	};
 
 }

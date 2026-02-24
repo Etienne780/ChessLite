@@ -32,7 +32,6 @@ namespace Layers {
 		ChessSkinType m_skinType = ChessSkinType::UNKOWN;
 		std::shared_ptr<SDLCore::Texture> m_pawnLightTexture = nullptr;
 		std::shared_ptr<SDLCore::Texture> m_pawnDarkTexture = nullptr;
-		ChessOptions m_options;
 
 		float m_currentAgnetMoveDelayMin = 0.3f;
 		float m_currentAgnetMoveDelayMax = 1.0f;
@@ -77,7 +76,7 @@ namespace Layers {
 		bool PlayerLogic();
 		// returns true when a move was made
 		bool AILogic();
-		void RenderBoard();
+		void RenderBoard(AppContext* ctx);
 
 		void UpdateBoardTileSize();
 		void ResetChessSelectedParams();

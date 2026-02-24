@@ -48,7 +48,6 @@ namespace Layers {
 	void GameLayer::OnUpdate(AppContext* ctx) {
 		using namespace SDLCore;
 		
-		m_options = ctx->options;
 		m_RefDisplaySize = ctx->refDisplaySize;
 		m_displaySize = ctx->displaySize;
 		m_windowSize = ctx->windowSize;
@@ -60,11 +59,28 @@ namespace Layers {
 			m_pawnDarkTexture = ctx->skinManager.GetSkinDark();
 		}
 
-		if (!m_opendGameResult && m_gameResult != ChessCoreResult::NONE) {
+		if (!m_opendGameResult && m_gameResult != ChessCoreResult::NONE)
+		{
 			m_opendGameResult = true;
 			m_game.EndGame();
 			ResetChessSelectedParams();
-			ctx->app->PushLayer<GameResult>(m_gameResult == ChessCoreResult::WHITE_WON);
+
+			bool whiteWon = m_gameResult == ChessCoreResult::WHITE_WON;
+			AgentID winnerAgentID;
+
+			if (!m_agentID1.IsInvalid()) {
+				Agent* agent1 = ctx->agentManager.GetAgent(m_agentID1);
+				if (agent1 && agent1->IsAgentCurrentlyWhite() == whiteWon)
+					winnerAgentID = m_agentID1;
+			}
+
+			if (winnerAgentID.IsInvalid() && !m_agentID2.IsInvalid()) {
+				Agent* agent2 = ctx->agentManager.GetAgent(m_agentID2);
+				if (agent2 && agent2->IsAgentCurrentlyWhite() == whiteWon)
+					winnerAgentID = m_agentID2;
+			}
+
+			ctx->app->PushLayer<GameResult>(whiteWon, winnerAgentID);
 		}
 
 		UpdateBoardTileSize();
@@ -87,7 +103,7 @@ namespace Layers {
 	}
 
 	void GameLayer::OnRender(AppContext* ctx) {
-		RenderBoard();
+		RenderBoard(ctx);
 	}
 
 	void GameLayer::OnUIRender(AppContext* ctx) {
@@ -345,7 +361,7 @@ namespace Layers {
 		return movePlayed;
 	}
 
-	void GameLayer::RenderBoard() {
+	void GameLayer::RenderBoard(AppContext* ctx) {
 		namespace RE = SDLCore::Render;
 		typedef SDLCore::UI::UIRegistry UIReg;
 
@@ -364,7 +380,8 @@ namespace Layers {
 		UIReg::TryGetRegisteredColor(Style::commanColorHighlightMove, colorHighlightMove);
 		UIReg::TryGetRegisteredColor(Style::commanColorBoardDark, colorBoardDark);
 		UIReg::TryGetRegisteredColor(Style::commanColorBoardLight, colorBoardLight);
-
+		
+		const auto& options = ctx->options;
 		const auto& board = m_game.GetBoard();
 		int boardWidth = board.GetWidth();
 		int boardHeight = board.GetHeight();
@@ -434,7 +451,7 @@ namespace Layers {
 
 		#pragma region Render possible moves
 		
-		if (m_pieceSelected && m_options.showPossibleMoves) {
+		if (m_pieceSelected && options.showPossibleMoves) {
 			auto& reg = CoreChess::ChessPieceRegistry::GetInstance();
 			const CoreChess::ChessPiece* piece = reg.GetChessPiece(m_selectedPieceID);
 

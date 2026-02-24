@@ -1240,7 +1240,7 @@ namespace SDLCore::Render {
         s_font.SelectSize(s_textSize);
     }
 
-    float GetActiveFontSize() {
+    float GetActiveTextSize() {
         return s_font.GetSelectedSize();
     }
 
@@ -1371,8 +1371,8 @@ namespace SDLCore::Render {
         s_textClipWidth = -1.0f;
     }
     
-    float CalculateFontSizeForBounds(const std::string& text, float targetW, float targetH) {
-        if (text.empty() || targetW <= 1.0f || targetH <= 1.0f)
+    float CalculateTextSizeForBounds(const std::string& text, float targetW, float targetH) {
+        if (text.empty())
             return 1.0f;
 
         float baseSize = (s_textSize > 0.0f) ? s_textSize : 16.0f;
@@ -1383,12 +1383,35 @@ namespace SDLCore::Render {
         if (baseW <= 0.0f || baseH <= 0.0f)
             return baseSize;
 
-        float scale = std::min(targetW / baseW, targetH / baseH);
+        float scaleW = -1.0f;
+        float scaleH = -1.0f;
+
+        if (targetW > 0.0f)
+            scaleW = targetW / baseW;
+
+        if (targetH > 0.0f)
+            scaleH = targetH / baseH;
+
+        float scale = 1.0f;
+
+        if (scaleW > 0.0f && scaleH > 0.0f) {
+            scale = std::min(scaleW, scaleH);
+        }
+        else if (scaleW > 0.0f) {
+            scale = scaleW;
+        }
+        else if (scaleH > 0.0f) {
+            scale = scaleH;
+        }
+        else {
+            return baseSize;
+        }
+
         return baseSize * scale;
     }
 
-    float CalculateFontSizeForBounds(const std::string& text, const Vector2& targetSize) {
-        return CalculateFontSizeForBounds(text, targetSize.x, targetSize.x);
+    float CalculateTextSizeForBounds(const std::string& text, const Vector2& targetSize) {
+        return CalculateTextSizeForBounds(text, targetSize.x, targetSize.x);
     }
 
     float GetCharWidth(char c) {
