@@ -22,6 +22,8 @@ namespace Layers {
 		auto* win = app->GetWindow(id);
 		
 		if (win) {
+			m_windowWidth = win->GetWidth();
+
 			m_windowResizeCBID = win->AddOnWindowResize([this](SDLCore::Window& win) {
 				m_windowWidth = win.GetWidth();
 			});
@@ -93,13 +95,14 @@ namespace Layers {
 
 		const std::string title = color + playerType + " Won";
 
-		const float widthPercent = 60.0f;
+		const float widthPercent = 75.0f;
+		const float maxSize = 64.0f;
 		const float desiredWidth = widthPercent * m_windowWidth / 100.0f;
 
 		const float textSize =
 			RE::CalculateTextSizeForBounds(title, desiredWidth, -1.0f);
 
-		return { title, textSize };
+		return { title, std::min(maxSize, textSize) };
 	}
 
 }
