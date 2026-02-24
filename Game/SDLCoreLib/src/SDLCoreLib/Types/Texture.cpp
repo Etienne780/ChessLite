@@ -50,7 +50,8 @@ namespace SDLCore {
     Texture::Texture(const char* path, Type type) 
         : m_type(type) {
 
-        if (File::Exists(path)) {
+        File file{ path };
+        if (file.Exists()) {
             SDL_Surface* surface = IMG_Load(path);
             if (!surface) {
                 Log::Error("SDLCore::Texture: Failed to load '{}': {}", path, SDL_GetError());
@@ -190,13 +191,13 @@ namespace SDLCore {
             texture->lastB = b;
             texture->lastA = a;
 
-            if (!SDL_SetTextureColorMod(texture->tex, r, g, b) != 0) {
+            if (!SDL_SetTextureColorMod(texture->tex, r, g, b)) {
                 if (!errorBuffer.empty()) errorBuffer += ", ";
                 errorBuffer += FormatUtils::formatString("Failed to set color: {}", SDL_GetError());
                 result = false;
             }
 
-            if (!SDL_SetTextureAlphaMod(texture->tex, a) != 0) {
+            if (!SDL_SetTextureAlphaMod(texture->tex, a)) {
                 if (!errorBuffer.empty()) errorBuffer += ", ";
                 errorBuffer += FormatUtils::formatString("Failed to set alpha: {}", SDL_GetError());
                 result = false;
@@ -206,7 +207,7 @@ namespace SDLCore {
         SDL_ScaleMode scaleMode = static_cast<SDL_ScaleMode>(m_scaleMode);
         if (texture->scaleMode != scaleMode) {
             texture->scaleMode = scaleMode;
-            if (!SDL_SetTextureScaleMode(texture->tex, scaleMode) != 0) {
+            if (!SDL_SetTextureScaleMode(texture->tex, scaleMode)) {
                 if (!errorBuffer.empty()) errorBuffer += ", ";
                 errorBuffer += FormatUtils::formatString("Failed to set scale mode: {}", SDL_GetError());
                 result = false;

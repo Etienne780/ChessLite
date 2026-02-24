@@ -497,13 +497,15 @@ namespace SDLCore {
 
     void Application::ProcessSDLPollEventWindow(const std::unique_ptr<Window>& window) {
         SDL_WindowID sdlWindowID = window->GetSDLID();
+        if (m_sdlEvent.type == SDL_EVENT_QUIT) { 
+            Quit(); 
+            return; 
+        }
+        
         if (m_sdlEvent.window.windowID != sdlWindowID || sdlWindowID == SDLCORE_INVALID_ID)
             return;
 
         switch (m_sdlEvent.type) {
-        case SDL_EVENT_QUIT:
-            Quit();
-            break;
         case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
             m_windowsToClose.push_back(window->GetID());
             break;

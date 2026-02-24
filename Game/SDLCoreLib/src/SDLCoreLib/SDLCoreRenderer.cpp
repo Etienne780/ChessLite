@@ -177,6 +177,7 @@ namespace SDLCore::Render {
                 v.color.r /= 255.0f;
                 v.color.g /= 255.0f;
                 v.color.b /= 255.0f;
+                v.color.a /= 255.0f;
             }
             dst[i] = v;
         }
