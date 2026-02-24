@@ -19,7 +19,8 @@ namespace Layers {
         ctx->selectedAgentID2.SetInvalid();
     }
 
-    void AgentSelect::OnUpdate(AppContext* ctx) {}
+    void AgentSelect::OnUpdate(AppContext* ctx) {
+    }
 
     void AgentSelect::OnLateRender(AppContext* ctx) {
         namespace RE = SDLCore::Render;
@@ -167,7 +168,11 @@ namespace Layers {
 
         Vector2 mPos = SDLCore::Input::GetMousePosition();
         bool isInputBarHover = IsPointInRect(mPos, x, y, fieldW, h);
-        bool canConfirm = m_isAddingAgent && m_inputBarText.size() > 3;
+
+        bool isTextInBounds = 
+            m_inputBarText.size() > m_agentNameMinChars && 
+            m_inputBarText.size() < m_agentNameMaxChars;
+        bool canConfirm = m_isAddingAgent && isTextInBounds;
 
         RE::SetTextSize(22.0f);
 
@@ -181,7 +186,16 @@ namespace Layers {
 
             std::string typed = SDLCore::Input::GetTextInputBuffer();
             for (char c : typed) {
-                if (std::isprint(static_cast<unsigned char>(c))) m_inputBarText += c;
+                bool validLength = m_isAddingAgent ?
+                    (m_inputBarText.size() < m_agentNameMaxChars) :
+                    true;
+
+                if (validLength &&
+                    std::isprint(static_cast<unsigned char>(c)) &&
+                    (!m_isAddingAgent || IsValidAgentNameChar(c)))
+                {
+                    m_inputBarText += c;
+                }
             }
 
             if (SDLCore::Input::KeyRepeating(SDLCore::KeyCode::BACKSPACE) && !m_inputBarText.empty()) {
@@ -249,8 +263,23 @@ namespace Layers {
                     m_cursorBlinkTimer = 0.0f;
                     SDLCore::Input::StartTextInput();
                 }
+
                 m_isAddingAgent = true;
                 m_isInputBarActive = true;
+
+                m_inputBarText.erase(
+                    std::remove_if(
+                        m_inputBarText.begin(),
+                        m_inputBarText.end(),
+                        [this](char c)
+                        {
+                            return !IsValidAgentNameChar(c);
+                        }),
+                    m_inputBarText.end());
+
+                if (m_inputBarText.size() > m_agentNameMaxChars) {
+                    m_inputBarText.resize(m_agentNameMaxChars);
+                }
             }
         }
 
@@ -721,6 +750,19 @@ namespace Layers {
         std::transform(str.begin(), str.end(), str.begin(),
             [](unsigned char c) { return std::tolower(c); });
         return str;
+    }
+
+    bool AgentSelect::IsValidAgentNameChar(char c) const {
+        if (c >= 'a' && c <= 'z')
+            return true;
+
+        if (c >= 'A' && c <= 'Z')
+            return true;
+
+        if (c == '_' || c == '-')
+            return true;
+
+        return false;
     }
 
 }

@@ -1,4 +1,5 @@
 #pragma once
+#include <array>
 #include <SDLCoreLib/SDLCoreUI.h>
 #include "AI/AgentManager.h"
 
@@ -35,6 +36,9 @@ namespace Layers {
 		std::string m_inputBarText = "";
 		float m_cursorBlinkTimer = 0.0f;
 
+		static inline const float m_agentNameMinChars = 3;
+		static inline const float m_agentNameMaxChars = 20;
+
 		std::string m_sortedAgentsSearchInput;
 		std::vector<Agent> m_cachedSortedAgents;
 
@@ -56,6 +60,7 @@ namespace Layers {
 		bool DrawButton(const std::string& text, float x, float y, float w, float h);
 		bool IsPointInRect(const Vector2& mPos, float x, float y, float w, float h);
 		std::string ToLower(std::string str);
+		bool IsValidAgentNameChar(char c) const;
 	};
 
 }

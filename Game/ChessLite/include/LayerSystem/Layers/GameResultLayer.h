@@ -22,7 +22,7 @@ namespace Layers {
 		bool m_whiteWon = false;
 		SDLCore::WindowCallbackID m_windowResizeCBID;
 		AgentID m_agentWonID;
-		float m_windowWidth = 0.0f;
+		int m_windowWidth = 0;
 
 		std::string m_wonTitel;
 		SDLCore::UI::UIStyle m_styleTitle;
