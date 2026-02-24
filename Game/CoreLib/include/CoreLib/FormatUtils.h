@@ -122,6 +122,9 @@ public:
         if constexpr (std::is_same_v<T, bool>) {
             return (value) ? "true" : "false";
         }
+        else if constexpr (std::is_same_v<T, char>) {
+            return std::string(1, value);
+        }
         else if constexpr (std::is_arithmetic_v<T>) {
             return trimTrailingZeros(value);
         }
