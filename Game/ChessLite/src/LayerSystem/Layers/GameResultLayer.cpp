@@ -37,11 +37,9 @@ namespace Layers {
 	}
 
 	void GameResult::OnUpdate(AppContext* ctx) {
-		
 	}
 
 	void GameResult::OnRender(AppContext* ctx) {
-
 	}
 
 	void GameResult::OnUIRender(AppContext* ctx) {
