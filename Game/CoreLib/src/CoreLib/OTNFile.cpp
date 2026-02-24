@@ -279,6 +279,7 @@ namespace OTN {
 
 	OTNObject& OTNObject::SetTypeDescList(const std::vector<OTNTypeDesc>& types) {
 		m_columnTypes = types;
+		return *this;
 	}
 
 	OTNObject& OTNObject::AddDataRowList(const OTNRow& values) {
