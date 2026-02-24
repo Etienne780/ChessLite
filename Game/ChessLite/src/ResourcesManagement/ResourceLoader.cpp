@@ -1,3 +1,4 @@
+#include <CoreLib/File.h>
 #include "ResourcesManagement/ResourceLoader.h"
 
 ResourceRequest::ResourceRequest(ResourceType _type, SystemFilePath _path) 
@@ -77,6 +78,10 @@ void ResourceLoader::LoadInternal() {
             break;
 
         case ResourceType::DATA_OTN: {
+            File file{ req.path };
+            if (!file.Exists())
+                continue;
+
             OTN::OTNReader reader;
             if (reader.ReadFile(req.path)) {
 
@@ -88,7 +93,7 @@ void ResourceLoader::LoadInternal() {
             }
             else {
 #ifndef NDEBUG
-                std::cout << reader.GetError() << "\n";
+                std::cout << "OTN: " << reader.GetError() << "\n";
 #endif
             }
             break;
