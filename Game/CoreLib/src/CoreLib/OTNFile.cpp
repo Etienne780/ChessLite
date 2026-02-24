@@ -109,7 +109,7 @@ namespace OTN {
 
 		// Check file name
 		if (finalPath.filename().empty()) {
-			errorOut = "file path has no file name!";
+			errorOut = "File path has no file name!";
 			return false;
 		}
 
@@ -117,13 +117,13 @@ namespace OTN {
 		fs::path parentDir = finalPath.parent_path();
 		if (!parentDir.empty() && !fs::exists(parentDir)) {
 			if (!createMissingDir) {
-				errorOut = "file path does not exist!";
+				errorOut = "File path does not exist!";
 				return false;
 			}
 
 			std::error_code ec;
 			if (!fs::create_directories(parentDir, ec)) {
-				errorOut = "failed to create directory '" + parentDir.string() +
+				errorOut = "Failed to create directory '" + parentDir.string() +
 					"': " + ec.message();
 				return false;
 			}
@@ -140,7 +140,7 @@ namespace OTN {
 				std::transform(validExtUpper.begin(), validExtUpper.end(),
 					validExtUpper.begin(), ::toupper);
 
-				errorOut = "file extension '" + ext +
+				errorOut = "File extension '" + ext +
 					"' is invalid, valid extensions are " +
 					validExtUpper + ", " + validExt + "!";
 				return false;
