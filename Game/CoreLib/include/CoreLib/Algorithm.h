@@ -506,8 +506,9 @@ namespace Algorithm {
 						std::swap(list[j], list[j + 1]);
 						swapped = true;
 					}
-					if (!swapped) break;
 				}
+				if (!swapped) 
+					break;
 			}
 		}
 
