@@ -79,7 +79,7 @@ public:
     * @param value The value to compare against
     * @return true if all components are equal, false otherwise
     */
-    bool Equals(float value);
+    bool Equals(float value) const;
 
     /**
     * @brief Checks if this vector matches the given components
@@ -90,15 +90,17 @@ public:
     * @param w The w component to compare
     * @return true if all components match, false otherwise
     */
-    bool Equals(float x, float y, float z, float w);
+    bool Equals(float x, float y, float z, float w) const;
 
     /**
     * @brief Checks if this vector is equal to another Vector4
     *
+    * This is equivalent to using the equality operator (`*this == other`).
+    * 
     * @param other The vector to compare against
     * @return true if all components are equal, false otherwise
     */
-    bool Equals(const Vector4& other);
+    bool Equals(const Vector4& other) const;
 
     /**
     * @brief Normalizes the vector to have length 1.

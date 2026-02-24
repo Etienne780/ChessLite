@@ -69,15 +69,15 @@ Vector2& Vector2::Set(float fill) {
     return *this;
 }
 
-bool Vector2::Equals(float value) {
+bool Vector2::Equals(float value) const {
     return x == value && y == value;
 }
 
-bool Vector2::Equals(float _x, float _y) {
+bool Vector2::Equals(float _x, float _y) const {
     return x == _x && y == _y;
 }
 
-bool Vector2::Equals(const Vector2& other) {
+bool Vector2::Equals(const Vector2& other) const {
     return *this == other;
 }
 

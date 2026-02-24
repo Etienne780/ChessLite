@@ -72,15 +72,15 @@ Vector3& Vector3::Set(float fill) {
     return *this;
 }
 
-bool Vector3::Equals(float value) {
+bool Vector3::Equals(float value) const {
     return x == value && y == value && z == value;
 }
 
-bool Vector3::Equals(float _x, float _y, float _z) {
+bool Vector3::Equals(float _x, float _y, float _z) const{
     return x == _x && y == _y && z == _z;
 }
 
-bool Vector3::Equals(const Vector3& other) {
+bool Vector3::Equals(const Vector3& other) const {
     return *this == other;
 }
 

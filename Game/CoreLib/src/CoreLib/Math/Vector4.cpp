@@ -76,15 +76,15 @@ Vector4& Vector4::Set(float fill) {
     return *this;
 }
 
-bool Vector4::Equals(float value) {
+bool Vector4::Equals(float value) const {
     return x == value && y == value && z == value && w == value;
 }
 
-bool Vector4::Equals(float _x, float _y, float _z, float _w) {
+bool Vector4::Equals(float _x, float _y, float _z, float _w) const {
     return x == _x && y == _y && z == _z && w == _w;
 }
 
-bool Vector4::Equals(const Vector4& other) {
+bool Vector4::Equals(const Vector4& other) const {
     return *this == other;
 }
 

@@ -82,7 +82,7 @@ public:
     * @param value The value to compare against
     * @return true if all components are equal to the value, false otherwise
     */
-    bool Equals(float value);
+    bool Equals(float value) const;
 
     /**
     * @brief Checks if this vector matches the given components
@@ -92,15 +92,17 @@ public:
     * @param z The z component to compare
     * @return true if all components match, false otherwise
     */
-    bool Equals(float x, float y, float z);
+    bool Equals(float x, float y, float z) const;
 
     /**
     * @brief Checks if this vector is equal to another Vector3
     *
+    * This is equivalent to using the equality operator (`*this == other`).
+    * 
     * @param other The vector to compare against
     * @return true if all components are equal, false otherwise
     */
-    bool Equals(const Vector3& other);
+    bool Equals(const Vector3& other) const;
 
     /**
     * @brief Normalizes the vector to have length 1.

@@ -77,7 +77,7 @@ public:
     * @param value The value to compare against
     * @return true if both components are equal to the value, false otherwise
     */
-    bool Equals(float value);
+    bool Equals(float value) const;
 
     /**
     * @brief Checks if the vector matches the given components
@@ -86,7 +86,7 @@ public:
     * @param y The y component to compare
     * @return true if both components match, false otherwise
     */
-    bool Equals(float x, float y);
+    bool Equals(float x, float y) const;
 
     /**
     * @brief Checks if this vector is equal to another vector
@@ -96,7 +96,7 @@ public:
     * @param other The vector to compare against
     * @return true if both vectors have the same components, false otherwise
     */
-    bool Equals(const Vector2& other);
+    bool Equals(const Vector2& other) const;
 
     /**
     * @brief Normalizes the vector to have length 1.
