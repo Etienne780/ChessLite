@@ -657,8 +657,8 @@ namespace OTN {
 		* If this function is not called, column types are deduced from
 		* the first row of data added.
 		*
-		* Supported type strings include for example:
-		* "int", "float", "String", "objectName", "int[]".
+		* Supported type strings include:
+		* "int", "int64", "uint64", "float", "double", "bool", "String", "objectName", "int[]".
 		*
 		* Use "-", "", or "_" to indicate skip the definition of this type.
 		* Type will automaticly be deduced if a row is inserted.
@@ -676,6 +676,29 @@ namespace OTN {
 		* @return Reference to this object for method chaining
 		*/
 		OTNObject& SetTypesList(const std::vector<std::string>& types);
+
+		/**
+		* @brief Sets the column types using a list of OTNTypeDesc objects.
+		*
+		* Explicitly defines the data type of each column by providing
+		* a fully constructed OTNTypeDesc per column.
+		*
+		* Unlike SetTypesList(), no parsing or string conversion is performed.
+		* The provided descriptors are assigned directly.
+		*
+		* notes:
+		*
+		* - This function must be called before AddData().
+		*       Calling it after data has been added will result in an error.
+		*
+		* - On failure, this object will contain an error state.
+		*       More information can be retrieved via GetError() or TryGetError().
+		*
+		* @param types List of OTNTypeDesc objects, one entry per column.
+		*
+		* @return Reference to this object to allow method chaining.
+		*/
+		OTNObject& SetTypeDescList(const std::vector<OTNTypeDesc>& types);
 
 		/**
 		* @brief Add a data row using variadic arguments
@@ -826,7 +849,7 @@ namespace OTN {
 		* @brief Get column type descriptors (read-only)
 		* @return Const reference to column types vector
 		*/
-		const std::vector<OTNTypeDesc>& GetColumnTypes() const;
+		const std::vector<OTNTypeDesc>& GetColumnTypesDesc() const;
 
 		/**
 		* @brief Get all data rows (read-only)
@@ -850,7 +873,7 @@ namespace OTN {
 		* 
 		* @return Reference to column types vector
 		*/
-		std::vector<OTNTypeDesc>& GetColumnTypes();
+		std::vector<OTNTypeDesc>& GetColumnTypesDesc();
 
 		/**
 		* @brief Get all data rows (mutable)

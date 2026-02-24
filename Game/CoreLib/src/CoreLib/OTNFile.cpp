@@ -277,6 +277,10 @@ namespace OTN {
 		return *this;
 	}
 
+	OTNObject& OTNObject::SetTypeDescList(const std::vector<OTNTypeDesc>& types) {
+		m_columnTypes = types;
+	}
+
 	OTNObject& OTNObject::AddDataRowList(const OTNRow& values) {
 #ifndef NDEBUG
 		if (m_columnNames.empty()) {
@@ -367,7 +371,7 @@ namespace OTN {
 		return m_columnNames;
 	}
 
-	const std::vector<OTNTypeDesc>& OTNObject::GetColumnTypes() const {
+	const std::vector<OTNTypeDesc>& OTNObject::GetColumnTypesDesc() const {
 		return m_columnTypes;
 	}
 
@@ -379,7 +383,7 @@ namespace OTN {
 		return m_columnNames;
 	}
 
-	std::vector<OTNTypeDesc>& OTNObject::GetColumnTypes() {
+	std::vector<OTNTypeDesc>& OTNObject::GetColumnTypesDesc() {
 		return m_columnTypes;
 	}
 
@@ -1155,7 +1159,7 @@ namespace OTN {
 		}
 
 		if (serObj.columnTypes.empty()) {
-			serObj.columnTypes = object.GetColumnTypes();
+			serObj.columnTypes = object.GetColumnTypesDesc();
 		}
 
 		std::vector<size_t> indices;
@@ -1375,7 +1379,8 @@ namespace OTN {
 
 			if (!WriteObjects(stream, m_writerData.objects))
 				valid = false;
-			stream.DecreaseIndent();
+			if (!m_useOptimizations)
+				stream.DecreaseIndent();
 
 			stream << Syntax::BLOCK_END_CHAR;
 		});
@@ -2135,6 +2140,7 @@ namespace OTN {
 
 		OTNObjectPtr resolved = std::make_shared<OTNObject>(ref.refObjectName);
 		resolved->SetNamesList(targetObject->GetColumnNames());
+		resolved->SetTypeDescList(targetObject->GetColumnTypesDesc());
 		resolved->AddDataRowList(targetRows[ref.index]);
 
 		// resolve object refs recurive
@@ -2151,7 +2157,7 @@ namespace OTN {
 
 	std::vector<size_t> OTNReader::OTNReaderV1::GetObjectIndieces(const OTNObject& obj) {
 		std::vector<size_t> indices;
-		const auto& types = obj.GetColumnTypes();
+		const auto& types = obj.GetColumnTypesDesc();
 
 		for (size_t i = 0; i < types.size(); i++) {
 			if (types[i].baseType == OTNBaseType::OBJECT) {
@@ -2355,7 +2361,7 @@ namespace OTN {
 	}
 
 	bool OTNReader::OTNReaderV1::ParseDataRows(OTNObject& obj, size_t rowCount) {
-		const std::vector<OTNTypeDesc>& types = obj.GetColumnTypes();
+		const std::vector<OTNTypeDesc>& types = obj.GetColumnTypesDesc();
 		size_t pos = 0; 
 		size_t currentRowCount = 0;
 
