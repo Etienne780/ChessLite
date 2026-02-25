@@ -4,6 +4,7 @@ class ChessOptions {
 public:
 	bool showPossibleMoves = true;
 	bool autoRetryGame = false;
+	float sfxVolume = 1.0f;
 
 	ChessOptions() = default;
 	~ChessOptions() = default;

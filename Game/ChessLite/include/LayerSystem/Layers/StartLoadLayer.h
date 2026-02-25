@@ -62,11 +62,12 @@ namespace Layers {
 			std::vector<ResourceRequest>&& requests,
 			std::function<void(AppContext*, ResourceLoader&)> onFinished);
 
+		void RegisterAssets(AppContext* ctx, ResourceLoader& loader);
+		void RegistSkins(AppContext* ctx);
+
 		void RegisterData(AppContext* ctx, ResourceLoader& loader);
 		void LoadAgent(AppContext* ctx, const OTN::OTNObject& agentOTN);
 		void LoadOptions(AppContext* ctx, const OTN::OTNObject& optionsOTN);
-
-		void RegistSkins(AppContext* ctx);
 	};
 
 }

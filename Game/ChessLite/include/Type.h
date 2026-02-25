@@ -17,6 +17,35 @@ struct AgentTag {};
 using LayerEventSubscriptionID = CoreAppID<LayerEventSubscriptionTag>;
 using AgentID = CoreAppID<AgentTag>;
 
+namespace SkinKeys {
+
+	inline constexpr const char* BIG_LIGHT = "skin.big.light";
+	inline constexpr const char* BIG_DARK = "skin.big.dark";
+
+	inline constexpr const char* CLASSIC_LIGHT = "skin.classic.light";
+	inline constexpr const char* CLASSIC_DARK = "skin.classic.dark";
+
+	inline constexpr const char* DEVIL_LIGHT = "skin.devil.light";
+	inline constexpr const char* DEVIL_DARK = "skin.devil.dark";
+
+	inline constexpr const char* PIXEL_LIGHT = "skin.pixel.light";
+	inline constexpr const char* PIXEL_DARK = "skin.pixel.dark";
+
+}
+
+namespace SoundKeys {
+	
+	inline constexpr const char* MOVE_SOUND = "sound.piece_move";
+	inline constexpr const char* CAPTURE_SOUND = "sound.piece_capture";
+
+}
+
+namespace SDLCore::SoundTags {
+	
+	inline constexpr char* SFX = "sfx";
+
+}
+
 enum class ChessSkinType {
 	UNKOWN = 0,
 	BIG,

@@ -32,6 +32,8 @@ namespace Layers {
 		ChessSkinType m_skinType = ChessSkinType::UNKOWN;
 		std::shared_ptr<SDLCore::Texture> m_pawnLightTexture = nullptr;
 		std::shared_ptr<SDLCore::Texture> m_pawnDarkTexture = nullptr;
+		std::shared_ptr<SDLCore::SoundClip> m_moveSound = nullptr;
+		std::shared_ptr<SDLCore::SoundClip> m_captureSound = nullptr;
 
 		float m_currentAgnetMoveDelayMin = 0.3f;
 		float m_currentAgnetMoveDelayMax = 1.0f;

@@ -5,21 +5,6 @@
 #include <SDLCoreLib/SDLCoreUI.h>
 #include "Type.h"
 
-namespace SkinKeys {
-    
-    constexpr const char* BIG_LIGHT = "skin.big.light";
-    constexpr const char* BIG_DARK = "skin.big.dark";
-
-    constexpr const char* CLASSIC_LIGHT = "skin.classic.light";
-    constexpr const char* CLASSIC_DARK = "skin.classic.dark";
-
-    constexpr const char* DEVIL_LIGHT = "skin.devil.light";
-    constexpr const char* DEVIL_DARK = "skin.devil.dark";
-
-    constexpr const char* PIXEL_LIGHT = "skin.pixel.light";
-    constexpr const char* PIXEL_DARK = "skin.pixel.dark";
-}
-
 class SkinManager {
 public:
 	SkinManager() = default;

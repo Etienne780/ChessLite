@@ -6,6 +6,7 @@
 #include "Styles/Comman/Color.h"
 #include "App.h"
 #include "FilePaths.h"
+#include "Type.h"
 
 namespace Layers {
 
@@ -33,7 +34,6 @@ namespace Layers {
 			// final delay before switching layer
 			m_currentStartDelay += dt;
 			if (m_currentStartDelay >= m_startDelay) {
-				RegistSkins(ctx);
 				ctx->app->ClearLayers();
 				ctx->app->PushLayer<MainMenuLayer>();
 			}
@@ -154,9 +154,17 @@ namespace Layers {
 			{ ResourceType::TEXTURE, SkinKeys::DEVIL_LIGHT, bPath / "devil-white.png" },
 			{ ResourceType::TEXTURE, SkinKeys::PIXEL_DARK,  bPath / "pixel-black.png" },
 			{ ResourceType::TEXTURE, SkinKeys::PIXEL_LIGHT, bPath / "pixel-white.png" },
+			{ ResourceType::AUDIO, SoundKeys::MOVE_SOUND, bPath / "move_sound.wav" },
+			{ ResourceType::AUDIO, SoundKeys::CAPTURE_SOUND, bPath / "capture.mp3" }
 		};
 
-		AddLoadingSection("Assets", std::move(requests), nullptr);
+		AddLoadingSection(
+			"Assets", 
+			std::move(requests), 
+			[this](AppContext* ctx, ResourceLoader& loader) {
+				RegisterAssets(ctx, loader);
+			}
+		);
 	}
 
 	void StartLoadLayer::AddLoadingSectionData() {
@@ -187,6 +195,36 @@ namespace Layers {
 		);
 	}
 
+	void StartLoadLayer::RegisterAssets(AppContext* ctx, ResourceLoader& loader) {
+		RegistSkins(ctx);
+	}
+
+	void StartLoadLayer::RegistSkins(AppContext* ctx) {
+		ctx->skinManager.AddSkin(
+			ChessSkinType::BIG,
+			SkinKeys::BIG_LIGHT,
+			SkinKeys::BIG_DARK
+		);
+
+		ctx->skinManager.AddSkin(
+			ChessSkinType::CLASSIC,
+			SkinKeys::CLASSIC_LIGHT,
+			SkinKeys::CLASSIC_DARK
+		);
+
+		ctx->skinManager.AddSkin(
+			ChessSkinType::DEVIL,
+			SkinKeys::DEVIL_LIGHT,
+			SkinKeys::DEVIL_DARK
+		);
+
+		ctx->skinManager.AddSkin(
+			ChessSkinType::PIXEL,
+			SkinKeys::PIXEL_LIGHT,
+			SkinKeys::PIXEL_DARK
+		);
+	}
+
 	void StartLoadLayer::RegisterData(AppContext* ctx, ResourceLoader& loader) {		
 		const auto& assets = loader.GetOTNObjects();
 		if (assets.empty())
@@ -199,6 +237,9 @@ namespace Layers {
 			}
 		}
 
+		if (assets.size() <= 1)
+			return;
+		
 		const auto& mapOptions = *(assets[1].asset);
 		for (const auto& [name, obj] : mapOptions) {
 			if (name == "Options") {
@@ -270,32 +311,10 @@ namespace Layers {
 		if (auto obj = optionsOTN.TryGetValue<bool>(0, "autoRetryGame")) {
 			ctx->options.autoRetryGame = *obj;
 		}
-	}
 
-	void StartLoadLayer::RegistSkins(AppContext* ctx) {
-		ctx->skinManager.AddSkin(
-			ChessSkinType::BIG,
-			SkinKeys::BIG_LIGHT,
-			SkinKeys::BIG_DARK
-		);
-
-		ctx->skinManager.AddSkin(
-			ChessSkinType::CLASSIC,
-			SkinKeys::CLASSIC_LIGHT,
-			SkinKeys::CLASSIC_DARK
-		);
-
-		ctx->skinManager.AddSkin(
-			ChessSkinType::DEVIL,
-			SkinKeys::DEVIL_LIGHT,
-			SkinKeys::DEVIL_DARK
-		);
-
-		ctx->skinManager.AddSkin(
-			ChessSkinType::PIXEL,
-			SkinKeys::PIXEL_LIGHT,
-			SkinKeys::PIXEL_DARK
-		);
+		if (auto obj = optionsOTN.TryGetValue<float>(0, "sfxVolume")) {
+			ctx->options.sfxVolume = *obj;
+		}
 	}
 
 }

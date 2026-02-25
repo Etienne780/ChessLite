@@ -6,7 +6,8 @@
 
 bool ChessOptions::operator==(const ChessOptions& other) {
 	return this->showPossibleMoves == other.showPossibleMoves &&
-		this->autoRetryGame == other.autoRetryGame;
+		this->autoRetryGame == other.autoRetryGame &&
+		this->sfxVolume == other.sfxVolume;
 }
 
 bool ChessOptions::operator!=(const ChessOptions& other) {
@@ -17,9 +18,9 @@ bool ChessOptions::SaveOptions() {
 	using namespace OTN;
 
 	OTNObject optionsObj{ "Options" };
-	optionsObj.SetNames("showPossibleMoves", "autoRetryGame");
-	optionsObj.SetTypes("bool", "bool");
-	optionsObj.AddDataRow(showPossibleMoves, autoRetryGame);
+	optionsObj.SetNames("showPossibleMoves", "autoRetryGame", "sfxVolume");
+	optionsObj.SetTypes("bool", "bool", "float");
+	optionsObj.AddDataRow(showPossibleMoves, autoRetryGame, sfxVolume);
 
 	OTNWriter writer;
 	writer.AppendObject(optionsObj);

@@ -20,6 +20,9 @@ namespace Layers {
 	void GameLayer::OnStart(AppContext* ctx) {
 		namespace Prop = UI::Properties;
 
+		m_moveSound = ctx->resourcesManager.GetSound(SoundKeys::MOVE_SOUND);
+		m_captureSound = ctx->resourcesManager.GetSound(SoundKeys::CAPTURE_SOUND);
+
 		m_root
 			.Merge(Style::commanRootTransparent)
 			.SetValue(Prop::positionType, SDLCore::UI::UIPositionType::ABSOLUTE)
@@ -155,7 +158,7 @@ namespace Layers {
 			if (!agent) {
 				type = PlayerType::PLAYER;
 			}
-			};
+		};
 
 		ensureValidAIPlayer(ctx, m_player1, m_agentID1);
 		ensureValidAIPlayer(ctx, m_player2, m_agentID2);
@@ -234,7 +237,12 @@ namespace Layers {
 
 	void GameLayer::ProcessTurn(PlayerType type) {
 		bool movePlayed = false;
-	
+		bool wasWhiteTurn = m_game.IsWhiteTurn();
+
+		int oldMat = (wasWhiteTurn) ?
+			m_game.GetWhiteMaterialValue() :
+			m_game.GetBlackMaterialValue();
+
 		switch (type) {
 		case PlayerType::PLAYER:
 			movePlayed = PlayerLogic();
@@ -246,8 +254,33 @@ namespace Layers {
 			break;
 		}
 
-		if(movePlayed) 
-			m_isPlayer1Turn = !m_isPlayer1Turn;
+		int currentMat = (wasWhiteTurn) ?
+			m_game.GetWhiteMaterialValue() :
+			m_game.GetBlackMaterialValue();
+
+		if (!movePlayed)
+			return;
+
+		Log::Print("White: {}; Black: {};", m_game.GetWhiteMaterialValue(), m_game.GetBlackMaterialValue());
+
+		m_isPlayer1Turn = !m_isPlayer1Turn;
+		// play sound effect
+		if (currentMat != oldMat) {
+			// capture move
+			SDLCore::SoundManager::PlaySound(
+				*m_captureSound.get(),
+				SDLCore::SOUND_ON_SHOOT,
+				SDLCore::SoundTags::SFX
+			);
+		}
+		else {
+			// normale move
+			SDLCore::SoundManager::PlaySound(
+				*m_moveSound.get(),
+				SDLCore::SOUND_ON_SHOOT,
+				SDLCore::SoundTags::SFX
+			);
+		}
 	}
 
 	bool GameLayer::PlayerLogic() {
