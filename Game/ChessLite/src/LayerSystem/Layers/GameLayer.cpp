@@ -37,7 +37,6 @@ namespace Layers {
 
 			if (e.layerID == LayerID::GAME_RESULT) {
 				m_opendGameResult = false;
-				m_gameResult == ChessCoreResult::NONE;
 				StartGame();
 			}
 		});
