@@ -1,0 +1,4 @@
+classic: https://greenchess.net/info.php?item=downloads
+pixel: https://spicygame.itch.io/chess-pieces
+big: https://unknuffig.itch.io/2d-chess-pices
+devil: https://devilsworkshop.itch.io/pixel-art-chess-asset-pack

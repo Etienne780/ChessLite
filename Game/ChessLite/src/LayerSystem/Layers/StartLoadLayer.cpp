@@ -146,16 +146,14 @@ namespace Layers {
 		SystemFilePath bPath = FilePaths::GetAssetsPath();
 
 		std::vector<ResourceRequest> requests{
-			{ ResourceType::TEXTURE, SkinKeys::CHESS_ECKIG_DARK,  bPath / "ChessEckig_Dark.png" },
-			{ ResourceType::TEXTURE, SkinKeys::CHESS_ECKIG_LIGHT, bPath / "ChessEckig_Light.png" },
-			{ ResourceType::TEXTURE, SkinKeys::LIGHT_DARK,  bPath / "Light_Dark.png" },
-			{ ResourceType::TEXTURE, SkinKeys::LIGHT_LIGHT, bPath / "Light_Light.png" },
-			{ ResourceType::TEXTURE, SkinKeys::NEO_DARK,  bPath / "Neo_Dark.png" },
-			{ ResourceType::TEXTURE, SkinKeys::NEO_LIGHT, bPath / "Neo_Light.png" },
-			{ ResourceType::TEXTURE, SkinKeys::SIMPLE_DARK,  bPath / "Simple_Dark.png" },
-			{ ResourceType::TEXTURE, SkinKeys::SIMPLE_LIGHT, bPath / "Simple_Light.png" },
-			{ ResourceType::TEXTURE, SkinKeys::SPACE_DARK,  bPath / "Space_Dark.png" },
-			{ ResourceType::TEXTURE, SkinKeys::SPACE_LIGHT, bPath / "Space_Light.png" },
+			{ ResourceType::TEXTURE, SkinKeys::BIG_DARK,  bPath / "big-black.png" },
+			{ ResourceType::TEXTURE, SkinKeys::BIG_LIGHT, bPath / "big-white.png" },
+			{ ResourceType::TEXTURE, SkinKeys::CLASSIC_DARK,  bPath / "classic-black.png" },
+			{ ResourceType::TEXTURE, SkinKeys::CLASSIC_LIGHT, bPath / "classic-white.png" },
+			{ ResourceType::TEXTURE, SkinKeys::DEVIL_DARK,  bPath / "devil-black.png" },
+			{ ResourceType::TEXTURE, SkinKeys::DEVIL_LIGHT, bPath / "devil-white.png" },
+			{ ResourceType::TEXTURE, SkinKeys::PIXEL_DARK,  bPath / "pixel-black.png" },
+			{ ResourceType::TEXTURE, SkinKeys::PIXEL_LIGHT, bPath / "pixel-white.png" },
 		};
 
 		AddLoadingSection("Assets", std::move(requests), nullptr);
@@ -268,33 +266,27 @@ namespace Layers {
 
 	void StartLoadLayer::RegistSkins(AppContext* ctx) {
 		ctx->skinManager.AddSkin(
-			ChessSkinType::CHESS_ECKIG,
-			SkinKeys::CHESS_ECKIG_LIGHT,
-			SkinKeys::CHESS_ECKIG_DARK
+			ChessSkinType::BIG,
+			SkinKeys::BIG_LIGHT,
+			SkinKeys::BIG_DARK
 		);
 
 		ctx->skinManager.AddSkin(
-			ChessSkinType::LIGHT,
-			SkinKeys::LIGHT_LIGHT,
-			SkinKeys::LIGHT_DARK
+			ChessSkinType::CLASSIC,
+			SkinKeys::CLASSIC_LIGHT,
+			SkinKeys::CLASSIC_DARK
 		);
 
 		ctx->skinManager.AddSkin(
-			ChessSkinType::NEO,
-			SkinKeys::NEO_LIGHT,
-			SkinKeys::NEO_DARK
+			ChessSkinType::DEVIL,
+			SkinKeys::DEVIL_LIGHT,
+			SkinKeys::DEVIL_DARK
 		);
 
 		ctx->skinManager.AddSkin(
-			ChessSkinType::SIMPLE,
-			SkinKeys::SIMPLE_LIGHT,
-			SkinKeys::SIMPLE_DARK
-		);
-
-		ctx->skinManager.AddSkin(
-			ChessSkinType::SPACE,
-			SkinKeys::SPACE_LIGHT,
-			SkinKeys::SPACE_DARK
+			ChessSkinType::PIXEL,
+			SkinKeys::PIXEL_LIGHT,
+			SkinKeys::PIXEL_DARK
 		);
 	}
 

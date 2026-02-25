@@ -19,10 +19,10 @@ using AgentID = CoreAppID<AgentTag>;
 
 enum class ChessSkinType {
 	UNKOWN = 0,
-	CHESS_ECKIG,
-	LIGHT,
-	NEO,
-	SIMPLE,
+	BIG,
+	CLASSIC,
+	DEVIL,
+	PIXEL,
 	SPACE
 };
 
@@ -57,10 +57,10 @@ static inline std::string FormatUtils::toString<PlayerType>(PlayerType type) {
 template<>
 static inline std::string FormatUtils::toString<ChessSkinType>(ChessSkinType type) {
 	switch (type) {
-	case ChessSkinType::CHESS_ECKIG:	return "Eckig";
-	case ChessSkinType::LIGHT:			return "Light";
-	case ChessSkinType::NEO:			return "Neo";
-	case ChessSkinType::SIMPLE:			return "Simple";
+	case ChessSkinType::BIG:	return "Eckig";
+	case ChessSkinType::CLASSIC:			return "Light";
+	case ChessSkinType::DEVIL:			return "Neo";
+	case ChessSkinType::PIXEL:			return "Simple";
 	case ChessSkinType::SPACE:			return "Space";
 	case ChessSkinType::UNKOWN:
 	default:							return "UNKNOWN";

@@ -6,25 +6,18 @@
 #include "Type.h"
 
 namespace SkinKeys {
-    // Chess Eckig
-    constexpr const char* CHESS_ECKIG_LIGHT = "skin.chess_eckig.light";
-    constexpr const char* CHESS_ECKIG_DARK = "skin.chess_eckig.dark";
+    
+    constexpr const char* BIG_LIGHT = "skin.big.light";
+    constexpr const char* BIG_DARK = "skin.big.dark";
 
-    // Light
-    constexpr const char* LIGHT_LIGHT = "skin.light.light";
-    constexpr const char* LIGHT_DARK = "skin.light.dark";
+    constexpr const char* CLASSIC_LIGHT = "skin.classic.light";
+    constexpr const char* CLASSIC_DARK = "skin.classic.dark";
 
-    // Neo
-    constexpr const char* NEO_LIGHT = "skin.neo.light";
-    constexpr const char* NEO_DARK = "skin.neo.dark";
+    constexpr const char* DEVIL_LIGHT = "skin.devil.light";
+    constexpr const char* DEVIL_DARK = "skin.devil.dark";
 
-    // Simple
-    constexpr const char* SIMPLE_LIGHT = "skin.simple.light";
-    constexpr const char* SIMPLE_DARK = "skin.simple.dark";
-
-    // Space
-    constexpr const char* SPACE_LIGHT = "skin.space.light";
-    constexpr const char* SPACE_DARK = "skin.space.dark";
+    constexpr const char* PIXEL_LIGHT = "skin.pixel.light";
+    constexpr const char* PIXEL_DARK = "skin.pixel.dark";
 }
 
 class SkinManager {
@@ -62,7 +55,7 @@ private:
 
 	static inline constexpr bool LIGHT_SKIN = true;
 
-	ChessSkinType m_currentSkinType = ChessSkinType::NEO;
+	ChessSkinType m_currentSkinType = ChessSkinType::DEVIL;
 	std::unordered_map<ChessSkinType, SkinPair> m_skins;
     mutable std::vector<ChessSkinType> m_cachedSkinTypes;
     mutable bool m_skinTypesDirty = false;
