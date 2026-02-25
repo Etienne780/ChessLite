@@ -1,4 +1,6 @@
-﻿#include "LayerSystem/Layers/AgentVisualizerLayer.h"
+﻿#include <CoreLib/FormatUtils.h>
+
+#include "LayerSystem/Layers/AgentVisualizerLayer.h"
 #include "App.h"
 #include "Styles/Comman/Space.h"
 #include "Styles/Comman/Color.h"
@@ -385,7 +387,7 @@ namespace Layers {
 				RE::FillRect(midX - 1.0f, barY, 2.0f, evalBarH);
 
 				std::string evalStr = (eval >= 0 ? "+" : "") +
-					std::to_string(static_cast<int>(std::round(eval * 100.0f) / 100.0f * 100) / 100);
+					FormatUtils::toString(std::round(eval * 100.0f) / 100.0f);
 		
 				if (eval > 0.0f)
 					RE::SetColor(60, 180, 60);

@@ -3,6 +3,7 @@
 class ChessOptions {
 public:
 	bool showPossibleMoves = true;
+	bool autoRetryGame = false;
 
 	ChessOptions() = default;
 	~ChessOptions() = default;

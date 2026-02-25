@@ -29,6 +29,8 @@ namespace Layers {
 		static inline const float m_largeTabBTNWidth = 508.0f;
 
 		ChessOptions m_localOptions;
+
+		void DrawToggleOption(const std::string& name, bool& outOption);
 	};
 
 }

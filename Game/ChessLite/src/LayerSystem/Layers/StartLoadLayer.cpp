@@ -192,12 +192,16 @@ namespace Layers {
 		if (assets.empty())
 			return;
 
-		const auto& map = *(assets[0].asset);
-		for (const auto& [name, obj] : map) {
+		const auto& mapAgnet = *(assets[0].asset);
+		for (const auto& [name, obj] : mapAgnet) {
 			if (name == "Agent") {
 				LoadAgent(ctx, obj);
 			}
-			else if(name == "Options") {
+		}
+
+		const auto& mapOptions = *(assets[1].asset);
+		for (const auto& [name, obj] : mapOptions) {
+			if (name == "Options") {
 				LoadOptions(ctx, obj);
 			}
 		}
@@ -261,6 +265,10 @@ namespace Layers {
 	void StartLoadLayer::LoadOptions(AppContext* ctx, const OTN::OTNObject& optionsOTN) {
 		if (auto obj = optionsOTN.TryGetValue<bool>(0, "showPossibleMoves")) {
 			ctx->options.showPossibleMoves = *obj;
+		}
+
+		if (auto obj = optionsOTN.TryGetValue<bool>(0, "autoRetryGame")) {
+			ctx->options.autoRetryGame = *obj;
 		}
 	}
 

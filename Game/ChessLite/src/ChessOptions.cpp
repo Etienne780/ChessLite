@@ -5,7 +5,8 @@
 #include "FilePaths.h"
 
 bool ChessOptions::operator==(const ChessOptions& other) {
-	return this->showPossibleMoves == other.showPossibleMoves;
+	return this->showPossibleMoves == other.showPossibleMoves &&
+		this->autoRetryGame == other.autoRetryGame;
 }
 
 bool ChessOptions::operator!=(const ChessOptions& other) {
@@ -16,9 +17,9 @@ bool ChessOptions::SaveOptions() {
 	using namespace OTN;
 
 	OTNObject optionsObj{ "Options" };
-	optionsObj.SetNames("showPossibleMoves");
-	optionsObj.SetTypes("bool");
-	optionsObj.AddDataRow(showPossibleMoves);
+	optionsObj.SetNames("showPossibleMoves", "autoRetryGame");
+	optionsObj.SetTypes("bool", "bool");
+	optionsObj.AddDataRow(showPossibleMoves, autoRetryGame);
 
 	OTNWriter writer;
 	writer.AppendObject(optionsObj);

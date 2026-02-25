@@ -37,6 +37,7 @@ namespace Layers {
 
 			if (e.layerID == LayerID::GAME_RESULT) {
 				m_opendGameResult = false;
+				m_gameResult == ChessCoreResult::NONE;
 				StartGame();
 			}
 		});
@@ -59,11 +60,16 @@ namespace Layers {
 			m_pawnDarkTexture = ctx->skinManager.GetSkinDark();
 		}
 
-		if (!m_opendGameResult && m_gameResult != ChessCoreResult::NONE)
-		{
+		if (!m_opendGameResult && m_gameResult != ChessCoreResult::NONE) {
 			m_opendGameResult = true;
 			m_game.EndGame();
 			ResetChessSelectedParams();
+
+			if (ctx->options.autoRetryGame) {
+				m_opendGameResult = false;
+				StartGame();
+				return;
+			}
 
 			bool whiteWon = m_gameResult == ChessCoreResult::WHITE_WON;
 			AgentID winnerAgentID;
@@ -355,7 +361,7 @@ namespace Layers {
 				move.GetFrom(), 
 				move.GetTo()
 			);
-			Log::Print("AI: {} Move, from {} -> to {}", ((agentIsWhite) ? "White" : "Black"), move.GetFrom(), move.GetTo());
+			// Log::Print("AI: {} Move, from {} -> to {}", ((agentIsWhite) ? "White" : "Black"), move.GetFrom(), move.GetTo());
 		} while (!movePlayed);
 
 		return movePlayed;

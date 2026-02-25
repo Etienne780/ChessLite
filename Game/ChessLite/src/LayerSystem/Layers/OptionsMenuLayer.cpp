@@ -47,11 +47,9 @@ namespace Layers {
 	}
 
 	void OptionsMenuLayer::OnUpdate(AppContext* ctx) {
-
 	}
 
 	void OptionsMenuLayer::OnRender(AppContext* ctx) {
-		
 	}
 
 	void OptionsMenuLayer::OnUIRender(AppContext* ctx) {
@@ -61,11 +59,8 @@ namespace Layers {
 		{
 			UI::Text(Key("title"), "Options", m_styleTitle);
 
-			std::string textPossibleMoves = "Show Possible Moves: ";
-			textPossibleMoves += (m_localOptions.showPossibleMoves) ? "true" : "false";
-			if (UIComp::DrawTabButton("btn_back", textPossibleMoves, m_localOptions.showPossibleMoves, m_largerBTNTabNormal, m_largerBTNTabActive)) {
-				m_localOptions.showPossibleMoves = !m_localOptions.showPossibleMoves;
-			}
+			DrawToggleOption("Show Possible Moves", m_localOptions.showPossibleMoves);
+			DrawToggleOption("Auto retry game", m_localOptions.autoRetryGame);
 
 			UI::BeginFrame(Key("trimline"), m_styleTrimmer);
 			UI::EndFrame();
@@ -103,6 +98,14 @@ namespace Layers {
 
 	LayerID OptionsMenuLayer::GetLayerID() const {
 		return LayerID::OPTIONS_MENU;
+	}
+
+	void OptionsMenuLayer::DrawToggleOption(const std::string& name, bool& outOption) {
+		std::string text = name + ": ";
+		text += (outOption) ? "true" : "false";
+		if (UIComp::DrawTabButton("btn_" + name, text, outOption, m_largerBTNTabNormal, m_largerBTNTabActive)) {
+			outOption = !outOption;
+		}
 	}
 
 }
