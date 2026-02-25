@@ -108,9 +108,12 @@ namespace SDLCore {
 
     int Application::Start() {
         if (cancelStart != 0) {
+            NET_Quit();
             MIX_Quit();
             TTF_Quit();
             SDL_Quit();
+            s_sdlQuit = true;
+            s_closeApplication = true;
             return cancelStart;
         }
 
@@ -129,6 +132,7 @@ namespace SDLCore {
             LockCursor();
             FPSCapDelay(frameStart);
         }
+        s_closeApplication = true;
         OnQuit();
 
         ResetCursorLockParams();
@@ -139,6 +143,7 @@ namespace SDLCore {
         SoundManager::Quit();
         TextureManager::GetInstance().ClearAllTexturesEntries();
         FontManager::GetInstance().ClearAllFontEntries();
+        NET_Quit();
         MIX_Quit();
         TTF_Quit();
         SDL_Quit();
