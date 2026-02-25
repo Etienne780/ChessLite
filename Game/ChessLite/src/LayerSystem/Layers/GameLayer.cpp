@@ -261,8 +261,6 @@ namespace Layers {
 		if (!movePlayed)
 			return;
 
-		Log::Print("White: {}; Black: {};", m_game.GetWhiteMaterialValue(), m_game.GetBlackMaterialValue());
-
 		m_isPlayer1Turn = !m_isPlayer1Turn;
 		// play sound effect
 		if (currentMat != oldMat) {
