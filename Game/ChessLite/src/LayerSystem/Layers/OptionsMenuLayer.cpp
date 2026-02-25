@@ -14,6 +14,7 @@ namespace Layers {
 
 	void OptionsMenuLayer::OnStart(AppContext* ctx) {
 		m_localOptions = ctx->options;
+		m_moveSound = ctx->resourcesManager.GetSound(SoundKeys::MOVE_SOUND);
 		
 		namespace Prop = UI::Properties;
 
@@ -31,6 +32,16 @@ namespace Layers {
 			.SetValue(Prop::height, 75.0f)
 			.SetValue(Prop::alignHorizontal, UI::UIAlignment::CENTER)
 			.SetValue(Prop::margin, Vector4(0.0f, 0.0f, 8.0f, 0.0f));
+
+		m_styleVolumeDisplay
+			.SetValue(Prop::align, UI::UIAlignment::CENTER, UI::UIAlignment::CENTER)
+			.SetValue(Prop::margin, Style::commanSpaceXS)
+			.SetValue(Prop::size, 225.0f, 75.0f)
+			.SetValue(Prop::backgroundColor, Style::commanColorBtnNormal);
+
+		m_styleVolumeBTN
+			.Merge(Style::commanBTNBase)
+			.SetValue(Prop::size, 75.0f, 75.0f);
 
 		m_styleTrimmer
 			.SetValue(Prop::size, m_largeTabBTNWidth, 3.0f)
@@ -61,6 +72,46 @@ namespace Layers {
 
 			DrawToggleOption("Show Possible Moves", m_localOptions.showPossibleMoves);
 			DrawToggleOption("Auto retry game", m_localOptions.autoRetryGame);
+
+			UI::BeginFrame(Key("volume_btn_container"), m_styleRowBTNContainer);
+			{
+				using SDLSoundM = SDLCore::SoundManager;
+
+				if (UIComp::DrawButton("btn_volume_down", "-", m_styleVolumeBTN)) {
+					Log::Debug("OptinsMenu: volume down");
+					if (m_moveSound) {
+						SDLSoundM::PlaySound(
+							*m_moveSound.get(),
+							SDLCore::SOUND_ON_SHOOT,
+							SDLCore::SoundTags::SFX
+						);
+					}
+					m_localOptions.DecreaseSFXVolume();
+					SDLSoundM::SetTagVolume(SDLCore::SoundTags::SFX, m_localOptions.sfxVolume);
+				}
+
+				UI::BeginFrame(Key("volume display"), m_styleVolumeDisplay);
+				{
+					int volume = std::round(m_localOptions.sfxVolume * 100.0f);
+					std::string text = "Volume: " + std::to_string(volume);
+					UI::Text(Key("text"), text, Style::commanTextBase);
+				}
+				UI::EndFrame();
+
+				if (UIComp::DrawButton("btn_volume_up", "+", m_styleVolumeBTN)) {
+					Log::Debug("OptinsMenu: Volume up");
+					if (m_moveSound) {
+						SDLSoundM::PlaySound(
+							*m_moveSound.get(),
+							SDLCore::SOUND_ON_SHOOT,
+							SDLCore::SoundTags::SFX
+						);
+					}
+					m_localOptions.IncreaseSFXVolume();
+					SDLSoundM::SetTagVolume(SDLCore::SoundTags::SFX, m_localOptions.sfxVolume);
+				}
+			}
+			UI::EndFrame();
 
 			UI::BeginFrame(Key("trimline"), m_styleTrimmer);
 			UI::EndFrame();

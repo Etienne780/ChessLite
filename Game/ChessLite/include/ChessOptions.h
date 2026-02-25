@@ -12,5 +12,8 @@ public:
 	bool operator==(const ChessOptions&);
 	bool operator!=(const ChessOptions&);
 
+	void DecreaseSFXVolume(float amount = 0.1f);
+	void IncreaseSFXVolume(float amount = 0.1f);
+
 	bool SaveOptions();
 };

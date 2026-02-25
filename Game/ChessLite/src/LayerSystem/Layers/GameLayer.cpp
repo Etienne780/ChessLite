@@ -260,10 +260,12 @@ namespace Layers {
 
 		if (!movePlayed)
 			return;
-
+		
 		m_isPlayer1Turn = !m_isPlayer1Turn;
 		// play sound effect
 		if (currentMat != oldMat) {
+			if (!m_captureSound)
+				return;
 			// capture move
 			SDLCore::SoundManager::PlaySound(
 				*m_captureSound.get(),
@@ -272,6 +274,8 @@ namespace Layers {
 			);
 		}
 		else {
+			if (!m_moveSound)
+				return;
 			// normale move
 			SDLCore::SoundManager::PlaySound(
 				*m_moveSound.get(),

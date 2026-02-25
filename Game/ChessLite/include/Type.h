@@ -42,7 +42,7 @@ namespace SoundKeys {
 
 namespace SDLCore::SoundTags {
 	
-	inline constexpr char* SFX = "sfx";
+	inline constexpr const char* SFX = "sfx";
 
 }
 

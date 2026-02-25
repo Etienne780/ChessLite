@@ -1,4 +1,5 @@
 #pragma once
+#include <SDLCoreLib/SDLCore.h>
 #include <SDLCoreLib/SDLCoreUI.h>
 
 #include "LayerSystem/Layer.h"
@@ -22,6 +23,8 @@ namespace Layers {
 		SDLCore::UI::UIStyle m_styleRoot;
 		SDLCore::UI::UIStyle m_styleTitle;
 		SDLCore::UI::UIStyle m_styleRowBTNContainer;
+		SDLCore::UI::UIStyle m_styleVolumeDisplay;
+		SDLCore::UI::UIStyle m_styleVolumeBTN;
 		SDLCore::UI::UIStyle m_styleTrimmer;
 		SDLCore::UI::UIStyle m_largerBTNTabNormal;
 		SDLCore::UI::UIStyle m_largerBTNTabActive;
@@ -29,6 +32,7 @@ namespace Layers {
 		static inline const float m_largeTabBTNWidth = 508.0f;
 
 		ChessOptions m_localOptions;
+		std::shared_ptr<SDLCore::SoundClip> m_moveSound = nullptr;
 
 		void DrawToggleOption(const std::string& name, bool& outOption);
 	};
