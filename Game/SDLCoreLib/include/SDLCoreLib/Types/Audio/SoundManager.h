@@ -1,4 +1,5 @@
 #pragma once
+#include <mutex>
 #include <vector>
 #include <SDL3_mixer/SDL_mixer.h>
 
@@ -9,7 +10,9 @@ namespace SDLCore {
     class Application;
 
     namespace SoundTags {
-        inline constexpr char* DEFAULT = "default";
+
+        inline constexpr const char* DEFAULT = "default";
+        
     }
 
     inline constexpr bool SOUND_ON_SHOOT = true;
@@ -231,6 +234,9 @@ namespace SDLCore {
         static bool Init(SDL_AudioDeviceID audio = SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK);
         static void Quit();
 
+        // needs to be called in application update
+        static void Flush();
+
         /**
         * @brief Checks if a current valid instance of this class exist
         * @return true if valid instance exists. Call SDLCore::GetError() for more information 
@@ -272,12 +278,15 @@ namespace SDLCore {
 
         // ============== Member ==============
         MIX_Mixer* m_mixer = nullptr;
+        std::shared_ptr<std::atomic<bool>> m_alive;
         std::unordered_map<AudioTrackID, AudioTrack> m_audioTracks;// uses audio from m_audios to play sounds
         std::unordered_map<SoundClipID, Audio> m_audios;// audio gets added from clip
         std::unordered_map<SoundClipID, SoundClipID> m_subAudio;// map from sub sound to sound
         std::vector<AudioPlaybackDevice> m_devices;
+        std::vector<MIX_Track*> m_pendingDestroyTracks;
         SDLCoreIDManager m_deviceIDManager{ 1 };
         SDLCoreIDManager m_trackIDManager;
+        mutable std::mutex m_trackMutex;
 
         void Cleanup();
 
@@ -287,8 +296,8 @@ namespace SDLCore {
         */
         bool CreateDevices();
 
-        AudioTrack* GetAudioTrack(SoundClipID id, SoundClipID subID);
-        AudioTrack* GetAudioTrack(AudioTrackID id);
+        AudioTrack* GetAudioTrack_Unsafe(SoundClipID id, SoundClipID subID);
+        AudioTrack* GetAudioTrack_Unsafe(AudioTrackID id);
         Audio* GetAudio(SoundClipID id);
 
         bool TryGetMixer(MIX_Mixer*& mixer, const std::string& func);
@@ -307,6 +316,7 @@ namespace SDLCore {
         bool CreateAudioTrack(AudioTrack*& audioTrack, const SoundClip& clip, const std::string& tag);
         void MarkTrackAsDeleted(AudioTrack* audioTrack, AudioTrackID id);
         void OnTrackStopped(AudioTrackID id);
+        void FlushDestroyQueue();
     };
 
 }

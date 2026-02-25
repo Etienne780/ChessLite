@@ -108,6 +108,7 @@ namespace SDLCore {
 
     int Application::Start() {
         if (cancelStart != 0) {
+            SoundManager::Quit();
             NET_Quit();
             MIX_Quit();
             TTF_Quit();
@@ -129,6 +130,8 @@ namespace SDLCore {
 
             OnUpdate();
             Input::LateUpdate();
+            SoundManager::Flush();
+
             LockCursor();
             FPSCapDelay(frameStart);
         }

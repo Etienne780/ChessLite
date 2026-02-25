@@ -21,6 +21,7 @@ namespace SDLCore {
 		Quit();
 
 		s_soundManager = std::unique_ptr<SoundManager>(new SoundManager());
+		s_soundManager->m_alive = std::make_shared<std::atomic<bool>>(true);
 		s_soundManager->m_mixer = MIX_CreateMixerDevice(audio, nullptr);
 		if (!s_soundManager->m_mixer) {
 			SetError("SDLCore::SoundManager::Init: Faild to create mixer! " + std::string(SDL_GetError()));
@@ -41,6 +42,11 @@ namespace SDLCore {
 			s_soundManager->Cleanup();
 			s_soundManager = nullptr;
 		}
+	}
+
+	void SoundManager::Flush() {
+		if (s_soundManager)
+			s_soundManager->FlushDestroyQueue();
 	}
 
 	bool SoundManager::InstanceExist() {
@@ -90,7 +96,7 @@ namespace SDLCore {
 		if (!InstanceExist())
 			return false;
 
-		AudioTrack* audioTrack = s_soundManager->GetAudioTrack(clip.GetID(), clip.GetSubID());
+		AudioTrack* audioTrack = s_soundManager->GetAudioTrack_Unsafe(clip.GetID(), clip.GetSubID());
 		return ApplyClipParams(audioTrack, clip);
 	}
 
@@ -149,7 +155,7 @@ namespace SDLCore {
 		if (it != audios.end()) {
 			// delets old element
 			auto& a = it->second;
-			AudioTrack* track = s_soundManager->GetAudioTrack(a.audioTrackID);
+			AudioTrack* track = s_soundManager->GetAudioTrack_Unsafe(a.audioTrackID);
 			s_soundManager->MarkTrackAsDeleted(track, a.audioTrackID);
 
 			MIX_DestroyAudio(a.mixAudio);
@@ -177,7 +183,7 @@ namespace SDLCore {
 				subAu.DecreaseRefCount();
 
 				if (subAu.refCount <= 0) {
-					AudioTrack* track = s_soundManager->GetAudioTrack(subAu.audioTrackID);
+					AudioTrack* track = s_soundManager->GetAudioTrack_Unsafe(subAu.audioTrackID);
 					s_soundManager->MarkTrackAsDeleted(track, subAu.audioTrackID);
 					audio.subSounds.erase(subIt);
 				}
@@ -187,7 +193,7 @@ namespace SDLCore {
 		audio.DecreaseRefCount();
 		// delete if there are no refs to this audio
 		if (audio.refCount <= 0) {
-			AudioTrack* track = s_soundManager->GetAudioTrack(audio.audioTrackID);
+			AudioTrack* track = s_soundManager->GetAudioTrack_Unsafe(audio.audioTrackID);
 			s_soundManager->MarkTrackAsDeleted(track, audio.audioTrackID);
 
 			MIX_DestroyAudio(audio.mixAudio);
@@ -215,6 +221,7 @@ namespace SDLCore {
 		auto& devices = s_soundManager->m_devices;
 
 		s_soundManager->Cleanup();
+		s_soundManager->m_alive = std::make_shared<std::atomic<bool>>(true);
 
 		if (deviceID != 0) {
 			auto it = std::find_if(devices.begin(), devices.end(),
@@ -259,7 +266,7 @@ namespace SDLCore {
 		if (!audio)
 			return false;
 
-		AudioTrack* track = s_soundManager->GetAudioTrack(audio->audioTrackID);
+		AudioTrack* track = s_soundManager->GetAudioTrack_Unsafe(audio->audioTrackID);
 		if (!track)
 			return true;
 		// deletes the track immediately
@@ -274,7 +281,7 @@ namespace SDLCore {
 
 		AudioTrack* outAudioTrack = nullptr;
 		if (!onShoot) {
-			outAudioTrack = s_soundManager->GetAudioTrack(clip.GetID(), clip.GetSubID());
+			outAudioTrack = s_soundManager->GetAudioTrack_Unsafe(clip.GetID(), clip.GetSubID());
 
 			// create audio track if it was not found
 			if (!outAudioTrack) {
@@ -332,7 +339,7 @@ namespace SDLCore {
 		if (!InstanceExist())
 			return false;
 
-		AudioTrack* audioTrack = s_soundManager->GetAudioTrack(clip.GetID(), clip.GetSubID());
+		AudioTrack* audioTrack = s_soundManager->GetAudioTrack_Unsafe(clip.GetID(), clip.GetSubID());
 		if (!audioTrack) {
 			SetErrorF("SDLCore::SoundManager::PauseSound: Could not pause Sound '{}', audio track of sound was not found!", clip.GetID());
 			return false;
@@ -386,7 +393,7 @@ namespace SDLCore {
 		if (!InstanceExist())
 			return false;
 
-		AudioTrack* audioTrack = s_soundManager->GetAudioTrack(clip.GetID(), clip.GetSubID());
+		AudioTrack* audioTrack = s_soundManager->GetAudioTrack_Unsafe(clip.GetID(), clip.GetSubID());
 		if (!audioTrack) {
 			SetErrorF("SDLCore::SoundManager::ResumeSound: Could not resume Sound '{}', audio track of sound was not found!", clip.GetID());
 			return false;
@@ -441,7 +448,7 @@ namespace SDLCore {
 		if (!InstanceExist())
 			return false;
 
-		AudioTrack* audioTrack = s_soundManager->GetAudioTrack(clip.GetID(), clip.GetSubID());
+		AudioTrack* audioTrack = s_soundManager->GetAudioTrack_Unsafe(clip.GetID(), clip.GetSubID());
 		if (!audioTrack) {
 			SetErrorF("SDLCore::SoundManager::StopSound: Could not stop Sound '{}', audio track of sound was not found!", clip.GetID());
 			return false;
@@ -539,7 +546,7 @@ namespace SDLCore {
 		if (!InstanceExist())
 			return false;
 
-		AudioTrack* audioTrack = s_soundManager->GetAudioTrack(clip.GetID(), clip.GetSubID());
+		AudioTrack* audioTrack = s_soundManager->GetAudioTrack_Unsafe(clip.GetID(), clip.GetSubID());
 		if (!audioTrack)
 			return false;
 
@@ -581,6 +588,8 @@ namespace SDLCore {
 		if (!InstanceExist())
 			return false;
 
+		std::lock_guard<std::mutex> lock(s_soundManager->m_trackMutex);
+
 		std::stringstream ss;
 		ss << "=== SoundManager Info ===\n";
 
@@ -621,14 +630,24 @@ namespace SDLCore {
 	#pragma region Member
 
 	void SoundManager::Cleanup() {
+		if (m_alive)
+			m_alive->store(false);
+
+		for (auto& [id, track] : m_audioTracks) {
+			if (track.track && !IsSDLQuit())
+				MIX_SetTrackStoppedCallback(track.track, nullptr, nullptr);
+		}
+
+		for (auto& [id, track] : m_audioTracks) {
+			if (track.track && !IsSDLQuit())
+				MIX_DestroyTrack(track.track);
+		}
+		m_audioTracks.clear();
+
 		if (!IsSDLQuit()) {
-			for (auto& [id, audioTrack] : m_audioTracks) {
-				OnTrackStopped(id);
-			}
 			MIX_DestroyMixer(m_mixer);
 			m_mixer = nullptr;
 		}
-		m_audioTracks.clear();
 	}
 
 	bool SoundManager::CreateDevices() {
@@ -656,7 +675,7 @@ namespace SDLCore {
 		return true;
 	}
 
-	SoundManager::AudioTrack* SoundManager::GetAudioTrack(SoundClipID id, SoundClipID subID) {
+	SoundManager::AudioTrack* SoundManager::GetAudioTrack_Unsafe(SoundClipID id, SoundClipID subID) {
 		Audio* audio = GetAudio(id);
 		if (!audio) {
 			SetErrorF("SDLCore::SoundManager::GetAudioTrack(SoundClipID): Could not get track, audio ID '{}', audio was nullptr!", id);
@@ -675,10 +694,10 @@ namespace SDLCore {
 			trackID = it->second.audioTrackID;
 		}
 
-		return GetAudioTrack(trackID);
+		return GetAudioTrack_Unsafe(trackID);
 	}
 
-	SoundManager::AudioTrack* SoundManager::GetAudioTrack(AudioTrackID id) {
+	SoundManager::AudioTrack* SoundManager::GetAudioTrack_Unsafe(AudioTrackID id) {
 		if (id == SDLCORE_INVALID_ID)
 			return nullptr;
 
@@ -774,7 +793,7 @@ namespace SDLCore {
 			auto it = subSound.find(clip.GetSubID());
 			if (it != subSound.end()) {
 				Audio& a = it->second;
-				AudioTrack* t = GetAudioTrack(a.audioTrackID);
+				AudioTrack* t = GetAudioTrack_Unsafe(a.audioTrackID);
 				MarkTrackAsDeleted(t, a.audioTrackID);
 			}
 			Audio subAudio;
@@ -784,7 +803,7 @@ namespace SDLCore {
 		}
 		else {
 			// mark old track with this audio as deleted
-			AudioTrack* t = GetAudioTrack(audio->audioTrackID);
+			AudioTrack* t = GetAudioTrack_Unsafe(audio->audioTrackID);
 			MarkTrackAsDeleted(t, audio->audioTrackID);
 			// set the id of the new track
 			audio->audioTrackID = newID;
@@ -797,14 +816,15 @@ namespace SDLCore {
 		struct TrackCallbackData {
 			SoundManager* manager;
 			AudioTrackID  trackID;
+			std::shared_ptr<std::atomic<bool>> alive;
 		};
 
-		auto* cbData = new TrackCallbackData{ this, newID };
+		auto* cbData = new TrackCallbackData{ this, newID, m_alive };
 		MIX_SetTrackStoppedCallback(track,
 			[](void* u, MIX_Track* t) {
 				auto* data = static_cast<TrackCallbackData*>(u);
 
-				if (data->manager && SoundManager::InstanceExist()) {
+				if (data->alive->load()) {
 					data->manager->OnTrackStopped(data->trackID);
 				}
 
@@ -832,6 +852,8 @@ namespace SDLCore {
 	}
 
 	void SoundManager::OnTrackStopped(AudioTrackID id) {
+		std::lock_guard<std::mutex> lock(m_trackMutex);
+
 		auto it = m_audioTracks.find(id);
 		if (it == m_audioTracks.end())
 			return;
@@ -839,9 +861,20 @@ namespace SDLCore {
 		it->second.isPlaying = false;
 		if (it->second.isDeleted) {
 			m_trackIDManager.FreeUniqueIdentifier(it->first.value);
-			MIX_DestroyTrack(it->second.track);
+			
+			m_pendingDestroyTracks.push_back(it->second.track);
 			m_audioTracks.erase(it);
 		}
+	}
+
+	void SoundManager::FlushDestroyQueue() {
+		std::vector<MIX_Track*> toDestroy;
+		{
+			std::lock_guard<std::mutex> lock(m_trackMutex);
+			toDestroy.swap(m_pendingDestroyTracks);
+		}
+		for (MIX_Track* t : toDestroy)
+			MIX_DestroyTrack(t);
 	}
 
 	#pragma endregion
