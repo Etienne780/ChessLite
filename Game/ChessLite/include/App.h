@@ -7,6 +7,7 @@
 #include "LayerSystem/Layer.h"
 #include "AppContext.h"
 #include "LayerSystem/LayerEventBus.h"
+#include "GameClient.h"
 
 class App : public SDLCore::Application {
 public:
@@ -82,6 +83,10 @@ private:
 	std::vector<std::unique_ptr<Layer>> m_layerStack;
 	std::vector<LayerCommand> m_layerCommands;
 	SDLCore::UI::UIContext* m_UICtx = nullptr;
+
+	const std::string m_host = "";
+	const uint16_t m_port = 5000;
+	GameClient m_gameClient;
 
 	void InitChessContext();
 	void InstantiateWindow();

@@ -34,6 +34,8 @@ void App::OnStart() {
 
     // push start layer on to stack
     PushLayer<Layers::StartLoadLayer>();
+
+    // m_gameClient.Connect();
 }
 
 void App::OnUpdate() {
