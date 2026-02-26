@@ -14,7 +14,8 @@ bool NetServer::Start(uint16_t port) {
 
 	m_server = NET_CreateServer(addr, port);
 	if (!m_server) {
-		std::cerr << "Failed to create server '" << m_name << "' on port '" << port << "'!\n";
+		std::cerr << "Failed to create server '" << m_name
+			<< "' on port '" << port << "'!\n";
 		return false;
 	}
 
