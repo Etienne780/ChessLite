@@ -1,4 +1,4 @@
-#include <algorithm>
+﻿#include <algorithm>
 #include <functional>
 #include <unordered_map>
 #include <cassert>
@@ -17,6 +17,7 @@ namespace OTN {
 		static const std::unordered_map<std::string_view, OTNBaseType> table = {
 			{ SynTypes::INT,  OTNBaseType::INT },
 			{ SynTypes::INT64,  OTNBaseType::INT64 },
+			{ SynTypes::UINT64,  OTNBaseType::UINT64 },
 			{ SynTypes::FLOAT, OTNBaseType::FLOAT },
 			{ SynTypes::DOUBLE, OTNBaseType::DOUBLE },
 			{ SynTypes::BOOL,   OTNBaseType::BOOL },
@@ -36,6 +37,7 @@ namespace OTN {
 		switch (type) {
 		case OTN::OTNBaseType::INT:     return SynTypes::INT;
 		case OTN::OTNBaseType::INT64:     return SynTypes::INT64;
+		case OTN::OTNBaseType::UINT64:     return SynTypes::UINT64;
 		case OTN::OTNBaseType::FLOAT:   return SynTypes::FLOAT;
 		case OTN::OTNBaseType::DOUBLE:  return SynTypes::DOUBLE;
 		case OTN::OTNBaseType::BOOL:    return SynTypes::BOOL;
@@ -59,6 +61,7 @@ namespace OTN {
 		switch (type.baseType) {
 		case OTNBaseType::INT:
 		case OTNBaseType::INT64:
+		case OTNBaseType::UINT64:
 		case OTNBaseType::FLOAT:
 		case OTNBaseType::DOUBLE:
 		case OTNBaseType::BOOL:
@@ -106,7 +109,7 @@ namespace OTN {
 
 		// Check file name
 		if (finalPath.filename().empty()) {
-			errorOut = "file path has no file name!";
+			errorOut = "File path has no file name!";
 			return false;
 		}
 
@@ -114,13 +117,13 @@ namespace OTN {
 		fs::path parentDir = finalPath.parent_path();
 		if (!parentDir.empty() && !fs::exists(parentDir)) {
 			if (!createMissingDir) {
-				errorOut = "file path dose not exist!";
+				errorOut = "File path does not exist!";
 				return false;
 			}
 
 			std::error_code ec;
 			if (!fs::create_directories(parentDir, ec)) {
-				errorOut = "failed to create directory '" + parentDir.string() +
+				errorOut = "Failed to create directory '" + parentDir.string() +
 					"': " + ec.message();
 				return false;
 			}
@@ -137,7 +140,7 @@ namespace OTN {
 				std::transform(validExtUpper.begin(), validExtUpper.end(),
 					validExtUpper.begin(), ::toupper);
 
-				errorOut = "file extension '" + ext +
+				errorOut = "File extension '" + ext +
 					"' is invalid, valid extensions are " +
 					validExtUpper + ", " + validExt + "!";
 				return false;
@@ -274,6 +277,11 @@ namespace OTN {
 		return *this;
 	}
 
+	OTNObject& OTNObject::SetTypeDescList(const std::vector<OTNTypeDesc>& types) {
+		m_columnTypes = types;
+		return *this;
+	}
+
 	OTNObject& OTNObject::AddDataRowList(const OTNRow& values) {
 #ifndef NDEBUG
 		if (m_columnNames.empty()) {
@@ -364,7 +372,7 @@ namespace OTN {
 		return m_columnNames;
 	}
 
-	const std::vector<OTNTypeDesc>& OTNObject::GetColumnTypes() const {
+	const std::vector<OTNTypeDesc>& OTNObject::GetColumnTypesDesc() const {
 		return m_columnTypes;
 	}
 
@@ -376,7 +384,7 @@ namespace OTN {
 		return m_columnNames;
 	}
 
-	std::vector<OTNTypeDesc>& OTNObject::GetColumnTypes() {
+	std::vector<OTNTypeDesc>& OTNObject::GetColumnTypesDesc() {
 		return m_columnTypes;
 	}
 
@@ -474,7 +482,7 @@ namespace OTN {
 
 	bool OTNObject::DeduceTypesFromRow(const OTNRow& row) {
 		if (m_columnNames.size() != row.size()) {
-			AddError("Faild to deduce type for row");
+			AddError("Failed to deduce type for row");
 			return false;
 		}
 		
@@ -640,12 +648,12 @@ namespace OTN {
 	
 		const std::vector<OTNRow>& rows = obj.GetDataRows();
 		if (rows.empty()) {
-			AddError("OTNObjectBuilder: Faild to create OTNObjectBuilder from OTNObject! Rows empty");
+			AddError("OTNObjectBuilder: Failed to create OTNObjectBuilder from OTNObject! Rows empty");
 			return;
 		}
 
 		if (rows.size() > 1) {
-			AddError("OTNObjectBuilder: Faild to create OTNObjectBuilder from OTNObject! Has more than 1 row");
+			AddError("OTNObjectBuilder: Failed to create OTNObjectBuilder from OTNObject! Has more than 1 row");
 			return;
 		}
 		
@@ -929,6 +937,10 @@ namespace OTN {
 			HashCombine(hash, std::hash<int64_t>{}(std::get<int64_t>(value.value)));
 			break;
 
+		case OTNBaseType::UINT64:
+			HashCombine(hash, std::hash<uint64_t>{}(std::get<uint64_t>(value.value)));
+			break;
+
 		case OTNBaseType::FLOAT:
 			HashCombine(hash, std::hash<float>{}(std::get<float>(value.value)));
 			break;
@@ -946,7 +958,7 @@ namespace OTN {
 			break;
 
 		case OTNBaseType::LIST: {
-			if(value.type != OTNBaseType::LIST) {
+			if (value.type != OTNBaseType::LIST) {
 				HashCombine(hash, 0);
 				break;
 			}
@@ -957,27 +969,32 @@ namespace OTN {
 				break;
 			}
 
-			// Include list size to distinguish {1,2} from {1,2,3}
 			HashCombine(hash, arrayPtr->values.size());
 			HashCombine(hash, static_cast<size_t>(colType.listDepth));
 
+			OTNTypeDesc elementType = colType;
+			elementType.listDepth = (colType.listDepth > 0) ? colType.listDepth - 1 : 0;
+
 			for (const auto& val : arrayPtr->values) {
-				HashCombine(hash, HashValue(colType, val));
+				HashCombine(hash, HashValue(elementType, val));
 			}
 			break;
 		}
-
 		case OTNBaseType::OBJECT: {
-			if (value.type != OTNBaseType::INT) {
+			// size_t wird als uint64_t oder int gespeichert - beide abdecken
+			if (value.type == OTNBaseType::INT) {
+				HashCombine(hash, std::hash<int>{}(std::get<int>(value.value)));
+			}
+			else if (value.type == OTNBaseType::UINT64) {
+				HashCombine(hash, std::hash<uint64_t>{}(std::get<uint64_t>(value.value)));
+			}
+			else {
 				HashCombine(hash, 0);
 #ifndef NDEBUG
-				assert(false && "HashValue: type for Object was invalid, should be an int");
+				assert(false && "HashValue: type for Object was invalid");
 #endif
-				break;
 			}
-			
-			HashCombine(hash, std::hash<int>{}(std::get<int>(value.value)));
-			break;
+		break;
 		}
 		case OTNBaseType::UNKNOWN:
 		default:
@@ -1131,7 +1148,7 @@ namespace OTN {
 		return true;
 	}
 
-	size_t OTNWriter::AddObject(WriterData& data, OTNObject& object) {
+	std::vector<size_t> OTNWriter::AddObject(WriterData& data, OTNObject& object) {
 		auto& objectMap = data.objects;
 
 		// Create or get SerializedObject
@@ -1142,21 +1159,20 @@ namespace OTN {
 			serObj.columnNames = object.GetColumnNames();
 		}
 
-		const auto& objColumnType = object.GetColumnTypes();
-		size_t lastIndex = 0;
+		if (serObj.columnTypes.empty()) {
+			serObj.columnTypes = object.GetColumnTypesDesc();
+		}
+
+		std::vector<size_t> indices;
 		OTNValue outVal;
 		// Convert rows
 		for (const OTNRow& row : object.GetDataRows()) {
 			SerializedObject::Row serRow;
 			if (serObj.columnTypes.empty()) {
-				serObj.columnTypes = objColumnType;
-
-				if (serObj.columnTypes.empty()) {
-					serRow.reserve(row.size());
-					serObj.columnTypes.reserve(row.size());
-					for (const OTNValue& val : row) {
-						serObj.columnTypes.push_back(DeduceColumnType(val));
-					}
+				serRow.reserve(row.size());
+				serObj.columnTypes.reserve(row.size());
+				for (const OTNValue& val : row) {
+					serObj.columnTypes.push_back(DeduceColumnType(val));
 				}
 			}
 
@@ -1178,41 +1194,60 @@ namespace OTN {
 				columnTypeIndex++;
 			}
 
-			lastIndex = serObj.AddOrGetRow(serRow, m_useDeduplicateRows);
+			indices.emplace_back(serObj.AddOrGetRow(serRow, m_useDeduplicateRows));
 		}
 
-		return lastIndex;
+		return indices;
 	}
 
-	void OTNWriter::ConvertToSerValue(WriterData& data, OTNValue & result, const OTNTypeDesc & colType, const OTNValue & val) {
+	void OTNWriter::ConvertToSerValue(WriterData& data, OTNValue& result, OTNTypeDesc& colType, const OTNValue& val) {
 		if (val.type == OTNBaseType::LIST) {
-			// resolve objects
-			if (!colType.refObjectName.empty()) {
-				const OTNArrayPtr& arrayPtr = std::get<OTNArrayPtr>(val.value);
-				OTNArrayPtr newArray = std::make_shared<OTNArray>();
-				if (!arrayPtr || !newArray)
-					return;
+			const OTNArrayPtr& arrayPtr = std::get<OTNArrayPtr>(val.value);
+			OTNArrayPtr newArray = std::make_shared<OTNArray>();
+			if (!arrayPtr || !newArray)
+				return;
 
-				newArray->values.reserve(arrayPtr->values.size());
-				for (const auto& v : arrayPtr->values) {
-					OTNValue newValue;
-					ConvertToSerValue(data, newValue, colType, v);
-					newArray->values.emplace_back(std::move(newValue));
+			newArray->values.reserve(arrayPtr->values.size());
+
+			for (const auto& v : arrayPtr->values) {
+				if (v.type == OTNBaseType::OBJECT) {
+					OTNValue converted;
+					ConvertToSerValue(data, converted, colType, v);
+
+					if (converted.type == OTNBaseType::LIST) {
+						const OTNArrayPtr& indices = std::get<OTNArrayPtr>(converted.value);
+						if (indices) {
+							for (auto& idx : indices->values) {
+								newArray->values.emplace_back(std::move(idx));
+							}
+						}
+					}
 				}
-				result = OTNValue(std::move(newArray));
+				else {
+					OTNValue converted;
+					ConvertToSerValue(data, converted, colType, v);
+					newArray->values.emplace_back(std::move(converted));
+				}
 			}
-			else {
-				result = OTNValue(val);
-			}
+
+			result = OTNValue(std::move(newArray));
 		}
 		else if (val.type == OTNBaseType::OBJECT) {
 			const OTNObjectPtr& objPtr = std::get<OTNObjectPtr>(val.value);
 			if (!objPtr)
 				return;
 
-			// Ensure referenced object exists
-			size_t refIndex = AddObject(data, *objPtr);
-			result = OTNValue(static_cast<int>(refIndex));
+			std::vector<size_t> refIndex = AddObject(data, *objPtr);
+
+			OTNArrayPtr newArray = std::make_shared<OTNArray>();
+			newArray->values.reserve(refIndex.size());
+			for (const auto& idx : refIndex) {
+				newArray->values.emplace_back(idx);
+			}
+			result = OTNValue(std::move(newArray));
+
+			if (colType.listDepth == 0)
+				colType.listDepth = 1;
 		}
 		else {
 			result = OTNValue(val);
@@ -1345,7 +1380,8 @@ namespace OTN {
 
 			if (!WriteObjects(stream, m_writerData.objects))
 				valid = false;
-			stream.DecreaseIndent();
+			if (!m_useOptimizations)
+				stream.DecreaseIndent();
 
 			stream << Syntax::BLOCK_END_CHAR;
 		});
@@ -1435,7 +1471,7 @@ namespace OTN {
 
 			AddIndent(stream);
 			if (obj.columnNames.size() != obj.columnTypes.size()) {
-				AddError("Could not body Section @Object, size of names(" + 
+				AddError("Could not save body Section @Object, size of names(" + 
 					std::to_string(obj.columnNames.size()) 
 					+ ") and types(" + 
 					std::to_string(obj.columnTypes.size()) 
@@ -1482,6 +1518,9 @@ namespace OTN {
 			break;
 		case OTNBaseType::INT64:
 			WriteData(outStr, std::get<int64_t>(data.value));
+			break;
+		case OTNBaseType::UINT64:
+			WriteData(outStr, std::get<uint64_t>(data.value));
 			break;
 		case OTNBaseType::FLOAT:
 			WriteData(outStr, std::get<float>(data.value));
@@ -1533,6 +1572,9 @@ namespace OTN {
 		else if constexpr (std::is_same_v<DT, int64_t>) {
 			outStr += ToString(data);
 		}
+		else if constexpr (std::is_same_v<DT, uint64_t>) {
+			outStr += ToString(data);
+		}
 		else if constexpr (std::is_same_v<DT, float>) {
 			outStr += ToString(data);
 		}
@@ -1579,7 +1621,7 @@ namespace OTN {
 			outStr.push_back('\t');
 	}
 
-	void OTNWriter::AddError(const std::string& error, bool linebreak) {
+	void OTNWriter::AddError(const std::string& error) {
 		if (!m_error.empty())
 			m_error += "\n";		
 		m_error += error;
@@ -1776,6 +1818,7 @@ namespace OTN {
 			}
 			break;
 		}
+		return true;
 	}
 
 	bool OTNReader::OTNTokenizer::AddToken(TokenType type, char c) {
@@ -2083,6 +2126,9 @@ namespace OTN {
 		}
 
 		const auto& targetRows = targetObject->GetDataRows();
+		if (targetRows.empty())
+			return true;
+
 		if (ref.index >= targetRows.size()) {
 			AddError(
 				"Object reference index out of bounds: index " +
@@ -2095,6 +2141,7 @@ namespace OTN {
 
 		OTNObjectPtr resolved = std::make_shared<OTNObject>(ref.refObjectName);
 		resolved->SetNamesList(targetObject->GetColumnNames());
+		resolved->SetTypeDescList(targetObject->GetColumnTypesDesc());
 		resolved->AddDataRowList(targetRows[ref.index]);
 
 		// resolve object refs recurive
@@ -2111,7 +2158,7 @@ namespace OTN {
 
 	std::vector<size_t> OTNReader::OTNReaderV1::GetObjectIndieces(const OTNObject& obj) {
 		std::vector<size_t> indices;
-		const auto& types = obj.GetColumnTypes();
+		const auto& types = obj.GetColumnTypesDesc();
 
 		for (size_t i = 0; i < types.size(); i++) {
 			if (types[i].baseType == OTNBaseType::OBJECT) {
@@ -2315,7 +2362,7 @@ namespace OTN {
 	}
 
 	bool OTNReader::OTNReaderV1::ParseDataRows(OTNObject& obj, size_t rowCount) {
-		const std::vector<OTNTypeDesc>& types = obj.GetColumnTypes();
+		const std::vector<OTNTypeDesc>& types = obj.GetColumnTypesDesc();
 		size_t pos = 0; 
 		size_t currentRowCount = 0;
 
@@ -2326,7 +2373,7 @@ namespace OTN {
 					AddError(Peek(), "Row '" 
 						+ std::to_string(currentRowCount)
 						+ "' of object '" + obj.GetName() 
-						+ "' has to manay values! '" 
+						+ "' has t0o many values! '" 
 						+ std::to_string(types.size()) 
 						+ "' '" + std::to_string(pos) + "'");
 					return false;
@@ -2415,13 +2462,13 @@ namespace OTN {
 
 		Token temp = Next();
 		if (temp.type != TokenType::REF_BEGIN) {
-			AddError(temp, "Invalid Refernce definition!");
+			AddError(temp, "Invalid Reference definition!");
 			return;
 		}
 
 		temp = Next();
 		if (temp.type != TokenType::IDENTIFIER) {
-			AddError(temp, "Invalid Refernce definition!");
+			AddError(temp, "Invalid Reference definition!");
 			return;
 		}
 
@@ -2439,7 +2486,7 @@ namespace OTN {
 		
 		while (Match(TokenType::LIST_BEGIN)) {
 			if (!Match(TokenType::LIST_END)) {
-				AddError("error oder so");
+				AddError("Invalid list tokens");
 				break;
 			}
 
@@ -2454,6 +2501,7 @@ namespace OTN {
 		switch (type.baseType) {
 		case OTN::OTNBaseType::INT:
 		case OTN::OTNBaseType::INT64:
+		case OTN::OTNBaseType::UINT64:
 		case OTN::OTNBaseType::FLOAT:
 		case OTN::OTNBaseType::DOUBLE:
 		case OTN::OTNBaseType::BOOL:
@@ -2554,6 +2602,8 @@ namespace OTN {
 			return OTNValue(ParseNumericToken<int>(token, this));
 		case OTNBaseType::INT64:
 			return OTNValue(ParseNumericToken<int64_t>(token, this));
+		case OTNBaseType::UINT64:
+			return OTNValue(ParseNumericToken<uint64_t>(token, this));
 		case OTNBaseType::FLOAT:
 			return OTNValue(ParseNumericToken<float>(token, this));
 		case OTNBaseType::DOUBLE:
@@ -2718,7 +2768,7 @@ namespace OTN {
 		return fileVersion > 0;
 	}
 
-	void OTNReader::AddError(const std::string& error, bool linebreak) {
+	void OTNReader::AddError(const std::string& error) {
 		if (!m_error.empty())
 			m_error += "\n";
 		m_error += error;
