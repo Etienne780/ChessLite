@@ -12,12 +12,18 @@ public:
 
 	bool Send(const std::string& msg);
 	bool Receive(std::string& out);
+	void ClearError();
 
 	bool IsConnected() const;
 
 	const std::string& GetError() const;
+	const std::string& GetHost() const;
+	uint16_t GetPort() const;
 
 private:
+	std::string m_host;
+	uint16_t m_port = 0;
+	
 	std::string m_error;
 	NET_StreamSocket* m_socket = nullptr;
 

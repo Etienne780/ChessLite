@@ -9,9 +9,13 @@ GameClient::~GameClient() {
 }
 
 bool GameClient::Connect(const std::string& host, uint16_t port) {
-	if (IsConnected())
+	if (IsConnected()  && 
+		m_host == host && 
+		m_port == port)
 		return true;
 
+	m_host = host;
+	m_port = port;
 	NET_Address* addr = NET_ResolveHostname(host.c_str());
 	if (!addr) {
 		AddError("Failed to resolve host!\n");
@@ -44,31 +48,49 @@ void GameClient::Disconnect() {
 }
 
 bool GameClient::Send(const std::string& msg) {
-	if (!IsConnected())
+	if (!IsConnected()) {
+		AddError("Not connected");
 		return false;
+	}
 
-	return NET_WriteToStreamSocket(m_socket, msg.c_str(), static_cast<int>(msg.size()));
+	int sent = NET_WriteToStreamSocket(m_socket, msg.c_str(), static_cast<int>(msg.size()));
+	if (sent < 0) {
+		AddError(SDL_GetError());
+		Disconnect();
+		return false;
+	}
+
+	return true;
 }
 
 bool GameClient::Receive(std::string& out) {
-	if (!IsConnected())
+	if (!IsConnected()) {
+		AddError("Not connected");
 		return false;
+	}
+	constexpr int bufferSize = 4096;
+	char buffer[bufferSize];
+	int received = NET_ReadFromStreamSocket(m_socket, buffer, sizeof(buffer) - 1);
 
-	char buffer[512];
-	int received = NET_ReadFromStreamSocket(m_socket, buffer, sizeof(buffer));
-
-	if (received > 0) {
+	if (received > 0  && received < bufferSize) {
+		buffer[received] = '\0';
 		out.assign(buffer, received);
 		return true;
 	}
 
-	if (received == 0) {
+	if (received < 0) {
+		Disconnect();
+		AddError(SDL_GetError());
 		return false;
 	}
 
 	Disconnect();
 	AddError(SDL_GetError());
 	return false;
+}
+
+void GameClient::ClearError() {
+	m_error.clear();
 }
 
 bool GameClient::IsConnected() const {
@@ -84,6 +106,14 @@ bool GameClient::IsConnected() const {
 
 const std::string& GameClient::GetError() const {
 	return m_error;
+}
+
+const std::string& GameClient::GetHost() const {
+	return m_host;
+}
+
+uint16_t GameClient::GetPort() const {
+	return m_port;
 }
 
 void GameClient::AddError(const std::string& msg) {
