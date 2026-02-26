@@ -81,6 +81,10 @@ AgentID Agent::GetID() const {
 	return m_id;
 }
 
+AgentID Agent::GetServerID() const {
+	return m_serverID;
+}
+
 const std::string& Agent::GetName() const {
 	return m_name;
 }
@@ -171,4 +175,8 @@ std::string Agent::GetNormalizedBoardStr(const CoreChess::ChessBoard& board, boo
 
 void Agent::SetID(AgentID id) {
 	m_id = id;
+}
+
+void Agent::SetServerID(AgentID id) {
+	m_serverID = id;
 }

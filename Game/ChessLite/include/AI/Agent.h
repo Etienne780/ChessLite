@@ -30,6 +30,7 @@ public:
 	const GameMove& GetBestMove(const CoreChess::ChessGame& game);
 
 	AgentID GetID() const;
+	AgentID GetServerID() const;
 	const std::string& GetName() const;
 	const std::string& GetChessConfig() const;
 	int GetMatchesPlayed() const;
@@ -50,6 +51,7 @@ public:
 private:
 	bool m_gameFinished = true;
 	AgentID m_id;
+	AgentID m_serverID;
 	std::string m_name = "UNKOWN";
 	int m_matchesPlayed = 0;
 	int m_matchesWon = 0;
@@ -64,4 +66,5 @@ private:
 	std::string GetNormalizedBoardStr(const CoreChess::ChessBoard& board, bool isWhite);
 
 	void SetID(AgentID id);
+	void SetServerID(AgentID id);
 };

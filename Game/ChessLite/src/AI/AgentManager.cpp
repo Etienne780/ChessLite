@@ -24,7 +24,7 @@ bool AgentManager::Save(const OTN::OTNFilePath& path) {
         }
         
         agentObj.AddDataRow(
-            static_cast<int64_t>(id.value),
+            static_cast<int64_t>(agent.GetServerID().value),
             agent.GetName(),
             boardStateObj,
             agent.GetChessConfig(),
@@ -42,7 +42,7 @@ bool AgentManager::Save(const OTN::OTNFilePath& path) {
 
     OTNWriter writer;
     writer.AppendObject(agentObj);
-    writer.UseDeduplicateRows(true);
+    writer.UseDeduplicateRows(false);
 
     if (!writer.Save(path / "Agents")) {
         Log::Error("Failed to save agent data: {}", writer.GetError());
@@ -54,6 +54,7 @@ bool AgentManager::Save(const OTN::OTNFilePath& path) {
 void AgentManager::AddAgent(Agent agent) {
     AgentID id{ m_idManager.GetNewUniqueIdentifier() };
     agent.SetID(id);
+    agent.SetServerID(AgentID(0));// invalid id
     m_agents[id] = std::move(agent);
 }
 
