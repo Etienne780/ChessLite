@@ -75,4 +75,23 @@ project "Server"
             '{COPY} "%{wks.location}/vendor/whereami/lib/x64/*.dll" "%{cfg.targetdir}"'
         }
 
-    filter {}
+    filter "configurations:Release or Distribution"
+        includedirs {
+            "%{wks.location}/vendor/mysql/include"
+        }
+        libdirs {
+            "%{wks.location}/vendor/mysql/lib/x64/vs14"
+        }
+        links {
+            "mysqlcppconn"
+        }
+        postbuildcommands {
+            '{MKDIR} "%{cfg.targetdir}"',
+            '{COPY} "config.otn" "%{cfg.targetdir}"',
+            '{COPY} "%{wks.location}/vendor/mysql/lib/x64/*.dll" "%{cfg.targetdir}"',
+            '{COPY} "%{wks.location}/vendor/SDL3/lib/x64/*.dll" "%{cfg.targetdir}"',
+            '{COPY} "%{wks.location}/vendor/SDL3_net/lib/x64/*.dll" "%{cfg.targetdir}"',
+            '{COPY} "%{wks.location}/vendor/whereami/lib/x64/*.dll" "%{cfg.targetdir}"'
+        }
+
+filter {}
