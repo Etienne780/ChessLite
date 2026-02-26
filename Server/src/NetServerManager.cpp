@@ -72,3 +72,7 @@ void NetServerManager::StopAll() {
 
 	m_threads.clear();
 }
+
+const std::vector<NetServer*>& NetServerManager::GetServers() {
+	return m_serverList;
+}

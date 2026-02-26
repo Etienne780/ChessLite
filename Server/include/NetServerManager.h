@@ -18,6 +18,8 @@ public:
 	static void StartAll();
 	static void StopAll();
 
+	static const std::vector<NetServer*>& GetServers();
+
 private:
 	static inline std::vector<std::thread> m_threads;
 	static inline std::vector<NetServer*> m_serverList;
