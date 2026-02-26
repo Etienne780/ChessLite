@@ -262,27 +262,7 @@ namespace Layers {
 			return;
 		
 		m_isPlayer1Turn = !m_isPlayer1Turn;
-		// play sound effect
-		if (currentMat != oldMat) {
-			if (!m_captureSound)
-				return;
-			// capture move
-			SDLCore::SoundManager::PlaySound(
-				*m_captureSound.get(),
-				SDLCore::SOUND_ON_SHOOT,
-				SDLCore::SoundTags::SFX
-			);
-		}
-		else {
-			if (!m_moveSound)
-				return;
-			// normale move
-			SDLCore::SoundManager::PlaySound(
-				*m_moveSound.get(),
-				SDLCore::SOUND_ON_SHOOT,
-				SDLCore::SoundTags::SFX
-			);
-		}
+		PlayMoveSound(currentMat != oldMat);
 	}
 
 	bool GameLayer::PlayerLogic() {
@@ -399,6 +379,29 @@ namespace Layers {
 		} while (!movePlayed);
 
 		return movePlayed;
+	}
+
+	void GameLayer::PlayMoveSound(bool caputedPiece) {
+		if (caputedPiece) {
+			if (!m_captureSound)
+				return;
+			// capture move
+			SDLCore::SoundManager::PlaySound(
+				*m_captureSound.get(),
+				SDLCore::SOUND_ON_SHOOT,
+				SDLCore::SoundTags::SFX
+			);
+		}
+		else {
+			if (!m_moveSound)
+				return;
+			// normale move
+			SDLCore::SoundManager::PlaySound(
+				*m_moveSound.get(),
+				SDLCore::SOUND_ON_SHOOT,
+				SDLCore::SoundTags::SFX
+			);
+		}
 	}
 
 	void GameLayer::RenderBoard(AppContext* ctx) {

@@ -78,6 +78,7 @@ namespace Layers {
 		bool PlayerLogic();
 		// returns true when a move was made
 		bool AILogic();
+		void PlayMoveSound(bool caputedPiece);
 		void RenderBoard(AppContext* ctx);
 
 		void UpdateBoardTileSize();
