@@ -115,15 +115,18 @@ namespace SDLCore {
 			return false;
 		}
 		
+		float tagGain = s_soundManager->GetTagGain(audioTrack->tag);
 		float newVolume = clip.GetVolume();
+		float finalGain = newVolume * tagGain;
+
 		Vector2 pos = clip.GetPosition();
 		MIX_Point3D mixPoint{ pos.x, 0.0f, pos.y };
 
 		bool result = true;
 
-		if (audioTrack->volume != newVolume) {
-			audioTrack->volume = newVolume;
-			if (!MIX_SetTrackGain(track, newVolume)) {
+		if (audioTrack->volume != finalGain) {
+			audioTrack->volume = finalGain;
+			if (!MIX_SetTrackGain(track, finalGain)) {
 				SetErrorF("SDLCore::SoundManager::ApplyClipParams: Failed to set volume for clip '{}': {}", clip.GetID(), SDL_GetError());
 				result = false;
 			}
@@ -572,12 +575,8 @@ namespace SDLCore {
 		if (!InstanceExist())
 			return false;
 
-		MIX_Mixer* mixer = nullptr;
-		if (!s_soundManager->TryGetMixer(mixer, "SetTagVolume"))
-			return false;
-
-		if (!MIX_SetTagGain(mixer, tag.c_str(), volume)) {
-			SetErrorF("SDLCore::SoundManager::SetTagVolume: Could not set tag '{}' volume '{}'!\n{}", 
+		if (!s_soundManager->SetTagGain(tag, volume)) {
+			SetErrorF("SDLCore::SoundManager::SetTagVolume: Could not set tag '{}' volume '{}'!\n{}",
 				tag, volume, SDL_GetError());
 			return false;
 		}
@@ -717,6 +716,27 @@ namespace SDLCore {
 			return nullptr;
 
 		return &it->second;
+	}
+
+	float SoundManager::GetTagGain(const std::string& tag) {
+		auto it = m_tagGains.find(tag);
+		return (it != m_tagGains.end()) ? it->second : 1.0f;
+	}
+
+	bool SoundManager::SetTagGain(const std::string& tag, float gain) {
+		m_tagGains[tag] = gain;
+
+		for (auto& [id, audioTrack] : m_audioTracks) {
+			if (audioTrack.tag == tag && audioTrack.track) {
+				float finalGain = audioTrack.volume * gain;
+
+				if (!MIX_SetTrackGain(audioTrack.track, finalGain)) {
+					return false;
+				}
+			}
+		}
+
+		return true;
 	}
 
 	bool SoundManager::TryGetMixer(MIX_Mixer*& mixer, const std::string& func) {

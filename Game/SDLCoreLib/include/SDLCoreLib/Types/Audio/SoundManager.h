@@ -282,6 +282,7 @@ namespace SDLCore {
         std::unordered_map<AudioTrackID, AudioTrack> m_audioTracks;// uses audio from m_audios to play sounds
         std::unordered_map<SoundClipID, Audio> m_audios;// audio gets added from clip
         std::unordered_map<SoundClipID, SoundClipID> m_subAudio;// map from sub sound to sound
+        std::unordered_map<std::string, float> m_tagGains;
         std::vector<AudioPlaybackDevice> m_devices;
         std::vector<MIX_Track*> m_pendingDestroyTracks;
         SDLCoreIDManager m_deviceIDManager{ 1 };
@@ -299,6 +300,10 @@ namespace SDLCore {
         AudioTrack* GetAudioTrack_Unsafe(SoundClipID id, SoundClipID subID);
         AudioTrack* GetAudioTrack_Unsafe(AudioTrackID id);
         Audio* GetAudio(SoundClipID id);
+        // will return 1 if not found
+        float GetTagGain(const std::string& tag);
+
+        bool SetTagGain(const std::string& tag, float gain);
 
         bool TryGetMixer(MIX_Mixer*& mixer, const std::string& func);
 
