@@ -1582,7 +1582,25 @@ namespace OTN {
 		* In debug mode, ensures no duplicate object names exist.
 		*/
 		OTNWriter& AppendObject(const OTNObject& object);
-	
+		
+		/**
+		* @brief Remove all OTNObjects from the writer.
+		* @return Reference to self for method chaining.
+		*
+		* Clears the internal object container. Capacity is not reduced.
+		*/
+		OTNWriter& ClearObjects();
+
+		/**
+		* @brief Reserve storage for a specified number of OTNObjects.
+		* @param amount Number of objects to reserve capacity for.
+		* @return Reference to self for method chaining.
+		*
+		* Adjusts the capacity of the internal container to accommodate
+		* at least the specified number of objects without reallocation.
+		*/
+		OTNWriter& ReserveObjects(size_t amount);
+
 		/**
 		* @brief Save all appended objects to a file.
 		* 
