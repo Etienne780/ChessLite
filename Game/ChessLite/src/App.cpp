@@ -39,8 +39,9 @@ void App::OnStart() {
 void App::OnUpdate() {
     ConnectClient();
 
-    if (SDLCore::Time::GetFrameCount() % 1000) {
-        m_context.gameClient.Send("ChessLite Aura FPS " + static_cast<int>(SDLCore::Time::GetFrameRateHzF()),
+    if (SDLCore::Time::GetFrameCount() % 1000 == 0) {
+        std::string fpsStr = std::to_string(static_cast<int>(SDLCore::Time::GetFrameRateHzF()));
+        m_context.gameClient.Send("ChessLite Aura FPS " + fpsStr,
             [](bool result, const std::string& msg) {
                 Log::Print("Server msg: result={}; msg={};", result, msg);
             });
@@ -241,6 +242,10 @@ void App::ConnectClient() {
         Log::Error(client.GetError());
         client.ClearError();
     }
+
+    if (client.IsConnected())
+        Log::Info("App: Connected to server");
+
     currentClientTimeOut = clientTimeOut;
 }
 

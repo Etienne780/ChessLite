@@ -28,9 +28,8 @@ public:
 
 private:
 	struct PendingSend {
-		std::string data;
-		size_t offset;
 		NetworkMsgID id;
+		std::vector<uint8_t> data;
 	};
 
 	std::string m_host;
@@ -47,5 +46,6 @@ private:
 	bool ProcessSendQueue();
 	bool ProcessReceiveQueue();
 
+	bool CallRequestCallback(NetworkMsgID id, bool result, const std::string& msg);
 	void AddError(const std::string& msg);
 };

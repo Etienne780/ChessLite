@@ -1,4 +1,4 @@
-#include "GameClient.h"
+﻿#include "GameClient.h"
 #include <CoreLib/BinarySerializer.h>
 #include <CoreLib/BinaryDeserializer.h>
 
@@ -47,6 +47,11 @@ void GameClient::Disconnect() {
 	NET_DestroyStreamSocket(m_socket);
 	m_socket = nullptr;
 	m_msgQueue.clear();
+
+	for (auto& [id, cb] : m_pending)
+		cb(false, "");
+	m_pending.clear();
+	m_receiveBuffer.clear();
 }
 
 void GameClient::Send(const std::string& payload, Callback&& cb) {
@@ -64,13 +69,16 @@ void GameClient::Send(const std::string& payload, Callback&& cb) {
 	std::vector<uint8_t> payloadData(payload.begin(), payload.end());
 	ser.AddField(payloadData);// size + data
 
-	PendingSend ps;
 	std::vector<uint8_t> buf = ser.ToBuffer();
 
+	PendingSend ps;
 	uint32_t len = static_cast<uint32_t>(buf.size());
+
 	ps.data.resize(sizeof(uint32_t) + buf.size());
 	std::memcpy(ps.data.data(), &len, sizeof(uint32_t));
 	std::memcpy(ps.data.data() + sizeof(uint32_t), buf.data(), buf.size());
+
+	ps.id = id;
 
 	m_msgQueue.push_back(std::move(ps));
 }
@@ -111,24 +119,17 @@ bool GameClient::ProcessSendQueue() {
 	while (!m_msgQueue.empty()) {
 		PendingSend& ps = m_msgQueue.front();
 
-		size_t remaining = ps.data.size() - ps.offset;
-
-		int sent = NET_WriteToStreamSocket(
+		bool ok = NET_WriteToStreamSocket(
 			m_socket,
-			ps.data.data() + ps.offset,
-			static_cast<int>(remaining)
+			ps.data.data(),
+			static_cast<int>(ps.data.size())
 		);
 
-		if (sent < 0) {
+		if (!ok) {
 			AddError(SDL_GetError());
+			CallRequestCallback(ps.id, false, "");
 			Disconnect();
 			return false;
-		}
-
-		ps.offset += sent;
-
-		if (ps.offset < ps.data.size()) {
-			break;
 		}
 
 		m_msgQueue.pop_front();
@@ -145,6 +146,10 @@ bool GameClient::ProcessReceiveQueue() {
 
 	uint8_t buffer[4096];
 	int received = NET_ReadFromStreamSocket(m_socket, buffer, sizeof(buffer));
+	
+	if (received == 0)
+		return true;
+
 	if (received < 0) {
 		AddError(SDL_GetError());
 		Disconnect();
@@ -157,7 +162,7 @@ bool GameClient::ProcessReceiveQueue() {
 		if (m_receiveBuffer.size() < sizeof(uint32_t))
 			break;
 
-		uint32_t length;
+		uint32_t length = 0;
 		std::memcpy(&length, m_receiveBuffer.data(), sizeof(uint32_t));
 		if (m_receiveBuffer.size() < sizeof(uint32_t) + length)
 			break;
@@ -167,20 +172,30 @@ bool GameClient::ProcessReceiveQueue() {
 		BinaryDeserializer des(packet);
 
 		uint32_t id = des.Read<uint32_t>();
+		bool response = des.Read<bool>();
 		std::vector<uint8_t> payloadData = des.ReadVector<uint8_t>();
 		std::string payload(payloadData.begin(), payloadData.end());
 
 		m_receiveBuffer.erase(m_receiveBuffer.begin(),
 			m_receiveBuffer.begin() + sizeof(uint32_t) + length);
 
-		auto it = m_pending.find(NetworkMsgID(id));
-		if (it != m_pending.end()) {
-			it->second(true, payload);
-			m_pending.erase(it);
+		if (!CallRequestCallback(NetworkMsgID(id), response, payload)) {
+			AddError("Failed to call callback of id '" + std::to_string(id) + "'");
+			return false;
 		}
 	}
 
 	return true;
+}
+
+bool GameClient::CallRequestCallback(NetworkMsgID id, bool result, const std::string& msg) {
+	auto it = m_pending.find(NetworkMsgID(id));
+	if (it != m_pending.end()) {
+		it->second(result, msg);
+		m_pending.erase(it);
+		return true;
+	}
+	return false;
 }
 
 void GameClient::AddError(const std::string& msg) {

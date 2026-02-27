@@ -84,7 +84,7 @@ void NetServer::HandleClient(NET_StreamSocket* client) const {
 
 		if (received > 0) {
 			std::string msg(buffer, received);
-			std::cout << "[" << m_name << "] Received: " << msg << "\n";
+			// std::cout << "[" << m_name << "] Received: " << msg << "\n";
 
 			if (m_logic)
 				m_logic->OnMessage(client, msg);
