@@ -13,9 +13,11 @@ using CoreAppID = CoreID<uint32_t, SDLCORE_INVALID_ID, Tag>;
 
 struct LayerEventSubscriptionTag {};
 struct AgentTag {};
+struct NetworkMsgTag {};
 
 using LayerEventSubscriptionID = CoreAppID<LayerEventSubscriptionTag>;
 using AgentID = CoreAppID<AgentTag>;
+using NetworkMsgID = CoreAppID<NetworkMsgTag>;
 
 namespace SkinKeys {
 

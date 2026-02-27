@@ -84,15 +84,18 @@ private:
 	std::vector<LayerCommand> m_layerCommands;
 	SDLCore::UI::UIContext* m_UICtx = nullptr;
 
-	const std::string m_host = "";
+	const std::string m_host = "127.0.0.1";
 	const uint16_t m_port = 5000;
-	GameClient m_gameClient;
+	float clientTimeOut = 0.5f;
+	float currentClientTimeOut = 0.0f;
 
 	void InitChessContext();
 	void InstantiateWindow();
+	void ConnectClient();
 	void WindowCleanup();
 
 	void ProcessLayerCommands();
+	void ProcessGameClient();
 
 	template<typename Func>
 	void ForeachLayer(Func&& func) {

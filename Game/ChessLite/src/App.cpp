@@ -34,11 +34,11 @@ void App::OnStart() {
 
     // push start layer on to stack
     PushLayer<Layers::StartLoadLayer>();
-
-    // m_gameClient.Connect();
 }
 
 void App::OnUpdate() {
+    ConnectClient();
+
     if (!m_winID.IsInvalid()) {
         using namespace SDLCore;
         Input::SetWindow(m_winID);
@@ -92,6 +92,7 @@ void App::OnUpdate() {
         RE::Present();
 
         ProcessLayerCommands();
+        ProcessGameClient();
     }
     else {
         // main window is closed
@@ -219,6 +220,23 @@ void App::InstantiateWindow() {
     });
 }
 
+void App::ConnectClient() {
+    auto& client = m_context.gameClient;
+    if (client.IsConnected())
+        return;
+
+    if (currentClientTimeOut > 0) {
+        currentClientTimeOut -= SDLCore::Time::GetDeltaTimeSecF();
+        return;
+    }
+
+    if (!client.Connect(m_host, m_port)) {
+        Log::Error(client.GetError());
+        client.ClearError();
+    }
+    currentClientTimeOut = clientTimeOut;
+}
+
 void App::WindowCleanup() {
     auto winID = GetWinID();
     auto* win = GetWindow(winID);
@@ -231,7 +249,7 @@ void App::WindowCleanup() {
 void App::ProcessLayerCommands() {
     auto& eventBus = m_context.m_eventBus;
 
-    auto copy = m_layerCommands;
+    std::vector<LayerCommand> copy = m_layerCommands;
     for (auto& cmd : copy) {
         switch (cmd.type) {
         case LayerCmdType::PUSH: {
@@ -282,4 +300,21 @@ void App::ProcessLayerCommands() {
 
     eventBus.Dispatch();
     m_layerCommands.clear();
+}
+
+void App::ProcessGameClient() {
+    auto& client = m_context.gameClient;
+
+    if (!client.IsConnected())
+        return;
+
+    if (!client.ProcessSendQueue()) {
+        Log::Error(client.GetError());
+        client.ClearError();
+    }
+    
+    if (!client.ProcessReceiveQueue()) {
+        Log::Error(client.GetError());
+        client.ClearError();
+    }
 }

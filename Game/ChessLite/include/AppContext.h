@@ -3,6 +3,7 @@
 #include <CoreChessLib/ChessContext.h>
 
 #include "App.h"
+#include "GameClient.h"
 #include "LayerSystem/LayerEventBus.h"
 #include "ResourcesManagement/ResourcesManager.h"
 #include "AI/AgentManager.h"
@@ -18,6 +19,7 @@ public:
 	}
 
 	App* app;
+	GameClient gameClient;
 	ResourcesManager resourcesManager;
 	SkinManager skinManager;
 	ChessOptions options;
