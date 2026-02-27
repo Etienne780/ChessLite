@@ -790,6 +790,16 @@ namespace OTN {
 		return *this;
 	}
 
+	OTNWriter& OTNWriter::ClearObjects() {
+		m_objects.clear();
+		return *this;
+	}
+
+	OTNWriter& OTNWriter::ReserveObjects(size_t amount) {
+		m_objects.reserve(amount);
+		return *this;
+	}
+
 	bool OTNWriter::Save(const OTNFilePath& path) {
 		if (!IsValid()) {
 			AddError("Writer object is invalid!");
