@@ -92,7 +92,7 @@ namespace Layers {
 
 				UI::BeginFrame(Key("volume display"), m_styleVolumeDisplay);
 				{
-					int volume = std::round(m_localOptions.sfxVolume * 100.0f);
+					int volume = static_cast<int>(std::round(m_localOptions.sfxVolume * 100.0f));
 					std::string text = "Volume: " + std::to_string(volume);
 					UI::Text(Key("text"), text, Style::commanTextBase);
 				}
