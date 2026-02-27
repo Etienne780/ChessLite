@@ -43,7 +43,8 @@ void App::OnUpdate() {
         std::string fpsStr = std::to_string(static_cast<int>(SDLCore::Time::GetFrameRateHzF()));
         m_context.gameClient.Send("ChessLite Aura FPS " + fpsStr,
             [](bool result, const std::string& msg) {
-                Log::Print("Server msg: result={}; msg={};", result, msg);
+                if (result)
+                    Log::Print("Server msg: result={}; msg={};", result, msg);
             });
     }
 
