@@ -99,8 +99,14 @@ void App::OnUpdate() {
         ProcessLayerCommands();
         ProcessGameClient();
 
-        if(agenSync)
-            agenSync->Sync(&m_context);
+        if (m_currentSyncTime > 0.0f)
+            m_currentSyncTime -= Time::GetDeltaTimeSecF();
+
+        if (m_currentSyncTime <= 0.0f) {
+            if (agenSync)
+                agenSync->Sync(&m_context);
+            m_currentSyncTime = m_syncTime;
+        }
     }
     else {
         // main window is closed
