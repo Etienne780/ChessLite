@@ -69,9 +69,9 @@ public:
 	*/
 	void PopLayer(LayerID layerID);
 
-	void ClearLayers();
+	bool LoadUserData();
 
-	bool SaveUserData();
+	void ClearLayers();
 
 	SDLCore::WindowID GetWinID() const;
 	size_t GetLayerCount() const;
@@ -82,9 +82,9 @@ private:
 	SDLCore::WindowCallbackID m_windowDisplayChangedCBID;
 	
 	AppContext m_context{ this };
-	float m_syncTime = 10.0f;// trys to sync every 10 secs
+	float m_syncTime = 2.0f;// trys to sync every 2 secs
 	float m_currentSyncTime = 0.0f;
-	std::shared_ptr<AgentSyncService> agenSync = nullptr;
+	std::shared_ptr<AgentSyncService> m_agentSync = std::make_shared<AgentSyncService>();
 
 	std::vector<std::unique_ptr<Layer>> m_layerStack;
 	std::vector<LayerCommand> m_layerCommands;
@@ -99,6 +99,8 @@ private:
 	void InstantiateWindow();
 	void ConnectClient();
 	void WindowCleanup();
+
+	bool SaveUserData();
 
 	void ProcessLayerCommands();
 	void ProcessGameClient();

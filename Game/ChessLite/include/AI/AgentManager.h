@@ -5,7 +5,12 @@
 #include "AI/Agent.h"
 #include "Type.h"
 
+class AgentSyncService;
+class app;
+
 class AgentManager {
+friend class AgentSyncService;
+friend class App;
 public:
 	AgentManager() = default;
 	~AgentManager() = default;
@@ -21,6 +26,21 @@ public:
 
 	Agent* GetAgent(AgentID id);
 
+	/**
+	* @brief Retrieves a list of all agents' local and server IDs.
+	*
+	* This function iterates through all agents managed by the AgentManager
+	* 
+	* and creates a vector of pairs, where each pair contains:
+	* 
+	*  - first: the agent's local ID
+	* 
+	*  - second: the agent's server ID
+	*
+	* @return std::vector<std::pair<AgentID, AgentID>> A list of all agents with
+	*         their corresponding local and server IDs.
+	*/
+	std::vector<std::pair<AgentID, AgentID>> GetAgentIDAndServerIDs() const;
 	const std::unordered_map<AgentID, Agent>& GetAgents() const;
 	const std::unordered_set<AgentID>& GetUnregisteredAgentIDs() const;
 
@@ -28,4 +48,9 @@ private:
 	CoreAppIDManager m_idManager;
 	std::unordered_map<AgentID, Agent> m_agents;
 	std::unordered_set<AgentID> m_unregisteredAgentIds;
+
+	std::vector<AgentID> m_deletedServerAgents;
+
+	const std::vector<AgentID>& GetDeletedServerAgents() const;
+	void ClearDeletedServerAgents();
 };

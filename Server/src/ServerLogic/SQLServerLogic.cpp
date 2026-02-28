@@ -10,14 +10,6 @@ SQLServerLogic::SQLServerLogic(NetServer* server, const DBConfig& config)
 }
 
 void SQLServerLogic::OnMessage(NET_StreamSocket* client, const std::string& msg) {
-    if (!m_connected) {
-        Connect();
-    }
-
-    if (!m_connected) {
-        std::cerr << "Not connected to DB, cannot process: " << msg << '\n';
-        return;
-    }
 }
 
 void SQLServerLogic::OnServerMessage(const std::string& serverName, const std::string& msg) {    
@@ -40,6 +32,10 @@ void SQLServerLogic::OnServerMessage(const std::string& serverName, const std::s
 
     if (*action == "InsertAgents")
         HandleInsertAgents(serverName, static_cast<uint32_t>(*requestID), reader);
+    else if(*action == "GetAgentIDs")
+        HandleGetAgentIDs(serverName, static_cast<uint32_t>(*requestID), reader);
+    else
+        std::cerr << "Unkown action sql server '" << *action << "'\n";
 }
 
 void SQLServerLogic::HandleInsertAgents(
@@ -47,9 +43,11 @@ void SQLServerLogic::HandleInsertAgents(
     uint32_t requestID,
     OTN::OTNReader& reader)
 {
+    const char* actionName = "InsertAgentsResult";
+
     if (!m_connection) {
         std::cerr << "Not connected to DB\n";
-        //das schelcht muss was returnen
+        SentError("Not connected to DB", dstServer, actionName, requestID);
         return;
     }
 
@@ -58,7 +56,8 @@ void SQLServerLogic::HandleInsertAgents(
     result.SetTypes("int64", "int64");
 
     try {
-        m_connection->setAutoCommit(false);
+        // sets auto commit to false
+        TransactionGuard guard(m_connection.get());
 
         auto obj = reader.TryGetObject("body");
         if (!obj) 
@@ -134,23 +133,91 @@ void SQLServerLogic::HandleInsertAgents(
             }
         }
         
-        m_connection->commit();
+        guard.commit();
     }
-    catch (...) {
+    catch (sql::SQLException& e) {
         m_connection->rollback();
-        throw;
+        SentError(std::string("SQL Error: ") + e.what(), dstServer, actionName, requestID);
+        return;
     }
 
-    m_connection->setAutoCommit(true);
-
-    OTN::OTNObject header{ "header" };
-    header.SetNames("action", "request_id");
-    header.SetTypes("String", "int64");
-    header.AddDataRow("InsertAgentsResult", requestID);
-
+    OTN::OTNObject header = CreateRequestHeader(actionName, requestID);
     OTN::OTNWriter writer;
     writer.AppendObject(header);
     writer.AppendObject(result);
+
+    std::string output;
+    writer.SaveToString(output);
+
+    NetServerManager::SendMessage(
+        m_server,
+        dstServer,
+        output
+    );
+}
+
+void SQLServerLogic::HandleGetAgentIDs(const std::string& dstServer, uint32_t requestID, OTN::OTNReader& reader) {
+    const char* actionName = "GetAgentIDResult";
+
+    if (!m_connection) {
+        std::cerr << "Not connected to DB\n";
+        SentError("Not connected to DB", dstServer, actionName, requestID);
+        return;
+    }
+
+    try {
+        auto body = FetchStatement("SELECT id FROM agents;");
+        if (!body) {
+            SentError("Query returned no result", dstServer, actionName, requestID);
+            return;
+        }
+
+        OTN::OTNObject header = CreateRequestHeader(actionName, requestID);
+        OTN::OTNWriter writer;
+        writer.AppendObject(header);
+        writer.AppendObject(*body);
+
+        std::string output;
+        writer.SaveToString(output);
+
+        NetServerManager::SendMessage(
+            m_server,
+            dstServer,
+            output
+        );
+    }
+    catch (sql::SQLException& e) {
+        SentError(std::string("SQL Error: ") + e.what(), dstServer, actionName, requestID);
+        return;
+    }
+}
+
+OTN::OTNObject SQLServerLogic::CreateRequestHeader(const std::string& action, uint32_t requestID, bool response) {
+    OTN::OTNObject headerObj{ "header" };
+
+    headerObj.SetNames("action", "request_id", "response");
+    headerObj.SetTypes("String", "int64", "bool");
+    headerObj.AddDataRow(action, requestID, response);
+
+    return headerObj;
+}
+
+void SQLServerLogic::SentError(
+    const std::string& errorMsg, 
+    const std::string dstServer, 
+    const std::string& action, 
+    uint32_t requestID) 
+{
+    OTN::OTNObject header = CreateRequestHeader(action, requestID, false);
+    
+    OTN::OTNObject body{ "body" };
+    body.SetNames("error");
+    body.SetTypes("String");
+    body.AddDataRow(errorMsg);
+
+    OTN::OTNWriter writer;
+    writer.AppendObject(header);
+    writer.AppendObject(body);
 
     std::string output;
     writer.SaveToString(output);
@@ -171,7 +238,7 @@ void SQLServerLogic::Connect() {
 
         sql::mysql::MySQL_Driver* driver = sql::mysql::get_mysql_driver_instance();
         std::unique_ptr<sql::Connection> conn(
-            driver->connect(hostString, "root", "root")
+            driver->connect(hostString, m_config.user, m_config.password)
         );
 
         conn->setSchema(m_config.schema);
@@ -187,83 +254,6 @@ void SQLServerLogic::Connect() {
     }
 }
 
-std::optional<OTN::OTNObject> SQLServerLogic::FetchStatement(const std::string& query) {
-    if (!m_connection) {
-        std::cerr << "Query error: not connected\n";
-        return std::nullopt;
-    }
-    try {
-        sql::Statement* stmt = m_connection->createStatement();
-        sql::ResultSet* res = stmt->executeQuery(query);
-        sql::ResultSetMetaData* metaData = res->getMetaData();
-
-        if (!metaData) {
-            std::cerr << "Query error: metadata is nullptr for query: " << query << "\n";
-            delete res;
-            delete stmt;
-            return std::nullopt;
-        }
-
-        uint32_t columnCount = metaData->getColumnCount();
-
-        std::vector<std::string> columnNames;
-        std::vector<int> columnTypes;
-        columnNames.reserve(columnCount);
-        columnTypes.reserve(columnCount);
-
-        for (uint32_t i = 1; i <= columnCount; ++i) {
-            std::string name = metaData->getColumnName(i);
-            if (name.empty())
-                name = "col" + std::to_string(i);
-            columnNames.push_back(name);
-            columnTypes.push_back(metaData->getColumnType(i));
-        }
-
-        OTN::OTNObject obj("Result");
-        obj.SetNamesList(columnNames);
-
-        while (res->next()) {
-            OTN::OTNRow rowValues;
-            rowValues.reserve(columnCount);
-
-            for (uint32_t i = 0; i < columnCount; ++i) {
-                switch (columnTypes[i]) {
-                case sql::DataType::INTEGER:
-                    rowValues.emplace_back(static_cast<int>(res->getInt(i + 1)));
-                    break;
-                case sql::DataType::BIGINT:
-                    rowValues.emplace_back(static_cast<int64_t>(res->getInt64(i + 1)));
-                    break;
-                case sql::DataType::DOUBLE:
-                    rowValues.emplace_back(static_cast<double>(res->getDouble(i + 1)));
-                    break;
-                case sql::DataType::BIT:
-                    rowValues.emplace_back(res->getBoolean(i + 1));
-                    break;
-                case sql::DataType::VARCHAR: {
-                    std::string strValue(res->getString(i + 1).c_str());
-                    rowValues.emplace_back(strValue);
-                    break;
-                }
-                default:
-                    rowValues.emplace_back();
-                    break;
-                }
-            }
-            obj.AddDataRowList(rowValues);
-        }
-
-        delete res;
-        delete stmt;
-
-        return obj;
-    }
-    catch (sql::SQLException& e) {
-        std::cerr << "Query error: " << e.what() << "\n";
-        return std::nullopt;
-    }
-}
-
 std::optional<int64_t> SQLServerLogic::FetchLastInsertID() {
     auto result = FetchStatement("SELECT LAST_INSERT_ID();");
     if (!result) 
@@ -276,20 +266,14 @@ std::optional<int64_t> SQLServerLogic::FetchLastInsertID() {
     return result->TryGetValue<int64_t>(0, 0);
 }
 
-bool SQLServerLogic::ExecuteStatement(const std::string& query) {
-    if (!m_connection) {
-        std::cerr << "Query error: not connected\n";
-        return false;
-    }
-
+void SQLServerLogic::ExecuteStatement(const std::string& query) {
     try {
         std::unique_ptr<sql::Statement> stmt(m_connection->createStatement());
         stmt->execute(query);
-        return true;
     }
     catch (sql::SQLException& e) {
         std::cerr << "Query error: " << e.what() << '\n';
-        return false;
+        throw;
     }
 }
 

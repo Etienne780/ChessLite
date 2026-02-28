@@ -26,26 +26,38 @@ public:
     void OnServerMessage(const std::string& serverName, const std::string& msg) override;
 
 private:
+    struct TransactionGuard {
+        sql::Connection* conn;
+        bool committed = false;
+
+        TransactionGuard(sql::Connection* c)
+            : conn(c) {
+            conn->setAutoCommit(false);
+        }
+
+        void commit() {
+            conn->commit();
+            committed = true;
+        }
+
+        ~TransactionGuard() {
+            if (!committed)
+                conn->rollback();
+            conn->setAutoCommit(true);
+        }
+    };
+
 	bool m_connected = false;
 	DBConfig m_config;
 	std::unique_ptr<sql::Connection> m_connection;
 
-    void HandleInsertAgents(
-        const std::string& dstServer, uint32_t requestID, OTN::OTNReader& reader);
+    void HandleInsertAgents(const std::string& dstServer, uint32_t requestID, OTN::OTNReader& reader);
+    void HandleGetAgentIDs(const std::string& dstServer, uint32_t requestID, OTN::OTNReader& reader);
+
+    OTN::OTNObject CreateRequestHeader(const std::string& action, uint32_t requestID, bool response = true);
+    void SentError(const std::string& errorMsg, const std::string dstServer, const std::string& action, uint32_t requestID);
 
 	void Connect();
-
-
-    /**
-    * @brief Executes a raw SQL query without parameters and fetches the column structure.
-    *
-    * This function is intended for simple queries that do not require parameter binding.
-    * It executes the query and constructs an OTNObject containing the column names.
-    *
-    * @param query The SQL query string to execute.
-    * @return std::optional<OTN::OTNObject> containing column names if successful, std::nullopt on error.
-    */
-    std::optional<OTN::OTNObject> FetchStatement(const std::string& query);
 
     std::optional<int64_t> SQLServerLogic::FetchLastInsertID();
 
@@ -59,15 +71,10 @@ private:
     * @tparam Args Variadic template parameter types for binding.
     * @param query The SQL query string containing '?' placeholders for parameters.
     * @param args  Values to bind to the prepared statement in order.
-    * @return std::optional<OTN::OTNObject> containing column names if successful, std::nullopt on error.
+    * @return std::optional<OTN::OTNObject> (OTNObject name Result) containing column names if successful, std::nullopt on error.
     */
     template<typename... Args>
     std::optional<OTN::OTNObject> FetchStatement(const std::string& query, Args&&... args) {
-        if (!m_connection) {
-            std::cerr << "Query error: not connected\n";
-            return std::nullopt;
-        }
-
         try {
             std::unique_ptr<sql::PreparedStatement> stmt(m_connection->prepareStatement(query));
 
@@ -82,19 +89,23 @@ private:
                 return std::nullopt;
             }
 
-            size_t columnCount = static_cast<size_t>(metaData->getColumnCount());
+            uint32_t columnCount = metaData->getColumnCount();
+
             std::vector<std::string> columnNames;
+            std::vector<int> columnTypes;
             columnNames.reserve(columnCount);
-            for (uint32_t i = 1; i <= columnCount; i++) {
-                columnNames.push_back(static_cast<std::string>(metaData->getColumnName(i)));
+            columnTypes.reserve(columnCount);
+
+            for (uint32_t i = 1; i <= columnCount; ++i) {
+                std::string name = metaData->getColumnName(i);
+                if (name.empty())
+                    name = "col" + std::to_string(i);
+                columnNames.push_back(name);
+                columnTypes.push_back(metaData->getColumnType(i));
             }
 
             OTN::OTNObject obj("Result");
             obj.SetNamesList(columnNames);
-
-            std::vector<int> columnTypes(columnCount);
-            for (uint32_t i = 1; i <= columnCount; ++i)
-                columnTypes[i - 1] = metaData->getColumnType(i);
 
             while (res->next()) {
                 OTN::OTNRow rowValues;
@@ -143,7 +154,7 @@ private:
     * @param query The SQL query string to execute.
     * @return true if the query executed successfully, false otherwise.
     */
-	bool ExecuteStatement(const std::string& query);
+	void ExecuteStatement(const std::string& query);
 
     /**
     * @brief Executes a parameterized SQL query using a prepared statement.
@@ -173,12 +184,7 @@ private:
     * @return true if the query executed successfully, false otherwise.
     */
     template<typename... Args>
-    bool ExecuteStatement(const std::string& query, Args&&... args) {
-        if (!m_connection) {
-            std::cerr << "Query error: not connected\n";
-            return false;
-        }
-
+    void ExecuteStatement(const std::string& query, Args&&... args) {
         try {
             std::unique_ptr<sql::PreparedStatement> stmt(
                 m_connection->prepareStatement(query)
@@ -188,25 +194,34 @@ private:
             (BindParam(stmt.get(), index++, args), ...);
 
             stmt->execute();
-            return true;
         }
         catch (sql::SQLException& e) {
             std::cerr << "Query error: " << e.what() << '\n';
-            return false;
+            throw;
         }
     }
 
     template<typename... Args>
-    bool ExecuteBatchInsert(
+    void ExecuteBatchInsert(
         const std::string& tableName, 
         const std::vector<std::tuple<Args...>>& rows,
         const std::string& columns)
     {
         if (rows.empty())
-            return true;
+            throw sql::SQLException("Failed to ExecuteBatchInsert, the given rows where empty!");
+
+        if (rows.size() > 1000) {
+            size_t half = rows.size() / 2;
+            std::vector<std::tuple<Args...>> row1(rows.begin(), rows.begin() + half);
+            std::vector<std::tuple<Args...>> row2(rows.begin() + half, rows.end());
+
+            ExecuteBatchInsert(tableName, row1, columns);
+            ExecuteBatchInsert(tableName, row2, columns);
+            return;
+        }
 
         std::string query = "INSERT INTO " + tableName + " (" + columns + ") VALUES ";
-        size_t numCols = sizeof...(Args);
+        size_t numCols = std::tuple_size<std::tuple<Args...>>::value;
 
         for (size_t i = 0; i < rows.size(); ++i) {
             query += "(";
@@ -233,11 +248,10 @@ private:
             }
 
             stmt->execute();
-            return true;
         }
         catch (sql::SQLException& e) {
             std::cerr << "BatchInsert error: " << e.what() << "\n";
-            return false;
+            throw;
         }
     }
 

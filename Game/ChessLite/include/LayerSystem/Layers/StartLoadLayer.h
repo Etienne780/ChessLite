@@ -1,15 +1,17 @@
 #pragma once
 #include <functional>
+#include <memory>
 #include <SDLCoreLib/SDLCoreUI.h>
 
 #include "ResourcesManagement/ResourceLoader.h"
 #include "LayerSystem/Layer.h"
+#include "AI/AgentSyncService.h"
 
 namespace Layers {
 
 	class StartLoadLayer : public Layer {
 	public:
-		StartLoadLayer() = default;
+		StartLoadLayer(const std::shared_ptr<AgentSyncService>& agentSync);
 		~StartLoadLayer() override = default;
 
 		void OnStart(AppContext* ctx) override;
@@ -20,6 +22,13 @@ namespace Layers {
 		LayerID GetLayerID() const override;
 
 	private:
+		enum class LoadState : uint8_t {
+			UNKNOWN = 0,
+			ASSETS,
+			SYNC,
+			FINISHED
+		};
+
 		struct LoadingSection {
 			std::string name;
 			int progress = 0;
@@ -34,6 +43,11 @@ namespace Layers {
 				onFinished(std::move(_onFinished)) {
 			}
 		};
+
+		LoadState m_currentState = LoadState::ASSETS;
+
+		std::shared_ptr<AgentSyncService> m_agentSync = nullptr;
+		bool m_startedSync = false;
 
 		std::vector<LoadingSection> m_loadingSections;
 
@@ -55,6 +69,14 @@ namespace Layers {
 		bool m_allSectionsFinished = false;
 		int m_progress = 0;
 		std::string m_currentSectionName;
+
+		void MoveToNextState();
+
+		void LoadAssets(AppContext* ctx);
+		void RenderLoadAssets();
+
+		void SyncDatabase(AppContext* ctx);
+		void RenderSyncDatabase();
 
 		void AddLoadingSectionAssets();
 		void AddLoadingSectionData();

@@ -12,7 +12,7 @@ static App* g_appInstance;
 App::App()
     : Application("ChessLite", SDLCore::Version(1, 0)) {
     g_appInstance = this;
-    agenSync = std::make_shared<AgentSyncService>();
+    m_agentSync->Init(m_context);
 }
 
 App::~App() {
@@ -38,7 +38,7 @@ void App::OnStart() {
     Style::Comman_InitStyles();
 
     // push start layer on to stack
-    PushLayer<Layers::StartLoadLayer>();
+    PushLayer<Layers::StartLoadLayer>(m_agentSync);
 }
 
 void App::OnUpdate() {
@@ -103,8 +103,8 @@ void App::OnUpdate() {
             m_currentSyncTime -= Time::GetDeltaTimeSecF();
 
         if (m_currentSyncTime <= 0.0f) {
-            if (agenSync)
-                agenSync->Sync(&m_context);
+            if (m_agentSync)
+                m_agentSync->Sync(&m_context);
             m_currentSyncTime = m_syncTime;
         }
     }
@@ -116,6 +116,7 @@ void App::OnUpdate() {
 
 void App::OnQuit() {
     ClearLayers();
+    SaveUserData();
     m_context.agentManager.Save(FilePaths::GetDataPath());
 
     SDLCore::UI::DestroyContext(m_UICtx);
@@ -141,10 +142,6 @@ void App::PopLayer(LayerID layerID) {
 
 void App::ClearLayers() {
     m_layerCommands.emplace_back(LayerCmdType::CLEAR);
-}
-
-bool App::SaveUserData() {
-    return true;
 }
 
 SDLCore::WindowID App::GetWinID() const {
@@ -262,6 +259,18 @@ void App::WindowCleanup() {
         win->RemoveOnWindowResize(m_windowResizeCBID);
         win->RemoveOnWindowDisplayChanged(m_windowDisplayChangedCBID);
     }
+}
+
+bool App::SaveUserData() {
+    OTN::OTNObject{ "userData" };
+
+    
+
+    return true;
+}
+
+bool App::LoadUserData() {
+    
 }
 
 void App::ProcessLayerCommands() {

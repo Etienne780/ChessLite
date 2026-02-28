@@ -101,6 +101,10 @@ bool AgentManager::RemoveAgent(AgentID id) {
     if (it == m_agents.end())
         return false;
 
+    AgentID serverID = it->second.GetServerID();
+    if(serverID != 0)// if agent is on server
+        m_deletedServerAgents.push_back(serverID);
+
     auto itUnre = m_unregisteredAgentIds.find(id);
     if (itUnre != m_unregisteredAgentIds.end()) {
         m_unregisteredAgentIds.erase(itUnre);
@@ -191,10 +195,29 @@ Agent* AgentManager::GetAgent(AgentID id) {
     return (it != m_agents.end()) ? &it->second : nullptr;
 }
 
+std::vector<std::pair<AgentID, AgentID>> AgentManager::GetAgentIDAndServerIDs() const {
+    std::vector<std::pair<AgentID, AgentID>> result;
+    result.reserve(m_agents.size());
+
+    for (const auto& [id, agent] : m_agents) {
+        result.push_back(std::pair(id, agent.GetServerID()));
+    }
+
+    return result;
+}
+
 const std::unordered_map<AgentID, Agent>& AgentManager::GetAgents() const {
     return m_agents;
 }
 
 const std::unordered_set<AgentID>& AgentManager::GetUnregisteredAgentIDs() const {
     return m_unregisteredAgentIds;
+}
+
+const std::vector<AgentID>& AgentManager::GetDeletedServerAgents() const {
+    return m_deletedServerAgents;
+}
+
+void AgentManager::ClearDeletedServerAgents() {
+    m_deletedServerAgents.clear();
 }

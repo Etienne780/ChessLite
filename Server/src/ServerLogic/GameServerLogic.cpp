@@ -26,9 +26,27 @@ void GameServerLogic::OnServerMessage(
     const std::string& serverName,
     const std::string& msg)
 {
-    if (serverName != "sql_server")
-        return;
+    if (serverName == "sql_server")
+        HandleSQLServer(msg);
+}
 
+int64_t GameServerLogic::RegisterPendingSQL(NET_StreamSocket* client, uint32_t requestID) {
+    int64_t internalID = m_nextInternalID++;
+    m_pendingSQL[internalID] = { client, requestID };
+    return internalID;
+}
+
+bool GameServerLogic::RemovePendingSQL(int64_t requstID, PendingSQLRequest& outRequest) {
+    auto it = m_pendingSQL.find(requstID);
+    if (it == m_pendingSQL.end())
+        return false;
+
+    outRequest = it->second;
+    m_pendingSQL.erase(it);
+    return true;
+}
+
+void GameServerLogic::HandleSQLServer(const std::string& msg) {
     OTN::OTNReader reader;
     if (!reader.ReadString(msg))
         return;
@@ -37,20 +55,60 @@ void GameServerLogic::OnServerMessage(
     if (!header)
         return;
 
+    auto action = header->TryGetValue<std::string>(0, "action");
     auto requestID = header->TryGetValue<int64_t>(0, "request_id");
-    if (!requestID)
+    auto response = header->TryGetValue<bool>(0, "response");
+    if (!action || !requestID || !response)
         return;
 
-    auto it = m_pendingSQL.find(static_cast<uint32_t>(*requestID));
-    if (it == m_pendingSQL.end())
+    PendingSQLRequest pending;
+    if (!RemovePendingSQL(static_cast<uint32_t>(*requestID), pending))
         return;
+    
+    if (*response == false) {
+        auto body = reader.TryGetObject("body");
+        if (!body)
+            return;
+        auto errorMsg = body->TryGetValue<std::string>(0, "error");
+        if (!errorMsg)
+            return;
+        SentError(pending.client, pending.clientRequestID, *errorMsg);
+    }
 
-    auto pending = it->second;
-    m_pendingSQL.erase(it);
+    if (action == "InsertAgentsResult")
+        HandleReceiveSQLSyncMissingData(reader, pending);
+    else if(action == "GetAgentIDResult")
+        HandleReceiveSQLServerAgentIDList(reader, pending);
+    else
+        std::cerr << "Unkown action game server '" << *action << "'\n";
 
+}
+
+void GameServerLogic::HandleReceiveSQLSyncMissingData(OTN::OTNReader& reader, const PendingSQLRequest& pending) {
     auto idsObj = reader.TryGetObject("ids");
     if (!idsObj)
         return;
+
+    OTN::OTNWriter writer;
+    writer.AppendObject(*idsObj);
+
+    std::string payload;
+    if (!writer.SaveToString(payload))
+        return;
+
+    Request response;
+    response.id = pending.clientRequestID;
+    response.response = true;
+    response.otnPayload = payload;
+
+    SentRequest(pending.client, response);
+}
+
+void GameServerLogic::HandleReceiveSQLServerAgentIDList(OTN::OTNReader& reader, const PendingSQLRequest& pending) {
+    auto idsObj = reader.TryGetObject("Result");
+    if (!idsObj)
+        return;
+    idsObj->SetName("List");
 
     OTN::OTNWriter writer;
     writer.AppendObject(*idsObj);
@@ -95,6 +153,10 @@ void GameServerLogic::HandleRequest(NET_StreamSocket* client, const Request& req
 
     if (*action == "SyncMissingData")
         HandleSyncMissingData(client, req.id, *body);
+    else if (*action == "GetAgentIDList")
+        HandleServerAgentIDList(client, req.id);
+    else
+        std::cerr << "Unkown action game server '" << *action << "'\n";
 }
 
 void GameServerLogic::HandleSyncMissingData(
@@ -102,17 +164,10 @@ void GameServerLogic::HandleSyncMissingData(
     uint32_t requestID,
     const OTN::OTNObject& body)
 {
-    uint32_t internalID = m_nextInternalID++;
-
-    m_pendingSQL[internalID] = { client, requestID };
-
-    OTN::OTNObject header{ "header" };
-    header.SetNames("action", "request_id");
-    header.SetTypes("String", "int64");
-    header.AddDataRow("InsertAgents", static_cast<int64_t>(internalID));
+    OTN::OTNObject headerObj = CreateSQLRequestHeader("InsertAgents", client, requestID);
 
     OTN::OTNWriter writer;
-    writer.AppendObject(header);
+    writer.AppendObject(headerObj);
     writer.AppendObject(body);
 
     std::string msg;
@@ -123,6 +178,37 @@ void GameServerLogic::HandleSyncMissingData(
         "sql_server",
         msg
     );
+}
+
+void GameServerLogic::HandleServerAgentIDList(NET_StreamSocket* client, uint32_t requestID) {
+    int64_t internalID = RegisterPendingSQL(client, requestID);
+
+    OTN::OTNObject headerObj = CreateSQLRequestHeader("GetAgentIDs", client, requestID);
+    OTN::OTNObject body{ "body" };
+
+    OTN::OTNWriter writer;
+    writer.AppendObject(headerObj);
+    writer.AppendObject(body);
+
+    std::string msg;
+    writer.SaveToString(msg);
+
+    NetServerManager::SendMessage(
+        m_server,
+        "sql_server",
+        msg
+    );
+}
+
+OTN::OTNObject GameServerLogic::CreateSQLRequestHeader(const std::string& action, NET_StreamSocket* client, uint32_t requestID) {
+    int64_t internalID = RegisterPendingSQL(client, requestID);
+
+    OTN::OTNObject headerObj{ "header" };
+    headerObj.SetNames("action", "request_id");
+    headerObj.SetTypes("String", "int64");
+    headerObj.AddDataRow(action, internalID);
+
+    return headerObj;
 }
 
 GameServerLogic::Request GameServerLogic::GetRequest(const std::string& msg) {

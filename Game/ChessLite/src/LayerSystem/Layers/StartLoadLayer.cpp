@@ -10,6 +10,10 @@
 
 namespace Layers {
 
+	StartLoadLayer::StartLoadLayer(const std::shared_ptr<AgentSyncService>& agentSync) 
+		: m_agentSync(agentSync) {
+	}
+
 	void StartLoadLayer::OnStart(AppContext* ctx) {
 		m_loadTime = Random::GetRangeNumber(m_loadTimeMin, m_loadTimeMax);
 
@@ -28,15 +32,86 @@ namespace Layers {
 		m_displaySize = ctx->displaySize;
 		m_windowSize = ctx->windowSize;
 
-		float dt = SDLCore::Time::GetDeltaTimeSecF();
-
-		if (m_allSectionsFinished) {
+		switch (m_currentState) {
+		case LoadState::ASSETS:
+			LoadAssets(ctx);
+			break;
+		case LoadState::SYNC:
+			SyncDatabase(ctx);
+			break;
+		case LoadState::FINISHED:
+		default: {
 			// final delay before switching layer
-			m_currentStartDelay += dt;
+			m_currentStartDelay += SDLCore::Time::GetDeltaTimeSecF();
 			if (m_currentStartDelay >= m_startDelay) {
 				ctx->app->ClearLayers();
 				ctx->app->PushLayer<MainMenuLayer>();
 			}
+		}
+		}
+	}
+
+	void StartLoadLayer::OnRender(AppContext* ctx) {
+		namespace RE = SDLCore::Render;
+
+		float scaleX = m_displaySize.x / m_RefDisplaySize.x;
+		float scaleY = m_displaySize.y / m_RefDisplaySize.y;
+		float displayScale = std::min(scaleX, scaleY);
+
+		float winXHalf = m_windowSize.x * 0.5f;
+		float winYHalf = m_windowSize.y * 0.5f;
+
+		RE::SetColor(255);
+		RE::SetTextAlign(SDLCore::Align::CENTER);
+		RE::SetTextSize(64.0f * displayScale);
+		RE::Text("ChessLite", winXHalf, winYHalf - 64.0f * displayScale);
+
+		switch (m_currentState) {
+		case LoadState::ASSETS:
+			RenderLoadAssets();
+			break;
+		case LoadState::SYNC:
+			RenderSyncDatabase();
+			break;
+		case LoadState::FINISHED:
+		default:
+			break;
+		}
+	}
+
+	void StartLoadLayer::OnUIRender(AppContext* ctx) {
+	}
+
+	void StartLoadLayer::OnQuit(AppContext* ctx) {
+	}
+	
+	LayerID StartLoadLayer::GetLayerID() const {
+		return LayerID::START_LOAD;
+	}
+
+	void StartLoadLayer::MoveToNextState() {
+		LoadState newState = LoadState::UNKNOWN;
+
+		switch (m_currentState) {
+		case LoadState::ASSETS:
+			newState = LoadState::SYNC;
+			break;
+		case LoadState::SYNC:
+			newState = LoadState::FINISHED;
+			break;
+		case LoadState::FINISHED:
+		default:
+			newState = LoadState::FINISHED;
+		}
+
+		m_currentState = newState;
+	}
+
+	void StartLoadLayer::LoadAssets(AppContext* ctx) {
+		float dt = SDLCore::Time::GetDeltaTimeSecF();
+
+		if (m_allSectionsFinished) {
+			MoveToNextState();
 			return;
 		}
 
@@ -97,7 +172,7 @@ namespace Layers {
 		}
 	}
 
-	void StartLoadLayer::OnRender(AppContext* ctx) {
+	void StartLoadLayer::RenderLoadAssets() {
 		namespace RE = SDLCore::Render;
 
 		Vector4 colorAccent;
@@ -121,9 +196,6 @@ namespace Layers {
 
 		RE::SetColor(255);
 		RE::SetTextAlign(SDLCore::Align::CENTER);
-		RE::SetTextSize(64.0f * displayScale);
-		RE::Text("ChessLite", winXHalf, winYHalf - 64.0f * displayScale);
-
 		RE::SetTextSize(48.0f * displayScale);
 		RE::Text(m_currentSectionName.c_str(), winXHalf, winYHalf - 16.0f * displayScale + loadingBarYOffset);
 
@@ -132,14 +204,23 @@ namespace Layers {
 		RE::Rect(winXHalf - loadingBarW * 0.5f, winYHalf + loadingBarYOffset, loadingBarW, loadingBarH);
 	}
 
-	void StartLoadLayer::OnUIRender(AppContext* ctx) {
+	void StartLoadLayer::SyncDatabase(AppContext* ctx) {
+		if (!m_agentSync) {
+			MoveToNextState();
+			return;
+		}
+
+		if (m_startedSync && !m_agentSync->IsSyncInProgress()) {
+			MoveToNextState();
+		}
+		else if(!m_startedSync) {
+			m_startedSync = true;
+			m_agentSync->FullSync(ctx);
+		}
 	}
 
-	void StartLoadLayer::OnQuit(AppContext* ctx) {
-	}
-	
-	LayerID StartLoadLayer::GetLayerID() const {
-		return LayerID::START_LOAD;
+	void StartLoadLayer::RenderSyncDatabase() {
+		
 	}
 
 	void StartLoadLayer::AddLoadingSectionAssets() {

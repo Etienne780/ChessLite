@@ -24,10 +24,20 @@ private:
 
 	std::vector<uint8_t> m_receiveBuffer;
 	std::unordered_map<uint32_t, PendingSQLRequest> m_pendingSQL;
-	uint32_t m_nextInternalID = 1;
+	int64_t m_nextInternalID = 1;
+
+	int64_t RegisterPendingSQL(NET_StreamSocket* client, uint32_t requestID);
+	bool RemovePendingSQL(int64_t requstID, PendingSQLRequest& outRequest);
+
+	void HandleSQLServer(const std::string& msg);
+	void HandleReceiveSQLSyncMissingData(OTN::OTNReader& reader, const PendingSQLRequest& pending);
+	void HandleReceiveSQLServerAgentIDList(OTN::OTNReader& reader, const PendingSQLRequest& pending);
 
 	void HandleRequest(NET_StreamSocket* client, const Request& req);
 	void HandleSyncMissingData(NET_StreamSocket* client, uint32_t requestID, const OTN::OTNObject& body);
+	void HandleServerAgentIDList(NET_StreamSocket* client, uint32_t requestID);
+
+	OTN::OTNObject CreateSQLRequestHeader(const std::string& action, NET_StreamSocket* client, uint32_t requestID);
 
 	Request GetRequest(const std::string& msg);
 	bool SentRequest(NET_StreamSocket* client, const Request& request);
