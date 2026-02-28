@@ -84,8 +84,9 @@ void GameClient::Send(const std::string& payload, Callback&& cb) {
 }
 
 NetworkCallbackID GameClient::AddGlobalCallback(GlobalCallback&& cb) {
-	uint32_t id = m_callbackIDManager.GetNewUniqueIdentifier();
-	m_globalCallbacks[NetworkCallbackID(id)] = std::move(cb);
+	NetworkCallbackID id = NetworkCallbackID(m_callbackIDManager.GetNewUniqueIdentifier());
+	m_globalCallbacks[id] = std::move(cb);
+	return id;
 }
 
 bool GameClient::RemoveGlobalCallback(NetworkCallbackID id) {
