@@ -1,6 +1,8 @@
 #pragma once
 #include "IServerLogic.h"
 
+constexpr size_t MAX_PACKET_SIZE = 5000;
+
 class GameServerLogic : public IServerLogic {
 public:
 	GameServerLogic(NetServer* server);
@@ -20,6 +22,7 @@ private:
 		uint32_t clientRequestID = 0;
 	};
 
+	std::vector<uint8_t> m_receiveBuffer;
 	std::unordered_map<uint32_t, PendingSQLRequest> m_pendingSQL;
 	uint32_t m_nextInternalID = 1;
 

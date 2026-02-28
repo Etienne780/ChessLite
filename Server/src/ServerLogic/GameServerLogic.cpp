@@ -126,29 +126,44 @@ void GameServerLogic::HandleSyncMissingData(
 }
 
 GameServerLogic::Request GameServerLogic::GetRequest(const std::string& msg) {
-    // packet: [size][[id][payload length][payload bytes]]
     Request req;
     req.response = false;
 
-    if (msg.size() < sizeof(uint32_t))
+    // packet: [size][[id][payload length][payload bytes]]
+    m_receiveBuffer.insert(m_receiveBuffer.end(), msg.begin(), msg.end());
+
+    while (m_receiveBuffer.size() >= sizeof(uint32_t)) {
+        uint32_t length = 0;
+        std::memcpy(&length, m_receiveBuffer.data(), sizeof(uint32_t));
+
+        if (length > MAX_PACKET_SIZE) {
+            m_receiveBuffer.clear();
+            return req;
+        }
+
+        // return early because full data is not there
+        if (m_receiveBuffer.size() < sizeof(uint32_t) + length)
+            return req;
+
+        std::vector<uint8_t> packet(m_receiveBuffer.begin() + sizeof(uint32_t),
+            m_receiveBuffer.begin() + sizeof(uint32_t) + length);
+        BinaryDeserializer des(packet);
+
+        uint32_t id = des.Read<uint32_t>();
+        std::vector<uint8_t> payloadData = des.ReadVector<uint8_t>();
+        std::string payload(payloadData.begin(), payloadData.end());
+
+        req.id = id;
+        req.response = true;
+        req.otnPayload = payload;
+
+        m_receiveBuffer.erase(
+            m_receiveBuffer.begin(), 
+            m_receiveBuffer.begin() + sizeof(uint32_t) + length);
+
         return req;
+    }
 
-    uint32_t length = 0;
-    std::memcpy(&length, msg.data(), sizeof(uint32_t));
-
-    if (msg.size() < sizeof(uint32_t) + length)
-        return req;
-
-    std::vector<uint8_t> data{ msg.begin() + sizeof(uint32_t), msg.end() };
-
-    BinaryDeserializer des(data);
-    uint32_t id = des.Read<uint32_t>();
-    std::vector<uint8_t> payloadData = des.ReadVector<uint8_t>();
-    std::string payload(payloadData.begin(), payloadData.end());
-
-    req.id = id;
-    req.response = true;
-    req.otnPayload = payload;
     return req;
 }
 

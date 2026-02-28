@@ -12,6 +12,7 @@ static App* g_appInstance;
 App::App()
     : Application("ChessLite", SDLCore::Version(1, 0)) {
     g_appInstance = this;
+    agenSync = std::make_shared<AgentSyncService>();
 }
 
 App::~App() {
@@ -98,7 +99,8 @@ void App::OnUpdate() {
         ProcessLayerCommands();
         ProcessGameClient();
 
-        agenSync.Sync(&m_context);
+        if(agenSync)
+            agenSync->Sync(&m_context);
     }
     else {
         // main window is closed

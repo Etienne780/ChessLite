@@ -47,6 +47,8 @@ private:
     */
     std::optional<OTN::OTNObject> FetchStatement(const std::string& query);
 
+    std::optional<int64_t> SQLServerLogic::FetchLastInsertID();
+
     /**
     * @brief Executes a parameterized SQL query and fetches results as an OTNObject.
     *
@@ -226,7 +228,7 @@ private:
             int index = 1;
             for (const auto& row : rows) {
                 std::apply([&](auto&&... args) {
-                    ((BindParam(stmt.get(), index++, &args)), ...);
+                    ((BindParam(stmt.get(), index++, args)), ...);
                 }, row);
             }
 
@@ -239,14 +241,25 @@ private:
         }
     }
 
-    template<typename T>
-    void BindParam(sql::PreparedStatement* stmt, int index, const T& value) {
-        BindParam(stmt, index, std::optional<T>{value});
-    }
-
     void BindParam(sql::PreparedStatement* stmt, int index, const std::optional<std::string>& value);
     void BindParam(sql::PreparedStatement* stmt, int index, const std::optional<int>& value);
     void BindParam(sql::PreparedStatement* stmt, int index, const std::optional<int64_t>& value);
     void BindParam(sql::PreparedStatement* stmt, int index, const std::optional<double>& value);
     void BindParam(sql::PreparedStatement* stmt, int index, const std::optional<bool>& value);
+
+    inline void BindParam(sql::PreparedStatement* stmt, int index, int value) {
+        BindParam(stmt, index, std::optional<int>{value});
+    }
+    inline void BindParam(sql::PreparedStatement* stmt, int index, int64_t value) {
+        BindParam(stmt, index, std::optional<int64_t>{value});
+    }
+    inline void BindParam(sql::PreparedStatement* stmt, int index, double value) {
+        BindParam(stmt, index, std::optional<double>{value});
+    }
+    inline void BindParam(sql::PreparedStatement* stmt, int index, bool value) {
+        BindParam(stmt, index, std::optional<bool>{value});
+    }
+    inline void BindParam(sql::PreparedStatement* stmt, int index, const std::string& value) {
+        BindParam(stmt, index, std::optional<std::string>{value});
+    }
 };

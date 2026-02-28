@@ -65,6 +65,7 @@ void SQLServerLogic::HandleInsertAgents(
             return;
 
         for (size_t i = 0; i < obj->GetRowCount(); ++i) {
+            auto localID = obj->TryGetValue<int64_t>(i, "local_id");
             auto name = obj->TryGetValue<std::string>(i, "name");
             auto config = obj->TryGetValue<std::string>(i, "config");
             auto matches_played = obj->TryGetValue<int>(i, "matches_played");
@@ -72,7 +73,8 @@ void SQLServerLogic::HandleInsertAgents(
             auto matches_played_white = obj->TryGetValue<int>(i, "matches_played_white");
             auto matches_won_white = obj->TryGetValue<int>(i, "matches_won_white");
 
-            if (!name || !config) continue;
+            if (!localID || !name || !config)
+                continue;
 
             ExecuteStatement(R"""(
                 INSERT INTO agents 
@@ -84,34 +86,55 @@ void SQLServerLogic::HandleInsertAgents(
                 (matches_played_white ? *matches_played_white : 0),
                 (matches_won_white ? *matches_won_white : 0)
                 );
-            auto obj = FetchStatement("SELECT LAST_INSERT_ID();");
+            auto currentAgentID = FetchLastInsertID();
 
-            int64_t serverID = 0;
-        }
-        /*
-        ExecuteBatchInsert("agents", agentsToInsert,
-            "name, config, version, matches_played, matches_won, matches_played_white, matches_won_white");
+            if (!currentAgentID)
+                continue;
 
-        std::vector<std::tuple<int64_t, std::string>> boardStatesToInsert; // agent_id, board_state
-        for (auto& agentRow : agentsObj) {
-            int64_t agentID = localToServerID[agentRow.localID]; // aus vorherigem Insert
-            for (auto& state : agentRow.boardStates) {
-                boardStatesToInsert.emplace_back(agentID, state.boardString);
+            result.AddDataRow(*localID, *currentAgentID);
+
+            auto boardStates = obj->TryGetValue<std::vector<OTN::OTNObject>>(i, "board_states");
+            if (!boardStates || boardStates->empty())
+                continue;
+
+            for (auto& bs : *boardStates) {
+                auto stateStr = bs.TryGetValue<std::string>(0, "board_state");
+                auto moves = bs.TryGetValue<std::vector<OTN::OTNObject>>(0, "moves");
+
+                if (!stateStr || !moves)
+                    continue;
+
+                ExecuteStatement(R"""(
+                INSERT INTO board_states 
+                (agent_id, board_state)
+                VALUES (?, ?);)""",
+                    *currentAgentID, *stateStr
+                );
+                auto currentBoardStateID = FetchLastInsertID();
+                if (!currentBoardStateID)
+                    continue;
+
+                std::vector<std::tuple<int64_t, float, float, float, float, float>> gameMoves;
+
+                for (auto& move : *moves) {
+                    auto eval = move.TryGetValue<float>(0, "eval");
+                    auto fromX = move.TryGetValue<float>(0, "from_x");
+                    auto fromY = move.TryGetValue<float>(0, "from_y");
+                    auto toX = move.TryGetValue<float>(0, "to_x");
+                    auto toY = move.TryGetValue<float>(0, "to_y");
+
+                    if (!eval || !fromX || !fromY || !toX || !toY)
+                        continue;
+
+                    gameMoves.emplace_back(*currentBoardStateID, *eval, *fromX, *fromY, *toX, *toY);
+                }
+
+                ExecuteBatchInsert("game_moves", gameMoves, 
+                    "board_state_id, evaluation, from_x, from_y, to_x, to_y");
             }
         }
-        ExecuteBatchInsert("board_states", boardStatesToInsert, "agent_id, board_state");
-
-        std::vector<std::tuple<int64_t, double, int, int, int, int>> movesToInsert; // board_state_id, eval, from_x, from_y, to_x, to_y
-        for (auto& bs : boardStatesObj) {
-            int64_t boardStateID = localToServerBoardID[bs.localID];
-            for (auto& move : bs.moves) {
-                movesToInsert.emplace_back(boardStateID, move.eval, move.fromX, move.fromY, move.toX, move.toY);
-            }
-        }
-        ExecuteBatchInsert("game_moves", movesToInsert, "board_state_id, eval, from_x, from_y, to_x, to_y");
         
-        m_connection->commit();*/
-        m_connection->rollback();
+        m_connection->commit();
     }
     catch (...) {
         m_connection->rollback();
@@ -120,14 +143,10 @@ void SQLServerLogic::HandleInsertAgents(
 
     m_connection->setAutoCommit(true);
 
-    return;
-
     OTN::OTNObject header{ "header" };
     header.SetNames("action", "request_id");
     header.SetTypes("String", "int64");
     header.AddDataRow("InsertAgentsResult", requestID);
-
-    // add generated ids
 
     OTN::OTNWriter writer;
     writer.AppendObject(header);
@@ -158,7 +177,7 @@ void SQLServerLogic::Connect() {
         conn->setSchema(m_config.schema);
 
         m_connection = std::move(conn); 
-        std::cout << "Connected to MySQL successfully!" << '\n';
+        std::cout << "Connected to MySQL successfully to schema '" << m_config.schema << "'!" << '\n';
         m_connected = true;
     }
     catch (sql::SQLException& e) {
@@ -167,6 +186,7 @@ void SQLServerLogic::Connect() {
             << e.getErrorCode() << ")" << '\n';
     }
 }
+
 std::optional<OTN::OTNObject> SQLServerLogic::FetchStatement(const std::string& query) {
     if (!m_connection) {
         std::cerr << "Query error: not connected\n";
@@ -192,7 +212,10 @@ std::optional<OTN::OTNObject> SQLServerLogic::FetchStatement(const std::string& 
         columnTypes.reserve(columnCount);
 
         for (uint32_t i = 1; i <= columnCount; ++i) {
-            columnNames.push_back(metaData->getColumnName(i));
+            std::string name = metaData->getColumnName(i);
+            if (name.empty())
+                name = "col" + std::to_string(i);
+            columnNames.push_back(name);
             columnTypes.push_back(metaData->getColumnType(i));
         }
 
@@ -241,6 +264,18 @@ std::optional<OTN::OTNObject> SQLServerLogic::FetchStatement(const std::string& 
     }
 }
 
+std::optional<int64_t> SQLServerLogic::FetchLastInsertID() {
+    auto result = FetchStatement("SELECT LAST_INSERT_ID();");
+    if (!result) 
+        return std::nullopt;
+
+    auto& obj = *result;
+    if (obj.GetRowCount() == 0 || obj.GetRow(0).empty())
+        return std::nullopt;
+
+    return result->TryGetValue<int64_t>(0, 0);
+}
+
 bool SQLServerLogic::ExecuteStatement(const std::string& query) {
     if (!m_connection) {
         std::cerr << "Query error: not connected\n";
@@ -259,7 +294,7 @@ bool SQLServerLogic::ExecuteStatement(const std::string& query) {
 }
 
 template<typename T, typename Setter>
-void BindParamHelper(
+static inline void BindParamHelper(
     sql::PreparedStatement* stmt,
     int index,
     const std::optional<T>& value,

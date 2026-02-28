@@ -82,7 +82,7 @@ private:
 	SDLCore::WindowCallbackID m_windowDisplayChangedCBID;
 	
 	AppContext m_context{ this };
-	AgentSyncService agenSync;
+	std::shared_ptr<AgentSyncService> agenSync = nullptr;
 
 	std::vector<std::unique_ptr<Layer>> m_layerStack;
 	std::vector<LayerCommand> m_layerCommands;

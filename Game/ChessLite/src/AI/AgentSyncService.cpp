@@ -1,6 +1,7 @@
 #include <CoreLib/OTNFile.h>
 #include "AI/AgentSyncService.h"
 #include "App.h"
+#include "FilePaths.h"
 
 void AgentSyncService::Sync(AppContext* ctx) {
 	if (!ctx || m_syncInProgress)
@@ -13,7 +14,7 @@ void AgentSyncService::Sync(AppContext* ctx) {
 
 void AgentSyncService::SyncMissingData(AppContext* ctx, const std::unordered_set<AgentID>& ids) {
 	OTN::OTNObject headerObj = ctx->gameClient.CreateHeaderBlock("SyncMissingData");
-	OTN::OTNObject bodyObj = ctx->agentManager.BuildOTNObjectFromIDs(ids);
+	OTN::OTNObject bodyObj = ctx->agentManager.BuildOTNObjectFromIDs(ids, true);
 	bodyObj.SetName("body");
 
 	std::string msg;
@@ -67,8 +68,8 @@ void AgentSyncService::RegisterAgents(const std::string& serverIDs) {
 	AgentID serverID;
 
 	for (size_t i = 0; i < obj->GetRowCount(); ++i)	{
-		auto otnLocalID = obj->TryGetValue<uint64_t>(i, "localID");
-		auto otnServerID = obj->TryGetValue<uint64_t>(i, "serverID");
+		auto otnLocalID = obj->TryGetValue<int64_t>(i, "localID");
+		auto otnServerID = obj->TryGetValue<int64_t>(i, "serverID");
 		if (!otnLocalID || !otnServerID)
 			return;
 
@@ -76,4 +77,6 @@ void AgentSyncService::RegisterAgents(const std::string& serverIDs) {
 		serverID.value = static_cast<uint32_t>(*otnServerID);
 		ctx->agentManager.MarkAgentAsRegistered(localID, serverID);
 	}
+
+	ctx->agentManager.Save(FilePaths::GetDataPath());
 }

@@ -120,14 +120,22 @@ void AgentManager::MarkAgentAsRegistered(AgentID localId, AgentID serverId) {
 }
 
 OTN::OTNObject AgentManager::BuildOTNObjectFromIDs(
-    const std::unordered_set<AgentID>& agents) 
+    const std::unordered_set<AgentID>& agents, bool includeLocalID)
 {
     using namespace OTN;
     
     OTNObject agentObj{ "Agent" };
-    agentObj.SetNames("server_id", "name", "board_states", "config",
-        "matches_played", "matches_won", "matches_played_white", "matches_won_white");
-    agentObj.SetTypes("int64", "String", "-", "String", "int", "int", "int", "int");
+    if (includeLocalID) {
+        agentObj.SetNames("server_id", "local_id", "name", "board_states", "config",
+            "matches_played", "matches_won", "matches_played_white", "matches_won_white");
+        agentObj.SetTypes("int64", "int64", "String", "-", "String", "int", "int", "int", "int");
+    }
+    else {
+        agentObj.SetNames("server_id", "name", "board_states", "config",
+            "matches_played", "matches_won", "matches_played_white", "matches_won_white");
+        agentObj.SetTypes("int64", "String", "-", "String", "int", "int", "int", "int");
+    }
+
 
     agentObj.ReserveDataRows(agents.size());
 
@@ -147,16 +155,31 @@ OTN::OTNObject AgentManager::BuildOTNObjectFromIDs(
             boardStateObj.AddDataRow(stateStr, moves);
         }
 
-        agentObj.AddDataRow(
-            static_cast<int64_t>(agent.GetServerID().value),
-            agent.GetName(),
-            boardStateObj,
-            agent.GetChessConfig(),
-            agent.GetMatchesPlayed(),
-            agent.GetWonMatches(),
-            agent.GetMatchesPlayedAsWhite(),
-            agent.GetMatchesWonAsWhite()
-        );
+        if (includeLocalID) {
+            agentObj.AddDataRow(
+                static_cast<int64_t>(agent.GetServerID().value),
+                static_cast<int64_t>(id.value),
+                agent.GetName(),
+                boardStateObj,
+                agent.GetChessConfig(),
+                agent.GetMatchesPlayed(),
+                agent.GetWonMatches(),
+                agent.GetMatchesPlayedAsWhite(),
+                agent.GetMatchesWonAsWhite()
+            );
+        }
+        else {
+            agentObj.AddDataRow(
+                static_cast<int64_t>(agent.GetServerID().value),
+                agent.GetName(),
+                boardStateObj,
+                agent.GetChessConfig(),
+                agent.GetMatchesPlayed(),
+                agent.GetWonMatches(),
+                agent.GetMatchesPlayedAsWhite(),
+                agent.GetMatchesWonAsWhite()
+            );
+        }
     }
     return agentObj;
 }

@@ -74,16 +74,35 @@ IF ERRORLEVEL 1 (
 
 echo Waiting for MySQL to be ready...
 
+set MAX_WAIT=120
+set /a WAITED=0
+
 :WaitLoop
 docker exec game-db mysqladmin ping -u %DB_USER% -p%DB_PASS% --silent > nul 2>&1
+REM docker logs -f game-db
 
-REM If container is not reachable yet, wait
 IF ERRORLEVEL 1 (
+    if %WAITED% GEQ %MAX_WAIT% (
+        echo ERROR: MySQL did not become ready in %MAX_WAIT% seconds
+        GOTO Done
+    )
     timeout /t 2 > nul
+    set /a WAITED+=2
     GOTO WaitLoop
 )
 
-echo MySQL is ready.
+docker exec game-db mysql -u %DB_USER% -p%DB_PASS% -e "USE %DB_NAME%;" > nul 2>&1
+IF ERRORLEVEL 1 (
+    timeout /t 2 > nul
+    set /a WAITED+=2
+    if %WAITED% GEQ %MAX_WAIT% (
+        echo ERROR: Database %DB_NAME% not ready
+        GOTO Done
+    )
+    GOTO WaitLoop
+)
+
+echo MySQL and database '%DB_NAME%' are ready.
 GOTO Done
 
 :DbStop

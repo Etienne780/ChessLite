@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS game_moves (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT 'Move-ID',
     board_state_id BIGINT COMMENT 'Reference to Board-State',
   
-    eval FLOAT COMMENT 'Evaluation of the move',
+    evaluation FLOAT COMMENT 'Evaluation of the move',
     from_x INT NOT NULL COMMENT 'from X-Position',
     from_y INT NOT NULL COMMENT 'from Y-Position',
     to_x INT NOT NULL COMMENT 'to X-Position',

@@ -572,7 +572,9 @@ namespace OTN {
 			auto addName = [&](const std::string& n) {
 				if (DebugIsNameValid(n))
 					m_columnNames.emplace_back(n);
-				};
+				else
+					AddError("Name '" + n + "' containes invalid characters");
+			};
 
 			constexpr size_t ArgCount = sizeof...(Args);
 			m_columnNames.clear();
@@ -784,7 +786,7 @@ namespace OTN {
 		* @return Reference to this object for method chaining
 		*/
 		OTNObject& ReserveDataRows(size_t amount);
-	
+
 		/**
 		* @brief Check if object is in a valid state
 		* @return true if no errors occurred during construction

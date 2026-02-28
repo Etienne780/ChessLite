@@ -17,7 +17,7 @@ public:
 	bool RemoveAgent(AgentID id);
 	void MarkAgentAsRegistered(AgentID localId, AgentID serverId);
 
-	OTN::OTNObject BuildOTNObjectFromIDs(const std::unordered_set<AgentID>& agents);
+	OTN::OTNObject BuildOTNObjectFromIDs(const std::unordered_set<AgentID>& agents, bool includeLocalID = false);
 
 	Agent* GetAgent(AgentID id);
 
