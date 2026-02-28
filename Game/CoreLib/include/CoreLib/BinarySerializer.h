@@ -70,6 +70,27 @@ public:
     }
 
     /**
+    * @brief Serializes a std::string in length-prefixed format.
+    *
+    * The string is stored as:
+    * 
+    * 1. uint32_t length (Little-Endian via AddField)
+    * 
+    * 2. raw character bytes (no null terminator)
+    *
+    * @param value The string to serialize.
+    */
+    template<>
+    void AddField(const std::string& value) {
+        AddField(static_cast<uint32_t>(value.size()));
+        m_buffer.insert(
+            m_buffer.end(),
+            reinterpret_cast<const uint8_t*>(value.data()),
+            reinterpret_cast<const uint8_t*>(value.data()) + value.size()
+        );
+    }
+
+    /**
     * @brief Adds a vector of trivially copyable elements.
     *
     * Stores the size first as uint32_t, followed by all elements in order.

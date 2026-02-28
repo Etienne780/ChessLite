@@ -3,6 +3,7 @@
 #include <deque>
 #include <functional>
 #include <SDL3_net/SDL_net.h>
+#include <CoreLib/OTNFile.h>
 #include "Type.h"
 
 class App;
@@ -21,6 +22,8 @@ public:
 	void ClearError();
 
 	bool IsConnected() const;
+
+	OTN::OTNObject CreateHeaderBlock(const std::string& action);
 
 	const std::string& GetError() const;
 	const std::string& GetHost() const;

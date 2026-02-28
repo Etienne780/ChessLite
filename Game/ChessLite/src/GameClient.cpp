@@ -98,6 +98,14 @@ bool GameClient::IsConnected() const {
 	return false;
 }
 
+OTN::OTNObject GameClient::CreateHeaderBlock(const std::string& action) {
+	OTN::OTNObject headerObj{ "header" };
+	headerObj.SetNames("action");
+	headerObj.SetTypes("String");
+	headerObj.AddDataRow(action);
+	return headerObj;
+}
+
 const std::string& GameClient::GetError() const {
 	return m_error;
 }
@@ -189,10 +197,11 @@ bool GameClient::ProcessReceiveQueue() {
 }
 
 bool GameClient::CallRequestCallback(NetworkMsgID id, bool result, const std::string& msg) {
-	auto it = m_pending.find(NetworkMsgID(id));
+	auto it = m_pending.find(id);
 	if (it != m_pending.end()) {
 		it->second(result, msg);
 		m_pending.erase(it);
+		m_idManager.FreeUniqueIdentifier(id.value);
 		return true;
 	}
 	return false;

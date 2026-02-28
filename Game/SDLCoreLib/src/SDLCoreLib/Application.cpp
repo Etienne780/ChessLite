@@ -33,14 +33,18 @@ namespace SDLCore {
 
     Application::Application(std::string& name, const Version& version)
         : m_name(name), m_version(version) {
-        Init();
+        InitInternal();
         s_application = this;
     }
         
     Application::Application(std::string&& name, const Version& version)
         : m_name(std::move(name)), m_version(version) {
-        Init();
+        InitInternal();
         s_application = this;
+    }
+
+    Application::~Application() {
+        
     }
 
     Application* Application::GetInstance() {
@@ -78,7 +82,7 @@ namespace SDLCore {
         return platform;
     }
 
-    void Application::Init() {
+    void Application::InitInternal() {
         if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS)) {
             SetError(Log::GetFormattedString("SDLCore::Application: {}", SDL_GetError()));
             cancelStart = 1;
@@ -106,14 +110,24 @@ namespace SDLCore {
         }
     }
 
-    int Application::Start() {
-        if (cancelStart != 0) {
-            SoundManager::Quit();
+    void Application::QuitInternal() {
+        Input::Quit();
+        SoundManager::Quit();
+        TextureManager::GetInstance().ClearAllTexturesEntries();
+        FontManager::GetInstance().ClearAllFontEntries();
+
+        if (s_sdlQuit) {
             NET_Quit();
             MIX_Quit();
             TTF_Quit();
             SDL_Quit();
             s_sdlQuit = true;
+        }
+    }
+
+    int Application::Start() {
+        if (cancelStart != 0) {
+            QuitInternal();
             s_closeApplication = true;
             return cancelStart;
         }
@@ -142,16 +156,8 @@ namespace SDLCore {
         Render::SetWindowRenderer();
         DeleteAllWindows();
 
-        Input::Quit();
-        SoundManager::Quit();
-        TextureManager::GetInstance().ClearAllTexturesEntries();
-        FontManager::GetInstance().ClearAllFontEntries();
-        NET_Quit();
-        MIX_Quit();
-        TTF_Quit();
-        SDL_Quit();
+        QuitInternal();
 
-        s_sdlQuit = true;
         return 0;
     }
 

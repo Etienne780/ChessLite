@@ -14,6 +14,10 @@ App::App()
     g_appInstance = this;
 }
 
+App::~App() {
+    g_appInstance = nullptr;
+}
+
 App* App::GetInstance(){
     return g_appInstance;
 }
@@ -38,15 +42,6 @@ void App::OnStart() {
 
 void App::OnUpdate() {
     ConnectClient();
-
-    if (SDLCore::Time::GetFrameCount() % 1000 == 0) {
-        std::string fpsStr = std::to_string(static_cast<int>(SDLCore::Time::GetFrameRateHzF()));
-        m_context.gameClient.Send("ChessLite Aura FPS " + fpsStr,
-            [](bool result, const std::string& msg) {
-                if (result)
-                    Log::Print("Server msg: result={}; msg={};", result, msg);
-            });
-    }
 
     if (!m_winID.IsInvalid()) {
         using namespace SDLCore;
@@ -102,6 +97,8 @@ void App::OnUpdate() {
 
         ProcessLayerCommands();
         ProcessGameClient();
+
+        agenSync.Sync(&m_context);
     }
     else {
         // main window is closed

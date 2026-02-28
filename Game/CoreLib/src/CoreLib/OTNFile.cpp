@@ -353,6 +353,13 @@ namespace OTN {
 		return m_name;
 	}
 
+	bool OTNObject::SetName(const std::string& name) {
+		bool result = DebugIsNameValid(name);
+		if(result)
+			m_name = name;
+		return result;
+	}
+
 	size_t OTNObject::GetColumnCount() const {
 		return m_columnNames.size();
 	}
@@ -514,7 +521,7 @@ namespace OTN {
 		return true;
 	}
 
-	bool OTNObject::DebugIsNameValid(const std::string& name) {
+	bool OTNObject::DebugIsNameValid(const std::string& name) const {
 #ifdef NDEBUG
 		return true;
 #else

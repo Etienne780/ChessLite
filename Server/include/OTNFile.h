@@ -810,6 +810,12 @@ namespace OTN {
 		*/
 		std::string GetName() const;
 
+		/*
+		* @brief Sets the name of the object
+		* @return true if name was set
+		*/
+		bool SetName(const std::string& name);
+
 		/**
 		* @brief Returns the number of columns based on the defined column names.
 		*
@@ -1073,7 +1079,7 @@ namespace OTN {
 		bool AddSingleType(std::vector<OTNTypeDesc>& tempList, const std::string& typeStr);
 		bool DeduceTypesFromRow(const OTNRow& row);
 
-		bool DebugIsNameValid(const std::string& name);
+		bool DebugIsNameValid(const std::string& name) const;
 		// validates if each column name is distinct
 		bool DebugValidateNamesDistinct();
 		// validates if each data type of each row matchs the type of the first row at a specifc column

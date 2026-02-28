@@ -8,10 +8,12 @@
 #include "AppContext.h"
 #include "LayerSystem/LayerEventBus.h"
 #include "GameClient.h"
+#include "AI/AgentSyncService.h"
 
 class App : public SDLCore::Application {
 public:
 	App();
+	~App() override;
 	
 	static App* GetInstance();
 	static AppContext* GetContext();
@@ -80,6 +82,8 @@ private:
 	SDLCore::WindowCallbackID m_windowDisplayChangedCBID;
 	
 	AppContext m_context{ this };
+	AgentSyncService agenSync;
+
 	std::vector<std::unique_ptr<Layer>> m_layerStack;
 	std::vector<LayerCommand> m_layerCommands;
 	SDLCore::UI::UIContext* m_UICtx = nullptr;

@@ -71,6 +71,36 @@ public:
     }
 
     /**
+    * @brief Reads a length-prefixed std::string from the buffer.
+    *
+    * The method expects the following layout:
+    *
+    * 1. uint32_t length (Little-Endian)
+    * 
+    * 2. Raw character bytes (no null terminator)
+    *
+    * @return std::string The reconstructed string.
+    * @throws std::runtime_error If the buffer does not contain enough bytes.
+    */
+    std::string ReadString() {
+        uint32_t length = Read<uint32_t>();
+
+        if (length > m_buffer.size() - m_offset) {
+            throw std::runtime_error(
+                "BinaryDeserializer: buffer overflow while reading string"
+            );
+        }
+
+        std::string value(
+            reinterpret_cast<const char*>(m_buffer.data() + m_offset),
+            length
+        );
+
+        m_offset += length;
+        return value;
+    }
+
+    /**
     * @brief Reads a vector of complex elements using a lambda deserializer.
     *
     * Assumes a uint32_t size prefix was written before the vector data.

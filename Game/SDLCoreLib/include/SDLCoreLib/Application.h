@@ -35,10 +35,11 @@ namespace SDLCore {
 	bool IsSDLQuit();
 
 	class Application {
-	friend class Window;
+		friend class Window;
 	public:
 		Application(std::string& name, const Version& version);
 		Application(std::string&& name, const Version& version);
+		virtual ~Application();
 
 		static Application* GetInstance();
 
@@ -659,7 +660,8 @@ namespace SDLCore {
 		float m_cursorLastTime = 0;
 		const float m_cursorTick = 0.1f;// intervall speed of the cursorLock (in sec)
 
-		void Init();
+		void InitInternal();
+		void QuitInternal();
 		void ProcessSDLPollEvents();
 		void ProcessSDLPollEventWindow(const std::unique_ptr<Window>& window);
 		void FPSCapDelay(uint64_t frameStartTime) const;

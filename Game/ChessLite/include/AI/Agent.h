@@ -51,7 +51,7 @@ public:
 private:
 	bool m_gameFinished = true;
 	AgentID m_id;
-	AgentID m_serverID;
+	AgentID m_serverID{ 0 };
 	std::string m_name = "UNKOWN";
 	int m_matchesPlayed = 0;
 	int m_matchesWon = 0;

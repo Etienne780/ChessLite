@@ -1,5 +1,6 @@
 #pragma once
 #include <optional>
+#include <tuple>
 #include <mysql/jdbc.h>
 
 #include "OTNFile.h"
@@ -28,6 +29,9 @@ private:
 	bool m_connected = false;
 	DBConfig m_config;
 	std::unique_ptr<sql::Connection> m_connection;
+
+    void HandleInsertAgents(
+        const std::string& dstServer, uint32_t requestID, OTN::OTNReader& reader);
 
 	void Connect();
 
@@ -190,6 +194,59 @@ private:
         }
     }
 
-	template<typename T>
-	void BindParam(sql::PreparedStatement* stmt, int index, const T* value);
+    template<typename... Args>
+    bool ExecuteBatchInsert(
+        const std::string& tableName, 
+        const std::vector<std::tuple<Args...>>& rows,
+        const std::string& columns)
+    {
+        if (rows.empty())
+            return true;
+
+        std::string query = "INSERT INTO " + tableName + " (" + columns + ") VALUES ";
+        size_t numCols = sizeof...(Args);
+
+        for (size_t i = 0; i < rows.size(); ++i) {
+            query += "(";
+            for (size_t j = 0; j < numCols; ++j) {
+                query += "?";
+                if (j + 1 < numCols) 
+                    query += ", ";
+            }
+            query += ")";
+            if (i + 1 < rows.size()) 
+                query += ", ";
+        }
+
+        try {
+            std::unique_ptr<sql::PreparedStatement> stmt(
+                m_connection->prepareStatement(query)
+            );
+
+            int index = 1;
+            for (const auto& row : rows) {
+                std::apply([&](auto&&... args) {
+                    ((BindParam(stmt.get(), index++, &args)), ...);
+                }, row);
+            }
+
+            stmt->execute();
+            return true;
+        }
+        catch (sql::SQLException& e) {
+            std::cerr << "BatchInsert error: " << e.what() << "\n";
+            return false;
+        }
+    }
+
+    template<typename T>
+    void BindParam(sql::PreparedStatement* stmt, int index, const T& value) {
+        BindParam(stmt, index, std::optional<T>{value});
+    }
+
+    void BindParam(sql::PreparedStatement* stmt, int index, const std::optional<std::string>& value);
+    void BindParam(sql::PreparedStatement* stmt, int index, const std::optional<int>& value);
+    void BindParam(sql::PreparedStatement* stmt, int index, const std::optional<int64_t>& value);
+    void BindParam(sql::PreparedStatement* stmt, int index, const std::optional<double>& value);
+    void BindParam(sql::PreparedStatement* stmt, int index, const std::optional<bool>& value);
 };

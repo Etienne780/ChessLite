@@ -2,7 +2,6 @@
 #include <SDLCoreLib/SDLCore.h>
 #include <CoreChessLib/ChessContext.h>
 
-#include "App.h"
 #include "GameClient.h"
 #include "LayerSystem/LayerEventBus.h"
 #include "ResourcesManagement/ResourcesManager.h"

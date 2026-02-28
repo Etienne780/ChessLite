@@ -249,58 +249,7 @@ namespace Layers {
 	}
 
 	void StartLoadLayer::LoadAgent(AppContext* ctx, const OTN::OTNObject& agentOTN) {
-		const auto& obj = agentOTN;
-
-		for (size_t i = 0; i < obj.GetColumnCount(); i++) {
-			auto id = obj.TryGetValue<int64_t>(i, "server_id");
-			auto name = obj.TryGetValue<std::string>(i, "name");
-			auto boardStates = obj.TryGetValue<std::vector<OTN::OTNObject>>(i, "board_states");
-			auto config = obj.TryGetValue<std::string>(i, "config");
-
-			auto matchesPlayed = obj.TryGetValue<int>(i, "matches_played");
-			auto matchesWon = obj.TryGetValue<int>(i, "matches_won");
-
-			auto matchesPlayedWhite = obj.TryGetValue<int>(i, "matches_played_white");
-			auto matchesWonWhite = obj.TryGetValue<int>(i, "matches_won_white");
-
-			if (!id || !name || !config)
-				continue;
-
-			Agent agent{ *name, *config };
-			AgentPersistentData data;
-
-			if (matchesPlayed)
-				data.matchesPlayed = *matchesPlayed;
-
-			if (matchesWon)
-				data.matchesWon = *matchesWon;
-
-			if (matchesPlayedWhite)
-				data.matchesPlayedAsWhite = *matchesPlayedWhite;
-
-			if (matchesWonWhite)
-				data.matchesWonAsWhite = *matchesWonWhite;
-
-			if (boardStates) {
-				std::unordered_map<std::string, BoardState> states;
-				for (const auto& bState : *boardStates) {
-					auto stateStr = bState.TryGetValue<std::string>(0, "board_state");
-					auto moves = bState.TryGetValue<std::vector<GameMove>>(0, "moves");
-					
-					if (!stateStr || !moves)
-						continue;
-
-					BoardState b;
-					b.LoadGameMoves(*moves);
-					states[*stateStr] = b;
-				}
-
-				agent.LoadBoardState(states);
-			}
-
-			agent.LoadPersistentData(data);
-			ctx->agentManager.AddAgent(agent);
-		}
+		ctx->agentManager.Load(agentOTN);
 	}
 
 	void StartLoadLayer::LoadOptions(AppContext* ctx, const OTN::OTNObject& optionsOTN) {
