@@ -83,6 +83,19 @@ void GameClient::Send(const std::string& payload, Callback&& cb) {
 	m_msgQueue.push_back(std::move(ps));
 }
 
+NetworkCallbackID GameClient::AddGlobalCallback(GlobalCallback&& cb) {
+	uint32_t id = m_callbackIDManager.GetNewUniqueIdentifier();
+	m_globalCallbacks[NetworkCallbackID(id)] = std::move(cb);
+}
+
+bool GameClient::RemoveGlobalCallback(NetworkCallbackID id) {
+	auto it = m_globalCallbacks.find(id);
+	bool found = it != m_globalCallbacks.end();
+	if (found)
+		m_globalCallbacks.erase(it);
+	return found;
+}
+
 void GameClient::ClearError() {
 	m_error.clear();
 }
@@ -187,26 +200,31 @@ bool GameClient::ProcessReceiveQueue() {
 		m_receiveBuffer.erase(m_receiveBuffer.begin(),
 			m_receiveBuffer.begin() + sizeof(uint32_t) + length);
 
-		if (!CallRequestCallback(NetworkMsgID(id), response, payload)) {
-			AddError("Failed to call callback of id '" + std::to_string(id) + "'");
-			return false;
-		}
+		CallRequestCallback(NetworkMsgID(id), response, payload);
 	}
 
 	return true;
 }
 
-bool GameClient::CallRequestCallback(NetworkMsgID id, bool result, const std::string& msg) {
+void GameClient::CallRequestCallback(NetworkMsgID id, bool result, const std::string& msg) {
 	auto it = m_pending.find(id);
 	if (it != m_pending.end()) {
 		it->second(result, msg);
 		m_pending.erase(it);
-		m_idManager.FreeUniqueIdentifier(id.value);
-		return true;
+		return;
 	}
-	return false;
+	if(result)
+		CallGlobalCallBacks(msg);
 }
 
 void GameClient::AddError(const std::string& msg) {
 	m_error += msg;
+}
+
+void GameClient::CallGlobalCallBacks(const std::string & msg) {
+	auto copy = m_globalCallbacks;
+	for (auto& [_, cb] : copy) {
+		if(cb)
+			cb(msg);
+	}
 }

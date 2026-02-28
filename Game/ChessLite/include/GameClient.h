@@ -11,6 +11,7 @@ class  GameClient {
 friend App;
 public:
 	using Callback = std::function<void(bool, const std::string&)>;
+	using GlobalCallback = std::function<void(const std::string&)>;
 
 	GameClient();
 	~GameClient();
@@ -19,6 +20,10 @@ public:
 	void Disconnect();
 
 	void Send(const std::string& msg, Callback&& callback);
+
+	NetworkCallbackID AddGlobalCallback(GlobalCallback&& cb);
+	bool RemoveGlobalCallback(NetworkCallbackID id);
+
 	void ClearError();
 
 	bool IsConnected() const;
@@ -37,7 +42,8 @@ private:
 
 	std::string m_host;
 	uint16_t m_port = 0;
-	CoreAppIDManager m_idManager;
+	CoreAppIDManager m_idManager{ 1 };
+	CoreAppIDManager m_callbackIDManager{ 1 };
 	
 	std::string m_error;
 	NET_StreamSocket* m_socket = nullptr;
@@ -46,9 +52,13 @@ private:
 	std::unordered_map<NetworkMsgID, Callback> m_pending;
 	std::vector<uint8_t> m_receiveBuffer;
 
+	std::unordered_map<NetworkCallbackID, GlobalCallback> m_globalCallbacks;
+
 	bool ProcessSendQueue();
 	bool ProcessReceiveQueue();
 
-	bool CallRequestCallback(NetworkMsgID id, bool result, const std::string& msg);
+	void CallRequestCallback(NetworkMsgID id, bool result, const std::string& msg);
 	void AddError(const std::string& msg);
+
+	void CallGlobalCallBacks(const std::string& msg);
 };

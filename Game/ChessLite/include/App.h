@@ -82,8 +82,8 @@ private:
 	SDLCore::WindowCallbackID m_windowDisplayChangedCBID;
 	
 	AppContext m_context{ this };
-	float syncTime = 10.0f;// trys to sync every 10 secs
-	float currentSyncTime = 0.0f;
+	float m_syncTime = 10.0f;// trys to sync every 10 secs
+	float m_currentSyncTime = 0.0f;
 	std::shared_ptr<AgentSyncService> agenSync = nullptr;
 
 	std::vector<std::unique_ptr<Layer>> m_layerStack;
