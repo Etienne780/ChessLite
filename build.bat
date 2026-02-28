@@ -48,9 +48,36 @@ GOTO Done
 echo Starting Docker database...
 docker compose up -d
 
+REM Check if docker compose failed (e.g. port already in use)
+IF ERRORLEVEL 1 (
+    echo.
+    echo ERROR: Docker could not start the database container.
+    echo.
+    echo Most common reason:
+    echo   Port 3306 is already in use.
+    echo.
+    echo To find the process using port 3306 run:
+    echo   netstat -ano ^| findstr :3306
+    echo.
+    echo Then identify the process with:
+    echo   tasklist ^| findstr 'PID'
+    echo.
+    echo Replace 'PID' with the number shown in netstat.
+    echo.
+    echo If it is MySQL, you can stop it with:
+    echo   net stop MySQL80
+    echo.
+    echo Make sure to run the command in an Administrator console 'CMD or PowerShell'.
+    echo.
+    GOTO Done
+)
+
 echo Waiting for MySQL to be ready...
+
 :WaitLoop
 docker exec game-db mysqladmin ping -u %DB_USER% -p%DB_PASS% --silent > nul 2>&1
+
+REM If container is not reachable yet, wait
 IF ERRORLEVEL 1 (
     timeout /t 2 > nul
     GOTO WaitLoop
