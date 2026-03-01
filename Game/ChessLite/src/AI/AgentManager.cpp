@@ -105,7 +105,7 @@ bool AgentManager::RemoveAgent(AgentID id) {
 
     AgentID serverID = it->second.GetServerID();
     if(serverID != 0)// if agent is on server
-        m_deletedServerAgents.push_back(serverID);
+        m_deletedServerAgents.insert(serverID);
 
     auto itUnre = m_unregisteredAgentIds.find(id);
     if (itUnre != m_unregisteredAgentIds.end()) {
@@ -241,11 +241,35 @@ const std::unordered_set<AgentID>& AgentManager::GetUnregisteredAgentIDs() const
     return m_unregisteredAgentIds;
 }
 
-const std::vector<AgentID>& AgentManager::GetDeletedServerAgents() const {
+const std::unordered_set<AgentID>& AgentManager::GetDeletedServerAgents() const {
     return m_deletedServerAgents;
 }
 
-void AgentManager::SetDeletedServerAgents(const std::vector<AgentID>& ids) {
+std::unordered_set<AgentID> AgentManager::GetDirtyAgents() const {
+    std::unordered_set<AgentID> dirtyAgents;
+
+    for (auto& [id, a] : m_agents) {
+        AgentID serverID = a.GetServerID();
+        if (!a.IsAgentDirty() || serverID == 0)
+            continue;
+
+        if (m_deletedServerAgents.find(serverID) != m_deletedServerAgents.end())
+            continue;
+
+        dirtyAgents.insert(id);
+    }
+
+    return dirtyAgents;
+}
+
+void AgentManager::MarkAgentsClean(const std::unordered_map<AgentID, size_t>& synced) {
+    for (auto [id, version] : synced) {
+        if (Agent* agent = GetAgent(id))
+            agent->MarkClean(version);
+    }
+}
+
+void AgentManager::SetDeletedServerAgents(const std::unordered_set<AgentID>& ids) {
     m_deletedServerAgents = ids;
 }
 

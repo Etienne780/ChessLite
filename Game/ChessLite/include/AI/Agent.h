@@ -46,12 +46,14 @@ public:
 	int GetMatchesLostAsBlack() const;
 
 	bool IsAgentCurrentlyWhite() const;
+	bool IsAgentDirty() const;
 	float GetExplorationChance() const;
 	const std::unordered_map<std::string, BoardState>& GetNormilzedBoardStates() const;
 	const std::vector<std::pair<std::string, size_t>>& GetMoveHistory() const;
 
 private:
 	bool m_gameFinished = true;
+	bool m_dirty = false;
 	AgentID m_id;
 	AgentID m_serverID{ 0 };
 	size_t m_version = 0;
@@ -72,4 +74,5 @@ private:
 	void SetID(AgentID id);
 	void SetServerID(AgentID id);
 	void SetVersion(size_t version);
+	void MarkClean(size_t version);
 };

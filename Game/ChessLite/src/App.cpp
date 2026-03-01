@@ -177,11 +177,11 @@ bool App::SaveUserData() {
 
 void App::LoadUserData(const OTN::OTNObject& object) {
     if (auto deletedServerAgents = object.TryGetValue<std::vector<int64_t>>(0, "deleted_server_agents")) {
-        std::vector<AgentID> ids;
+        std::unordered_set<AgentID> ids;
         ids.reserve(deletedServerAgents->size());
 
         for (auto id : *deletedServerAgents)
-            ids.emplace_back(static_cast<uint32_t>(id));
+            ids.emplace(static_cast<uint32_t>(id));
 
         m_context.agentManager.SetDeletedServerAgents(ids);
     }

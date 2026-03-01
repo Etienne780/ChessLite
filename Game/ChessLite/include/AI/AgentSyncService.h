@@ -27,7 +27,7 @@ private:
     void RequestMissingAgentsFromServer(AppContext* ctx);
 
     void SyncMissingData(AppContext* ctx, const std::unordered_set<AgentID>& ids);
-    void SyncDelete(AppContext* ctx, const std::vector<AgentID>& ids);
+    void SyncDelete(AppContext* ctx, const std::unordered_set<AgentID>& ids);
 
     void RegisterAgents(const std::string& serverIDs);
     void HandleServerIDList(const std::string& agentIDList);

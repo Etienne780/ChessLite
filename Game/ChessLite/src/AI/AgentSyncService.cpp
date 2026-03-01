@@ -205,7 +205,7 @@ void AgentSyncService::SyncMissingData(AppContext* ctx, const std::unordered_set
 		});
 }
 
-void AgentSyncService::SyncDelete(AppContext* ctx, const std::vector<AgentID>& ids) {
+void AgentSyncService::SyncDelete(AppContext* ctx, const std::unordered_set<AgentID>& ids) {
 	OTN::OTNObject headerObj = ctx->gameClient.CreateHeaderBlock("SyncDeleteData");
 	OTN::OTNObject bodyObj{ "body" };
 	bodyObj.SetNames("ids");

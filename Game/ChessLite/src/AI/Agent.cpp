@@ -24,6 +24,7 @@ void Agent::GameFinished(bool won) {
 
 	m_gameFinished = true;
 
+	m_dirty = true;
 	m_version++;
 	m_matchesPlayed++;
 	if (won)
@@ -138,6 +139,10 @@ bool Agent::IsAgentCurrentlyWhite() const {
 	return m_isWhite;
 }
 
+bool Agent::IsAgentDirty() const {
+	return m_dirty;
+}
+
 float Agent::GetExplorationChance() const {
 	// hits null at ca 15 games played
 	double y = -0.005 * std::pow(m_matchesPlayed, 2) + 1;
@@ -188,4 +193,9 @@ void Agent::SetServerID(AgentID id) {
 
 void Agent::SetVersion(size_t version) {
 	m_version = version;
+}
+
+void Agent::MarkClean(size_t syncedVersion) {
+	if (m_version == syncedVersion)
+		m_dirty = false;
 }

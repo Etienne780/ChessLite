@@ -45,15 +45,17 @@ public:
 	std::vector<AgentID> GetAgentServerIDs() const;
 	const std::unordered_map<AgentID, Agent>& GetAgents() const;
 	const std::unordered_set<AgentID>& GetUnregisteredAgentIDs() const;
+	const std::unordered_set<AgentID>& GetDeletedServerAgents() const;
+	std::unordered_set<AgentID> GetDirtyAgents() const;
+	void MarkAgentsClean(const std::unordered_map<AgentID, size_t>& synced);
 
 private:
 	CoreAppIDManager m_idManager;
 	std::unordered_map<AgentID, Agent> m_agents;
 	std::unordered_set<AgentID> m_unregisteredAgentIds;
 
-	std::vector<AgentID> m_deletedServerAgents;
+	std::unordered_set<AgentID> m_deletedServerAgents;
 
-	const std::vector<AgentID>& GetDeletedServerAgents() const;
-	void SetDeletedServerAgents(const std::vector<AgentID>& ids);
+	void SetDeletedServerAgents(const std::unordered_set<AgentID>& ids);
 	void ClearDeletedServerAgents();
 };
