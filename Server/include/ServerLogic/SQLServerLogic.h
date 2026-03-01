@@ -55,6 +55,7 @@ private:
     void HandleGetAgentIDs(const std::string& dstServer, uint32_t requestID, OTN::OTNReader& reader);
     void HandleGetMissinAgents(const std::string& dstServer, uint32_t requestID, OTN::OTNReader& reader);
     void HandleDeleteAgents(const std::string& dstServer, uint32_t requestID, OTN::OTNReader& reader);
+    void HandleUpdateAgents(const std::string& dstServer, uint32_t requestID, OTN::OTNReader& reader);
 
     OTN::OTNObject CreateRequestHeader(const std::string& action, uint32_t requestID, bool response = true);
     void SentError(const std::string& errorMsg, const std::string dstServer, const std::string& action, uint32_t requestID);
@@ -176,7 +177,6 @@ private:
     * placeholders in the SQL string. Binding is performed sequentially
     * starting at index 1, as required by MySQL Connector/C++.
     *
-    * note: This function requires an active database connection.
     * warning: The number of arguments must match the number of placeholders.
     * 
     * example:

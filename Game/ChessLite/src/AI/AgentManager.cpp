@@ -125,6 +125,15 @@ void AgentManager::MarkAgentAsRegistered(AgentID localId, AgentID serverId) {
     m_unregisteredAgentIds.erase(localId);
 }
 
+
+void AgentManager::MarkAgentsClean(AgentID localId, size_t version) {
+    auto* agent = GetAgent(localId);
+    if (!agent)
+        return;
+
+    agent->MarkClean(version);
+}
+
 OTN::OTNObject AgentManager::BuildOTNObjectFromIDs(
     const std::unordered_set<AgentID>& agents, bool includeLocalID)
 {
@@ -260,13 +269,6 @@ std::unordered_set<AgentID> AgentManager::GetDirtyAgents() const {
     }
 
     return dirtyAgents;
-}
-
-void AgentManager::MarkAgentsClean(const std::unordered_map<AgentID, size_t>& synced) {
-    for (auto [id, version] : synced) {
-        if (Agent* agent = GetAgent(id))
-            agent->MarkClean(version);
-    }
 }
 
 void AgentManager::SetDeletedServerAgents(const std::unordered_set<AgentID>& ids) {

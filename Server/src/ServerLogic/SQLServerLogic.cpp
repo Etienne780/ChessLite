@@ -38,6 +38,8 @@ void SQLServerLogic::OnServerMessage(const std::string& serverName, const std::s
         HandleGetMissinAgents(serverName, static_cast<uint32_t>(*requestID), reader);
     else if(*action == "HandleDeleteAgents")
         HandleDeleteAgents(serverName, static_cast<uint32_t>(*requestID), reader);
+    else if(*action == "HandleDirtyAgents")
+        HandleUpdateAgents(serverName, static_cast<uint32_t>(*requestID), reader);
     else
         std::cerr << "Unkown action sql server '" << *action << "'\n";
 }
@@ -357,6 +359,137 @@ void SQLServerLogic::HandleDeleteAgents(const std::string& dstServer, uint32_t r
         SentError(std::string("SQL Error: ") + e.what(), dstServer, actionName, requestID);
         return;
     }
+}
+
+void SQLServerLogic::HandleUpdateAgents(const std::string& dstServer, uint32_t requestID, OTN::OTNReader& reader) {
+    const char* actionName = "HandleUpdateAgentsResult";
+
+    if (!m_connection) {
+        std::cerr << "Not connected to DB\n";
+        SentError("Not connected to DB", dstServer, actionName, requestID);
+        return;
+    }
+
+    OTN::OTNObject result{ "Result" };
+    result.SetNames("localID", "version");
+    result.SetTypes("int64", "int64");
+
+    try {
+        TransactionGuard guard(m_connection.get());
+
+        auto obj = reader.TryGetObject("body");
+        if (!obj)
+            return;
+
+        for (size_t i = 0; i < obj->GetRowCount(); ++i) {
+            auto serverId = obj->TryGetValue<int64_t>(i, "server_id");
+            auto localID = obj->TryGetValue<int64_t>(i, "local_id");
+            auto version = obj->TryGetValue<int64_t>(i, "version");
+            auto name = obj->TryGetValue<std::string>(i, "name");
+            auto config = obj->TryGetValue<std::string>(i, "config");
+
+            if (!serverId || !version || !name || !config)
+                continue;
+
+            auto checkResult = FetchStatement(
+                "SELECT id FROM agents WHERE id = ? AND version < ?",
+                *serverId, *version
+            );
+
+            if (!checkResult || checkResult->GetRowCount() == 0)
+                continue;
+
+            auto matches_played = obj->TryGetValue<int>(i, "matches_played");
+            auto matches_won = obj->TryGetValue<int>(i, "matches_won");
+            auto matches_played_white = obj->TryGetValue<int>(i, "matches_played_white");
+            auto matches_won_white = obj->TryGetValue<int>(i, "matches_won_white");
+
+            ExecuteStatement(R"""(
+                UPDATE agents 
+                SET name = ?, config = ?, version = ?, 
+                    matches_played = ?, matches_won = ?, 
+                    matches_played_white = ?, matches_won_white = ?
+                WHERE id = ?;)""",
+                *name, *config, *version,
+                (matches_played ? *matches_played : 0),
+                (matches_won ? *matches_won : 0),
+                (matches_played_white ? *matches_played_white : 0),
+                (matches_won_white ? *matches_won_white : 0),
+                *serverId
+            );
+            //delete all old board states/game moves
+            ExecuteStatement(
+                "DELETE FROM board_states WHERE agent_id = ?;",
+                *serverId
+            );
+
+            // create ne board states
+            auto boardStates = obj->TryGetValue<std::vector<OTN::OTNObject>>(i, "board_states");
+            if (boardStates && !boardStates->empty()) {
+                for (auto& bs : *boardStates) {
+                    auto stateStr = bs.TryGetValue<std::string>(0, "board_state");
+                    auto moves = bs.TryGetValue<std::vector<OTN::OTNObject>>(0, "moves");
+
+                    if (!stateStr || !moves)
+                        continue;
+
+                    ExecuteStatement(R"""(
+                        INSERT INTO board_states 
+                        (agent_id, board_state)
+                        VALUES (?, ?);)""",
+                        *serverId, *stateStr
+                    );
+
+                    auto currentBoardStateID = FetchLastInsertID();
+                    if (!currentBoardStateID)
+                        continue;
+
+                    std::vector<std::tuple<int64_t, float, float, float, float, float>> gameMoves;
+
+                    for (auto& move : *moves) {
+                        auto eval = move.TryGetValue<float>(0, "eval");
+                        auto fromX = move.TryGetValue<float>(0, "from_x");
+                        auto fromY = move.TryGetValue<float>(0, "from_y");
+                        auto toX = move.TryGetValue<float>(0, "to_x");
+                        auto toY = move.TryGetValue<float>(0, "to_y");
+
+                        if (!eval || !fromX || !fromY || !toX || !toY)
+                            continue;
+
+                        gameMoves.emplace_back(*currentBoardStateID, *eval, *fromX, *fromY, *toX, *toY);
+                    }
+
+                    if (!gameMoves.empty()) {
+                        ExecuteBatchInsert("game_moves", gameMoves,
+                            "board_state_id, evaluation, from_x, from_y, to_x, to_y");
+                    }
+                }
+            }
+
+            result.AddDataRow(*localID, *version);
+        }
+
+        guard.commit();
+    }
+    catch (sql::SQLException& e) {
+        m_connection->rollback();
+        SentError(std::string("SQL Error: ") + e.what(), dstServer, actionName, requestID);
+        return;
+    }
+
+    OTN::OTNObject header = CreateRequestHeader(actionName, requestID);
+    OTN::OTNWriter writer;
+    writer.AppendObject(header);
+    writer.AppendObject(result);
+
+    std::string output;
+    writer.SaveToString(output);
+
+    NetServerManager::SendMessage(
+        m_server,
+        dstServer,
+        output
+    );
 }
 
 OTN::OTNObject SQLServerLogic::CreateRequestHeader(const std::string& action, uint32_t requestID, bool response) {

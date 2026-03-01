@@ -15,7 +15,6 @@ AgentSyncService::~AgentSyncService() {
 	ctx->gameClient.RemoveGlobalCallback(m_globalNetworkCB);
 }
 
-
 void AgentSyncService::Init(AppContext& ctx) {
 	if (m_initCalled)
 		return;
@@ -32,26 +31,36 @@ void AgentSyncService::Init(AppContext& ctx) {
 }
 
 /*
-* What kinds of syncs happen
-* 
-* sync agent not on db
-* - check if server id == 0, add agent to server
-* 
-* sync agent missing on db (delete local agent)
-* - retrive list of all server ids, if agent server id missing. delete local agent
-* 
-* sync agent on db but not local
-* 
-* sync agent local delete
-* - sent list to server with deleted agents
-* 
-* sync agent changed
-* - list of agents changed and check if version is higher than on server
-*/
+ * Synchronization cases
+ *
+ * Local agent not registered on server
+ *	- server_id == 0
+ *	- send insert request to server
+ *
+ * Agent exists locally but no longer on server
+ *	- fetch all server_ids from server
+ *	- if a local agents server_id is missing from the server, remove it locally
+ *
+ * Agent exists on server but not locally
+ *	- retrieve missing agents from server
+ *	- create them locally
+ *
+ * Local agent deleted
+ *	- send list of deleted agents (server_ids) to server to delete them
+ *
+ * Local agent modified
+ *	- send agents marked as dirty
+ *	- server compares versions and updates if newer
+ *	- server sends back the modified ids with ther version to mark them locally as clean
+ */
 
 void AgentSyncService::FullSync(AppContext* ctx) {
 	if (!ctx || m_isSyncInProgress)
 		return;
+
+	auto dirtyIDs = ctx->agentManager.GetDirtyAgents();
+	if (!dirtyIDs.empty())
+		SyncDirty(ctx, dirtyIDs);
 
 	// sync agnet on db but not on local
 	RequestMissingAgentsFromServer(ctx);
@@ -79,6 +88,10 @@ void AgentSyncService::Sync(AppContext* ctx) {
 	const auto& deletedIDs = ctx->agentManager.GetDeletedServerAgents();
 	if (!deletedIDs.empty())
 		SyncDelete(ctx, deletedIDs);
+
+	auto dirtyIDs = ctx->agentManager.GetDirtyAgents();
+	if (!dirtyIDs.empty())
+		SyncDirty(ctx, dirtyIDs);
 }
 
 bool AgentSyncService::IsSyncInProgress() const {
@@ -205,12 +218,12 @@ void AgentSyncService::SyncMissingData(AppContext* ctx, const std::unordered_set
 		});
 }
 
-void AgentSyncService::SyncDelete(AppContext* ctx, const std::unordered_set<AgentID>& ids) {
+void AgentSyncService::SyncDelete(AppContext* ctx, const std::unordered_set<AgentID>& deleteIDs) {
 	OTN::OTNObject headerObj = ctx->gameClient.CreateHeaderBlock("SyncDeleteData");
 	OTN::OTNObject bodyObj{ "body" };
 	bodyObj.SetNames("ids");
 	bodyObj.SetTypes("int64");
-	for (auto id : ids)
+	for (auto id : deleteIDs)
 		bodyObj.AddDataRow(static_cast<int64_t>(id.value));
 
 	std::string msg;
@@ -233,6 +246,35 @@ void AgentSyncService::SyncDelete(AppContext* ctx, const std::unordered_set<Agen
 				return;
 			}
 			self->HandleDeletedAgents();
+			self->RemoveSyncAction();
+		});
+}
+
+void AgentSyncService::SyncDirty(AppContext* ctx, const std::unordered_set<AgentID>& dirtyIDs) {
+	OTN::OTNObject headerObj = ctx->gameClient.CreateHeaderBlock("SyncDirtyData");
+	OTN::OTNObject bodyObj = ctx->agentManager.BuildOTNObjectFromIDs(dirtyIDs, true);
+	bodyObj.SetObjectName("body");
+
+	std::string msg;
+	OTN::OTNWriter writer;
+	writer.AppendObject(headerObj);
+	writer.AppendObject(bodyObj);
+	if (!writer.SaveToString(msg)) {
+		Log::Error("Failed to sync agents: {}", writer.GetError());
+		return;
+	}
+
+	AddSyncAction();
+	auto self = shared_from_this();
+
+	ctx->gameClient.Send(msg,
+		[self](bool result, const std::string& payload) {
+			if (!result) {
+				self->RemoveSyncAction();
+				Log::Error("Failed to sync agents: {}", payload);
+				return;
+			}
+			self->HandleDirtyAgents(payload);
 			self->RemoveSyncAction();
 		});
 }
@@ -422,6 +464,34 @@ void AgentSyncService::HandleDeletedAgents() {
 		return;
 
 	ctx->agentManager.ClearDeletedServerAgents();
+}
+
+void AgentSyncService::HandleDirtyAgents(const std::string& dirtyList) {
+	auto* app = App::GetInstance();
+	if (!app)
+		return;
+	auto* ctx = app->GetContext();
+	if (!ctx)
+		return;
+	
+	OTN::OTNReader reader;
+	if (!reader.ReadString(dirtyList)) {
+		Log::Error("Failed to parse server dirty list: {}", reader.GetError());
+		return;
+	}
+
+	auto idObj = reader.TryGetObject("ids");
+	if (!idObj)
+		return;
+
+	for (size_t i = 0; i < idObj->GetRowCount(); i++) {
+		auto localID = idObj->TryGetValue<int64_t>(i, "localID");
+		auto version = idObj->TryGetValue<int64_t>(i, "version");
+		if (!localID || !version)
+			continue;
+
+		ctx->agentManager.MarkAgentsClean(AgentID(static_cast<uint32_t>(*localID)), *version);
+	}
 }
 
 void AgentSyncService::GlobalCallback(const std::string& msg) {

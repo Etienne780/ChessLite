@@ -27,12 +27,14 @@ private:
     void RequestMissingAgentsFromServer(AppContext* ctx);
 
     void SyncMissingData(AppContext* ctx, const std::unordered_set<AgentID>& ids);
-    void SyncDelete(AppContext* ctx, const std::unordered_set<AgentID>& ids);
+    void SyncDelete(AppContext* ctx, const std::unordered_set<AgentID>& deleteIDs);
+    void SyncDirty(AppContext* ctx, const std::unordered_set<AgentID>& dirtyIDs);
 
     void RegisterAgents(const std::string& serverIDs);
     void HandleServerIDList(const std::string& agentIDList);
     void HandleAddAgents(const std::string& agentList);
     void HandleDeletedAgents();
+    void HandleDirtyAgents(const std::string& dirtyList);
 
     void GlobalCallback(const std::string& msg);
 };

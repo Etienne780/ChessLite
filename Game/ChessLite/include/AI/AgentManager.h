@@ -21,6 +21,7 @@ public:
 	void AddAgent(Agent agent);
 	bool RemoveAgent(AgentID id);
 	void MarkAgentAsRegistered(AgentID localId, AgentID serverId);
+	void MarkAgentsClean(AgentID localId, size_t version);
 
 	OTN::OTNObject BuildOTNObjectFromIDs(const std::unordered_set<AgentID>& agents, bool includeLocalID = false);
 
@@ -47,7 +48,6 @@ public:
 	const std::unordered_set<AgentID>& GetUnregisteredAgentIDs() const;
 	const std::unordered_set<AgentID>& GetDeletedServerAgents() const;
 	std::unordered_set<AgentID> GetDirtyAgents() const;
-	void MarkAgentsClean(const std::unordered_map<AgentID, size_t>& synced);
 
 private:
 	CoreAppIDManager m_idManager;
