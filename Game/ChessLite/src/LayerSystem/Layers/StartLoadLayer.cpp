@@ -322,7 +322,7 @@ namespace Layers {
 					LoadOptions(ctx, obj);
 					break;
 				}
-				else if (name == "User") {
+				else if (name == "userData") {
 					ctx->app->LoadUserData(obj);
 					break;
 				}
@@ -345,6 +345,7 @@ namespace Layers {
 
 		if (auto obj = optionsOTN.TryGetValue<float>(0, "sfxVolume")) {
 			ctx->options.sfxVolume = *obj;
+			SDLCore::SoundManager::SetTagVolume(SDLCore::SoundTags::SFX, *obj);
 		}
 	}
 

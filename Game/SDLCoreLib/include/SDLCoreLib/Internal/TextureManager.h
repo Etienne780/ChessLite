@@ -13,7 +13,7 @@ namespace SDLCore {
 	/*
 	* Manages how many refs to an SDL_Suface exist and deletes it if none exist anymore
 	*/
-	class TextureManager {
+	class TextureManager { 
 	friend class Application;
 	friend class TextureSurface;
 	private:

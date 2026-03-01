@@ -24,6 +24,7 @@ void Agent::GameFinished(bool won) {
 
 	m_gameFinished = true;
 
+	m_version++;
 	m_matchesPlayed++;
 	if (won)
 		m_matchesWon++;
@@ -83,6 +84,10 @@ AgentID Agent::GetID() const {
 
 AgentID Agent::GetServerID() const {
 	return m_serverID;
+}
+
+size_t Agent::GetVersion() const {
+	return m_version;
 }
 
 const std::string& Agent::GetName() const {
@@ -179,4 +184,8 @@ void Agent::SetID(AgentID id) {
 
 void Agent::SetServerID(AgentID id) {
 	m_serverID = id;
+}
+
+void Agent::SetVersion(size_t version) {
+	m_version = version;
 }

@@ -810,13 +810,13 @@ namespace OTN {
 		* @brief Get the objects name
 		* @return Object name/identifier
 		*/
-		std::string GetName() const;
+		std::string GetObjectName() const;
 
 		/*
 		* @brief Sets the name of the object
 		* @return true if name was set
 		*/
-		bool SetName(const std::string& name);
+		bool SetObjectName(const std::string& name);
 
 		/**
 		* @brief Returns the number of columns based on the defined column names.

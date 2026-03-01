@@ -29,11 +29,12 @@ bool AgentManager::Save(const OTN::OTNFilePath& path) {
 void AgentManager::Load(const OTN::OTNObject& agents) {
     const auto& obj = agents;
 
-    if (obj.GetName() != "Agent")
+    if (obj.GetObjectName() != "Agent")
         return;
 
     for (size_t i = 0; i < obj.GetColumnCount(); i++) {
         auto serverID = obj.TryGetValue<int64_t>(i, "server_id");
+        auto version = obj.TryGetValue<int64_t>(i, "version");
         auto name = obj.TryGetValue<std::string>(i, "name");
         auto boardStates = obj.TryGetValue<std::vector<OTN::OTNObject>>(i, "board_states");
         auto config = obj.TryGetValue<std::string>(i, "config");
@@ -44,7 +45,7 @@ void AgentManager::Load(const OTN::OTNObject& agents) {
         auto matchesPlayedWhite = obj.TryGetValue<int>(i, "matches_played_white");
         auto matchesWonWhite = obj.TryGetValue<int>(i, "matches_won_white");
 
-        if (!serverID || !name || !config)
+        if (!serverID || !version || !name || !config)
             continue;
 
         Agent agent{ *name, *config };
@@ -81,6 +82,7 @@ void AgentManager::Load(const OTN::OTNObject& agents) {
 
         agent.LoadPersistentData(data);
         agent.SetServerID(AgentID(static_cast<uint32_t>(*serverID)));
+        agent.SetVersion(static_cast<size_t>(*version));
         AddAgent(agent);
     }
 }
@@ -130,14 +132,14 @@ OTN::OTNObject AgentManager::BuildOTNObjectFromIDs(
     
     OTNObject agentObj{ "Agent" };
     if (includeLocalID) {
-        agentObj.SetNames("server_id", "local_id", "name", "board_states", "config",
+        agentObj.SetNames("server_id", "version", "local_id", "name", "board_states", "config",
             "matches_played", "matches_won", "matches_played_white", "matches_won_white");
-        agentObj.SetTypes("int64", "int64", "String", "-", "String", "int", "int", "int", "int");
+        agentObj.SetTypes("int64", "int64", "int64", "String", "-", "String", "int", "int", "int", "int");
     }
     else {
-        agentObj.SetNames("server_id", "name", "board_states", "config",
+        agentObj.SetNames("server_id", "version", "name", "board_states", "config",
             "matches_played", "matches_won", "matches_played_white", "matches_won_white");
-        agentObj.SetTypes("int64", "String", "-", "String", "int", "int", "int", "int");
+        agentObj.SetTypes("int64", "int64", "String", "-", "String", "int", "int", "int", "int");
     }
 
 
@@ -162,6 +164,7 @@ OTN::OTNObject AgentManager::BuildOTNObjectFromIDs(
         if (includeLocalID) {
             agentObj.AddDataRow(
                 static_cast<int64_t>(agent.GetServerID().value),
+                static_cast<int64_t>(agent.GetVersion()),
                 static_cast<int64_t>(id.value),
                 agent.GetName(),
                 boardStateObj,
@@ -175,6 +178,7 @@ OTN::OTNObject AgentManager::BuildOTNObjectFromIDs(
         else {
             agentObj.AddDataRow(
                 static_cast<int64_t>(agent.GetServerID().value),
+                static_cast<int64_t>(agent.GetVersion()),
                 agent.GetName(),
                 boardStateObj,
                 agent.GetChessConfig(),

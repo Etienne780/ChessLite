@@ -145,7 +145,9 @@ namespace SDLCore {
         if (win) {
             // remove old callback
             RemoveSDLRendererDestroyCallbackForWindow(winID);
-            m_windowSDLRendererDestroyCallbacks[winID] = win->AddOnSDLRendererDestroy([this, winID]() { FreeForWindow(winID); });
+            m_windowSDLRendererDestroyCallbacks[winID] = win->AddOnSDLRendererDestroy([this, winID]() { 
+                FreeForWindow(winID);
+            });
         }
 
         SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer, m_textureSurface.GetSurface());

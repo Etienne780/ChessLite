@@ -118,18 +118,19 @@ namespace SDLCore {
 
         std::cout << "[QuitInternal] Calling SDL_Quit...\n";
 
-        DeleteAllWindows();
-        Input::Quit();
-        SoundManager::Quit();
         TextureManager::GetInstance().ClearAllTexturesEntries();
         FontManager::GetInstance().ClearAllFontEntries();
+  
+        DeleteAllWindows();
 
+        Input::Quit();
+        SoundManager::Quit();
+
+        s_sdlQuit = true;
         NET_Quit();
         MIX_Quit();
         TTF_Quit();
         SDL_Quit();
-
-        s_sdlQuit = true;
     }
 
     int Application::Start() {
@@ -155,6 +156,8 @@ namespace SDLCore {
 
             LockCursor();
             FPSCapDelay(frameStart);
+
+            ProcessWindowClosureRequests();
         }
         s_closeApplication = true;
         OnQuit();
@@ -508,20 +511,14 @@ namespace SDLCore {
                 ProcessSDLPollEventWindow(window);
             }
         }
-
-        for (auto& id : m_windowsToClose) {
-            auto* win = GetWindow(id);
-            DeleteWindow(id);
-        }
-        m_windowsToClose.clear();
     }
 
     void Application::ProcessSDLPollEventWindow(const std::unique_ptr<Window>& window) {
         SDL_WindowID sdlWindowID = window->GetSDLID();
-        if (m_sdlEvent.type == SDL_EVENT_QUIT) { 
+        /*if (m_sdlEvent.type == SDL_EVENT_QUIT) {
             Quit(); 
             return; 
-        }
+        }*/
         
         if (m_sdlEvent.window.windowID != sdlWindowID || sdlWindowID == SDLCORE_INVALID_ID)
             return;
@@ -555,6 +552,26 @@ namespace SDLCore {
         }
 
         Input::ProcessEvent(m_sdlEvent);
+    }
+
+    void Application::ProcessWindowClosureRequests() {
+        if (m_windowsToClose.empty())
+            return;
+
+        std::cout << "[ProcessWindowClosureRequests] Processing " << m_windowsToClose.size()
+            << " window(s) for closure\n";
+
+        for (auto& id : m_windowsToClose) {
+            auto* win = GetWindow(id);
+            if (win) {
+                std::cout << "[ProcessWindowClosureRequests] Deleting window: "
+                    << win->GetName() << "\n";
+                DeleteWindow(id);
+            }
+        }
+        m_windowsToClose.clear();
+
+        std::cout << "[ProcessWindowClosureRequests] Complete\n";
     }
 
     void Application::FPSCapDelay(uint64_t frameStartTime) const {

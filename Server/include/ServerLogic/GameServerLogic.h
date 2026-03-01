@@ -33,11 +33,13 @@ private:
 	void HandleReceiveSQLSyncMissingData(OTN::OTNReader& reader, const PendingSQLRequest& pending);
 	void HandleReceiveSQLServerAgentIDList(OTN::OTNReader& reader, const PendingSQLRequest& pending);
 	void HandleReceiveSQLServerAgentList(OTN::OTNReader& reader, const PendingSQLRequest& pending);
+	void HandleReceiveSQLDeleteAgentsResult(OTN::OTNReader& reader, const PendingSQLRequest& pending);
 
 	void HandleRequest(NET_StreamSocket* client, const Request& req);
 	void HandleSyncMissingData(NET_StreamSocket* client, uint32_t requestID, const OTN::OTNObject& body);
 	void HandleServerAgentIDList(NET_StreamSocket* client, uint32_t requestID);
 	void HandleGetMissinAgents(NET_StreamSocket* client, uint32_t requestID, const OTN::OTNObject& body);
+	void HandleDeleteAgents(NET_StreamSocket* client, uint32_t requestID, const OTN::OTNObject& body);
 
 	OTN::OTNObject CreateSQLRequestHeader(const std::string& action, NET_StreamSocket* client, uint32_t requestID);
 

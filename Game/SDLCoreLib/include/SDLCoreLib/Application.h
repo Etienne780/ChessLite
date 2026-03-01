@@ -664,6 +664,14 @@ namespace SDLCore {
 		void QuitInternal();
 		void ProcessSDLPollEvents();
 		void ProcessSDLPollEventWindow(const std::unique_ptr<Window>& window);
+		/**
+		* @brief Processes and removes windows that were marked for closure.
+		* Should be called after the complete render cycle to ensure no rendering
+		* happens on deleted windows.
+		*
+		* Called at the end of each frame in the main loop.
+		*/
+		void ProcessWindowClosureRequests();
 		void FPSCapDelay(uint64_t frameStartTime) const;
 		void LockCursor();
 		/*

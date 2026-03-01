@@ -174,7 +174,7 @@ namespace OTN {
 		if (desc.baseType == OTNBaseType::OBJECT) {
 			const auto& obj = std::get<OTNObjectPtr>(current->value);
 			if (obj)
-				desc.refObjectName = obj->GetName();
+				desc.refObjectName = obj->GetObjectName();
 		}
 
 		if (desc.baseType == OTNBaseType::OBJECT_REF) {
@@ -349,11 +349,11 @@ namespace OTN {
 		return m_error;
 	}
 
-	std::string OTNObject::GetName() const {
+	std::string OTNObject::GetObjectName() const {
 		return m_name;
 	}
 
-	bool OTNObject::SetName(const std::string& name) {
+	bool OTNObject::SetObjectName(const std::string& name) {
 		bool result = DebugIsNameValid(name);
 		if(result)
 			m_name = name;
@@ -651,7 +651,7 @@ namespace OTN {
 
 	// ======== OTNObjectBuilder ========
 	OTNObjectBuilder::OTNObjectBuilder(const OTNObject& obj)
-		: m_objectName(obj.GetName()), m_otnObjectFromT(false) {
+		: m_objectName(obj.GetObjectName()), m_otnObjectFromT(false) {
 	
 		const std::vector<OTNRow>& rows = obj.GetDataRows();
 		if (rows.empty()) {
@@ -786,8 +786,8 @@ namespace OTN {
 	OTNWriter& OTNWriter::AppendObject(const OTNObject& object) {
 #ifndef NDEBUG
 		for (const auto& obj : m_objects) {
-			if (obj.GetName() == object.GetName()) {
-				AddError("Could not append object '" + object.GetName() + "', an object with the name already exists!");
+			if (obj.GetObjectName() == object.GetObjectName()) {
+				AddError("Could not append object '" + object.GetObjectName() + "', an object with the name already exists!");
 				return *this;
 			}
 		}
@@ -1041,7 +1041,7 @@ namespace OTN {
 					msg.pop_back();
 				}
 
-				std::string objName = obj.GetName();
+				std::string objName = obj.GetObjectName();
 				AddError("Object '" + objName + "' is invalid, Error: '" + msg + "'!");
 				m_error += "\n";
 				valid = false;
@@ -1129,7 +1129,7 @@ namespace OTN {
 		if (current->type == OTNBaseType::OBJECT) {
 			const auto& obj = std::get<OTNObjectPtr>(current->value);
 			if (obj)
-				result.refObjectName = obj->GetName();
+				result.refObjectName = obj->GetObjectName();
 		}
 
 		return result;
@@ -1169,7 +1169,7 @@ namespace OTN {
 		auto& objectMap = data.objects;
 
 		// Create or get SerializedObject
-		auto [it, inserted] = objectMap.try_emplace(object.GetName());
+		auto [it, inserted] = objectMap.try_emplace(object.GetObjectName());
 		SerializedObject& serObj = it->second;
 
 		if (inserted) {
@@ -2106,7 +2106,7 @@ namespace OTN {
 		if (value.type == OTNBaseType::OBJECT) {
 			OTNObjectPtr& ptr = std::get<OTNObjectPtr>(value.value);
 			if (!ptr) return true;
-			return ResolveObjectRefsInObject(ptr->GetName(), *ptr);
+			return ResolveObjectRefsInObject(ptr->GetObjectName(), *ptr);
 		}
 
 		if (value.type == OTNBaseType::LIST) {
@@ -2389,8 +2389,8 @@ namespace OTN {
 				if (pos >= types.size()) {
 					AddError(Peek(), "Row '" 
 						+ std::to_string(currentRowCount)
-						+ "' of object '" + obj.GetName() 
-						+ "' has t0o many values! '" 
+						+ "' of object '" + obj.GetObjectName()
+						+ "' has too many values! '" 
 						+ std::to_string(types.size()) 
 						+ "' '" + std::to_string(pos) + "'");
 					return false;

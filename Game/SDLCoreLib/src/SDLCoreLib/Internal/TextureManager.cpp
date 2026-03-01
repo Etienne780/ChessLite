@@ -34,7 +34,8 @@ namespace SDLCore {
 	}
 
 	TextureManager::~TextureManager() {
-		ClearAllTexturesEntries();
+		if (!IsSDLQuit())
+			ClearAllTexturesEntries();
 	}
 
 	TextureManager& TextureManager::GetInstance() {

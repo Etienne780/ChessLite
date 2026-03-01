@@ -83,6 +83,8 @@ void GameServerLogic::HandleSQLServer(const std::string& msg) {
         HandleReceiveSQLServerAgentIDList(reader, pending);
     else if (action == "HandleGetMissinAgents")
         HandleReceiveSQLServerAgentList(reader, pending);
+    else if(action == "HandleDeleteAgentsResult")
+        HandleReceiveSQLDeleteAgentsResult(reader, pending);
     else
         std::cerr << "Unkown action game server '" << *action << "'\n";
 
@@ -112,7 +114,7 @@ void GameServerLogic::HandleReceiveSQLServerAgentIDList(OTN::OTNReader& reader, 
     auto idsObj = reader.TryGetObject("Result");
     if (!idsObj)
         return;
-    idsObj->SetName("List");
+    idsObj->SetObjectName("List");
 
     OTN::OTNWriter writer;
     writer.AppendObject(*idsObj);
@@ -142,6 +144,26 @@ void GameServerLogic::HandleReceiveSQLServerAgentList(OTN::OTNReader& reader, co
         writer.AppendObject(*boardStateObj);
     if (gameMoveObj)
         writer.AppendObject(*gameMoveObj);
+
+    std::string payload;
+    if (!writer.SaveToString(payload))
+        return;
+
+    Request response;
+    response.id = pending.clientRequestID;
+    response.response = true;
+    response.otnPayload = payload;
+
+    SentRequest(pending.client, response);
+}
+
+void GameServerLogic::HandleReceiveSQLDeleteAgentsResult(OTN::OTNReader& reader, const PendingSQLRequest& pending) {
+    auto idsObj = reader.TryGetObject("Result");
+    if (!idsObj)
+        return;
+
+    OTN::OTNWriter writer;
+    writer.AppendObject(*idsObj);
 
     std::string payload;
     if (!writer.SaveToString(payload))
@@ -187,6 +209,8 @@ void GameServerLogic::HandleRequest(NET_StreamSocket* client, const Request& req
         HandleServerAgentIDList(client, req.id);
     else if (*action == "RequestMissingAgents")
         HandleGetMissinAgents(client, req.id, *body);
+    else if (action == "SyncDeleteData")
+        HandleDeleteAgents(client, req.id, *body);
     else
         std::cerr << "Unkown action game server '" << *action << "'\n";
 }
@@ -237,6 +261,25 @@ void GameServerLogic::HandleGetMissinAgents(NET_StreamSocket* client, uint32_t r
 
     OTN::OTNObject headerObj = CreateSQLRequestHeader("HandleGetMissinAgents", client, requestID);
     
+    OTN::OTNWriter writer;
+    writer.AppendObject(headerObj);
+    writer.AppendObject(body);
+
+    std::string msg;
+    writer.SaveToString(msg);
+
+    NetServerManager::SendMessage(
+        m_server,
+        "sql_server",
+        msg
+    );
+}
+
+void GameServerLogic::HandleDeleteAgents(NET_StreamSocket* client, uint32_t requestID, const OTN::OTNObject& body) {
+    int64_t internalID = RegisterPendingSQL(client, requestID);
+
+    OTN::OTNObject headerObj = CreateSQLRequestHeader("HandleDeleteAgents", client, requestID);
+
     OTN::OTNWriter writer;
     writer.AppendObject(headerObj);
     writer.AppendObject(body);

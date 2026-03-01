@@ -271,8 +271,7 @@ namespace Layers {
                     std::remove_if(
                         m_inputBarText.begin(),
                         m_inputBarText.end(),
-                        [this](char c)
-                        {
+                        [this](char c) {
                             return !IsValidAgentNameChar(c);
                         }),
                     m_inputBarText.end());
@@ -423,6 +422,7 @@ namespace Layers {
                 if (ctx->selectedAgentID1 == agentID) ctx->selectedAgentID1 = AgentID{};
                 if (ctx->selectedAgentID2 == agentID) ctx->selectedAgentID2 = AgentID{};
                 ctx->agentManager.RemoveAgent(agentID);
+                ctx->app->SaveUserData();
                 RE::ResetClipRect();
                 return;
             }
@@ -439,10 +439,12 @@ namespace Layers {
                 RE::SetColor(r, g, b);
                 RE::Text(label, badgeX + 8, badgeY + 3);
                 badgeX -= 6.0f;
-                };
+            };
 
-            if (isAgent2) drawBadge("Agent 2", 180, 90, 255);
-            if (isAgent1) drawBadge("Agent 1", 90, 150, 255);
+            if (isAgent2) 
+                drawBadge("Agent 2", 180, 90, 255);
+            if (isAgent1) 
+                drawBadge("Agent 1", 90, 150, 255);
 
             // Click to assign
             if (clicked && isHovered && !delHovered) {

@@ -191,8 +191,8 @@ namespace SDLCore::Render {
         }
 
         s_winID = winID;
-        auto app = Application::GetInstance();
-        auto win = app->GetWindow(winID);
+        Application* app = Application::GetInstance();
+        Window* win = app->GetWindow(winID);
 
         if (!win) {
             s_winID.value = SDLCORE_INVALID_ID;
@@ -227,6 +227,7 @@ namespace SDLCore::Render {
                         win->RemoveOnSDLRendererDestroy(*idPtr);
                         SDL_Renderer* renderer = win->GetSDLRenderer();
                         if (renderer) {
+                            SDL_RenderClear(renderer);
                             ClearTextCacheForRenderer(renderer);
                         }
                     }

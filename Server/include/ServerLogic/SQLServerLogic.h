@@ -54,6 +54,7 @@ private:
     void HandleInsertAgents(const std::string& dstServer, uint32_t requestID, OTN::OTNReader& reader);
     void HandleGetAgentIDs(const std::string& dstServer, uint32_t requestID, OTN::OTNReader& reader);
     void HandleGetMissinAgents(const std::string& dstServer, uint32_t requestID, OTN::OTNReader& reader);
+    void HandleDeleteAgents(const std::string& dstServer, uint32_t requestID, OTN::OTNReader& reader);
 
     OTN::OTNObject CreateRequestHeader(const std::string& action, uint32_t requestID, bool response = true);
     void SentError(const std::string& errorMsg, const std::string dstServer, const std::string& action, uint32_t requestID);

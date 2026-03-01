@@ -53,6 +53,9 @@ void AgentSyncService::FullSync(AppContext* ctx) {
 	if (!ctx || m_isSyncInProgress)
 		return;
 
+	// sync agnet on db but not on local
+	RequestMissingAgentsFromServer(ctx);
+
 	const auto& missingIDs = ctx->agentManager.GetUnregisteredAgentIDs();
 	if (!missingIDs.empty())
 		SyncMissingData(ctx, missingIDs);
@@ -60,8 +63,9 @@ void AgentSyncService::FullSync(AppContext* ctx) {
 	// sync agent not on db but local with db ID
 	RequestServerAgentIDList(ctx);
 
-	// sync agnet on db but not on local
-	RequestMissingAgentsFromServer(ctx);
+	const auto& deletedIDs = ctx->agentManager.GetDeletedServerAgents();
+	if (!deletedIDs.empty())
+		SyncDelete(ctx, deletedIDs);
 }
 
 void AgentSyncService::Sync(AppContext* ctx) {
@@ -71,6 +75,10 @@ void AgentSyncService::Sync(AppContext* ctx) {
 	const auto& missingIDs = ctx->agentManager.GetUnregisteredAgentIDs();
 	if (!missingIDs.empty())
 		SyncMissingData(ctx, missingIDs);
+
+	const auto& deletedIDs = ctx->agentManager.GetDeletedServerAgents();
+	if (!deletedIDs.empty())
+		SyncDelete(ctx, deletedIDs);
 }
 
 bool AgentSyncService::IsSyncInProgress() const {
@@ -97,6 +105,7 @@ void AgentSyncService::RemoveSyncAction() {
 			return;
 
 		ctx->agentManager.Save(FilePaths::GetDataPath());
+		ctx->app->SaveUserData();
 	}
 }
 
@@ -169,7 +178,7 @@ void AgentSyncService::RequestMissingAgentsFromServer(AppContext* ctx) {
 void AgentSyncService::SyncMissingData(AppContext* ctx, const std::unordered_set<AgentID>& ids) {
 	OTN::OTNObject headerObj = ctx->gameClient.CreateHeaderBlock("SyncMissingData");
 	OTN::OTNObject bodyObj = ctx->agentManager.BuildOTNObjectFromIDs(ids, true);
-	bodyObj.SetName("body");
+	bodyObj.SetObjectName("body");
 
 	std::string msg;
 	OTN::OTNWriter writer;
@@ -196,8 +205,36 @@ void AgentSyncService::SyncMissingData(AppContext* ctx, const std::unordered_set
 		});
 }
 
-void AgentSyncService::SyncDelete(AppContext* ctx, const std::unordered_set<AgentID>& ids) {
-	
+void AgentSyncService::SyncDelete(AppContext* ctx, const std::vector<AgentID>& ids) {
+	OTN::OTNObject headerObj = ctx->gameClient.CreateHeaderBlock("SyncDeleteData");
+	OTN::OTNObject bodyObj{ "body" };
+	bodyObj.SetNames("ids");
+	bodyObj.SetTypes("int64");
+	for (auto id : ids)
+		bodyObj.AddDataRow(static_cast<int64_t>(id.value));
+
+	std::string msg;
+	OTN::OTNWriter writer;
+	writer.AppendObject(headerObj);
+	writer.AppendObject(bodyObj);
+	if (!writer.SaveToString(msg)) {
+		Log::Error("Failed to sync agents: {}", writer.GetError());
+		return;
+	}
+
+	AddSyncAction();
+	auto self = shared_from_this();
+
+	ctx->gameClient.Send(msg,
+		[self](bool result, const std::string& payload) {
+			if (!result) {
+				self->RemoveSyncAction();
+				Log::Error("Failed to sync agents: {}", payload);
+				return;
+			}
+			self->HandleDeletedAgents();
+			self->RemoveSyncAction();
+		});
 }
 
 void AgentSyncService::RegisterAgents(const std::string& serverIDs) {
@@ -374,6 +411,17 @@ void AgentSyncService::HandleAddAgents(const std::string& agentList) {
 		agent.SetServerID(AgentID(static_cast<uint32_t>(*serverID)));
 		ctx->agentManager.AddAgent(agent);
 	}
+}
+
+void AgentSyncService::HandleDeletedAgents() {
+	auto* app = App::GetInstance();
+	if (!app)
+		return;
+	auto* ctx = app->GetContext();
+	if (!ctx)
+		return;
+
+	ctx->agentManager.ClearDeletedServerAgents();
 }
 
 void AgentSyncService::GlobalCallback(const std::string& msg) {

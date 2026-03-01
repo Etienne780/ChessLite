@@ -34,7 +34,8 @@ namespace SDLCore {
 	}
 
 	FontManager::~FontManager() {
-		ClearAllFontEntries();
+		if (!IsSDLQuit())
+			ClearAllFontEntries();
 	}
 
 	FontManager& FontManager::GetInstance() {

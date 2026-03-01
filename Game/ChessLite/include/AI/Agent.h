@@ -32,6 +32,7 @@ public:
 
 	AgentID GetID() const;
 	AgentID GetServerID() const;
+	size_t GetVersion() const;
 	const std::string& GetName() const;
 	const std::string& GetChessConfig() const;
 	int GetMatchesPlayed() const;
@@ -53,6 +54,7 @@ private:
 	bool m_gameFinished = true;
 	AgentID m_id;
 	AgentID m_serverID{ 0 };
+	size_t m_version = 0;
 	std::string m_name = "UNKOWN";
 	int m_matchesPlayed = 0;
 	int m_matchesWon = 0;
@@ -66,6 +68,8 @@ private:
 	
 	std::string GetNormalizedBoardStr(const CoreChess::ChessBoard& board, bool isWhite);
 
+	// is for loading agents
 	void SetID(AgentID id);
 	void SetServerID(AgentID id);
+	void SetVersion(size_t version);
 };

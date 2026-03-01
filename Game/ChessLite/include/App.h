@@ -69,9 +69,10 @@ public:
 	*/
 	void PopLayer(LayerID layerID);
 
-	void LoadUserData(const OTN::OTNObject& object);
-
 	void ClearLayers();
+
+	bool SaveUserData();
+	void LoadUserData(const OTN::OTNObject& object);
 
 	SDLCore::WindowID GetWinID() const;
 	size_t GetLayerCount() const;
@@ -99,8 +100,6 @@ private:
 	void InstantiateWindow();
 	void ConnectClient();
 	void WindowCleanup();
-
-	bool SaveUserData();
 
 	void ProcessLayerCommands();
 	void ProcessGameClient();
