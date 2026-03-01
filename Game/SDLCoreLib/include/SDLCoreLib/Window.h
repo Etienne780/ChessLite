@@ -732,8 +732,8 @@ namespace SDLCore {
 
 		// ======= Renderer properties =======
 		int m_vsync = 0;
-		std::unique_ptr<SDL_Window, void(*)(SDL_Window*)> m_sdlWindow{ nullptr, SDL_DestroyWindow };
-		std::unique_ptr<SDL_Renderer, void(*)(SDL_Renderer*)> m_sdlRenderer{ nullptr, SDL_DestroyRenderer };
+		SDL_Window* m_sdlWindow = nullptr;
+		SDL_Renderer* m_sdlRenderer = nullptr;
 
 		// Adds a callback of arbitrary type CBType
 		// CBType must match the type stored in the corresponding vector

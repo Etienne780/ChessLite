@@ -53,6 +53,7 @@ private:
 
     void HandleInsertAgents(const std::string& dstServer, uint32_t requestID, OTN::OTNReader& reader);
     void HandleGetAgentIDs(const std::string& dstServer, uint32_t requestID, OTN::OTNReader& reader);
+    void HandleGetMissinAgents(const std::string& dstServer, uint32_t requestID, OTN::OTNReader& reader);
 
     OTN::OTNObject CreateRequestHeader(const std::string& action, uint32_t requestID, bool response = true);
     void SentError(const std::string& errorMsg, const std::string dstServer, const std::string& action, uint32_t requestID);
@@ -79,7 +80,7 @@ private:
             std::unique_ptr<sql::PreparedStatement> stmt(m_connection->prepareStatement(query));
 
             int index = 1;
-            (BindParam(stmt.get(), index++, args), ...);
+            (void)std::initializer_list<int>{(index = BindParam(stmt.get(), index, args), 0)...};
 
             std::unique_ptr<sql::ResultSet> res(stmt->executeQuery());
             sql::ResultSetMetaData* metaData = res->getMetaData();
@@ -106,6 +107,7 @@ private:
 
             OTN::OTNObject obj("Result");
             obj.SetNamesList(columnNames);
+            obj.SetTypesList(GetTypesFromColumns(columnTypes));
 
             while (res->next()) {
                 OTN::OTNRow rowValues;
@@ -122,14 +124,20 @@ private:
                     case sql::DataType::DOUBLE:
                         rowValues.emplace_back(static_cast<double>(res->getDouble(i + 1)));
                         break;
+                    case sql::DataType::DECIMAL:
+                    case sql::DataType::REAL:
+                        rowValues.emplace_back(static_cast<float>(res->getDouble(i + 1)));
+                        break;
                     case sql::DataType::BIT:
                         rowValues.emplace_back(res->getBoolean(i + 1));
                         break;
+                    case sql::DataType::CHAR:
+                    case sql::DataType::LONGVARCHAR:
                     case sql::DataType::VARCHAR:
                         rowValues.emplace_back(static_cast<std::string>(res->getString(i + 1)));
                         break;
                     default:
-                        rowValues.emplace_back();
+                        std::cerr << "SQL Invalid data type '" << columnTypes[i] << "'\n";
                         break;
                     }
                 }
@@ -191,7 +199,7 @@ private:
             );
 
             int index = 1;
-            (BindParam(stmt.get(), index++, args), ...);
+            (void)std::initializer_list<int>{(index = BindParam(stmt.get(), index, args), 0)...};
 
             stmt->execute();
         }
@@ -243,7 +251,7 @@ private:
             int index = 1;
             for (const auto& row : rows) {
                 std::apply([&](auto&&... args) {
-                    ((BindParam(stmt.get(), index++, args)), ...);
+                    (void)std::initializer_list<int>{(index = BindParam(stmt.get(), index, args), 0)...};
                 }, row);
             }
 
@@ -255,25 +263,81 @@ private:
         }
     }
 
-    void BindParam(sql::PreparedStatement* stmt, int index, const std::optional<std::string>& value);
-    void BindParam(sql::PreparedStatement* stmt, int index, const std::optional<int>& value);
-    void BindParam(sql::PreparedStatement* stmt, int index, const std::optional<int64_t>& value);
-    void BindParam(sql::PreparedStatement* stmt, int index, const std::optional<double>& value);
-    void BindParam(sql::PreparedStatement* stmt, int index, const std::optional<bool>& value);
+    std::vector<std::string> GetTypesFromColumns(const std::vector<int>& types) {
+        std::vector<std::string> result;
+        result.reserve(types.size());
 
-    inline void BindParam(sql::PreparedStatement* stmt, int index, int value) {
-        BindParam(stmt, index, std::optional<int>{value});
+        namespace OTNTypes = OTN::Syntax::Types;
+
+        for (int t : types) {
+            switch (t) {
+            case sql::DataType::INTEGER:
+                result.emplace_back(OTNTypes::INT);
+                break;
+
+            case sql::DataType::BIGINT:
+                result.emplace_back(OTNTypes::INT64);
+                break;
+
+            case sql::DataType::DOUBLE:
+                result.emplace_back(OTNTypes::DOUBLE);
+                break;
+
+            case sql::DataType::DECIMAL:
+            case sql::DataType::REAL:
+                result.emplace_back(OTNTypes::FLOAT);
+                break;
+
+            case sql::DataType::BIT:
+                result.emplace_back(OTNTypes::BOOL);
+                break;
+
+            case sql::DataType::CHAR:
+            case sql::DataType::LONGVARCHAR:
+            case sql::DataType::VARCHAR:
+                result.emplace_back(OTNTypes::STRING);
+                break;
+
+            default:
+                result.emplace_back(OTNTypes::STRING);
+                break;
+            }
+        }
+
+        return result;
     }
-    inline void BindParam(sql::PreparedStatement* stmt, int index, int64_t value) {
-        BindParam(stmt, index, std::optional<int64_t>{value});
+
+    template<typename T>
+    int BindParam(sql::PreparedStatement* stmt,
+        int index,
+        const std::vector<T>& values)
+    {
+        for (const auto& v : values) {
+            index = BindParam(stmt, index, v);
+        }
+
+        return index;
     }
-    inline void BindParam(sql::PreparedStatement* stmt, int index, double value) {
-        BindParam(stmt, index, std::optional<double>{value});
+
+    int BindParam(sql::PreparedStatement* stmt, int index, const std::optional<std::string>& value);
+    int BindParam(sql::PreparedStatement* stmt, int index, const std::optional<int>& value);
+    int BindParam(sql::PreparedStatement* stmt, int index, const std::optional<int64_t>& value);
+    int BindParam(sql::PreparedStatement* stmt, int index, const std::optional<double>& value);
+    int BindParam(sql::PreparedStatement* stmt, int index, const std::optional<bool>& value);
+
+    inline int BindParam(sql::PreparedStatement* stmt, int index, int value) {
+        return BindParam(stmt, index, std::optional<int>{value});
     }
-    inline void BindParam(sql::PreparedStatement* stmt, int index, bool value) {
-        BindParam(stmt, index, std::optional<bool>{value});
+    inline int BindParam(sql::PreparedStatement* stmt, int index, int64_t value) {
+        return BindParam(stmt, index, std::optional<int64_t>{value});
     }
-    inline void BindParam(sql::PreparedStatement* stmt, int index, const std::string& value) {
-        BindParam(stmt, index, std::optional<std::string>{value});
+    inline int BindParam(sql::PreparedStatement* stmt, int index, double value) {
+        return BindParam(stmt, index, std::optional<double>{value});
+    }
+    inline int BindParam(sql::PreparedStatement* stmt, int index, bool value) {
+        return BindParam(stmt, index, std::optional<bool>{value});
+    }
+    inline int BindParam(sql::PreparedStatement* stmt, int index, const std::string& value) {
+        return BindParam(stmt, index, std::optional<std::string>{value});
     }
 };

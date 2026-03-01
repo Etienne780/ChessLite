@@ -6,6 +6,7 @@ class GameMove {
 public:
 	GameMove() = default;
 	GameMove(const Vector2& from, const Vector2& to);
+	GameMove(int fromX, int fromY, int toX, int toY);
 	~GameMove() = default;
 
 	const Vector2& GetFrom() const;

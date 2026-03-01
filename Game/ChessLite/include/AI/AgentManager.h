@@ -41,6 +41,8 @@ public:
 	*         their corresponding local and server IDs.
 	*/
 	std::vector<std::pair<AgentID, AgentID>> GetAgentIDAndServerIDs() const;
+	std::vector<AgentID> GetAgentID() const;
+	std::vector<AgentID> GetAgentServerIDs() const;
 	const std::unordered_map<AgentID, Agent>& GetAgents() const;
 	const std::unordered_set<AgentID>& GetUnregisteredAgentIDs() const;
 
@@ -52,5 +54,6 @@ private:
 	std::vector<AgentID> m_deletedServerAgents;
 
 	const std::vector<AgentID>& GetDeletedServerAgents() const;
+	void SetDeletedServerAgents(const std::vector<AgentID>& ids);
 	void ClearDeletedServerAgents();
 };

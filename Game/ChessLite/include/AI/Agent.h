@@ -17,6 +17,7 @@ struct AgentPersistentData {
 };
 
 class Agent {
+friend class AgentSyncService;
 friend class AgentManager;
 public:
 	Agent() = default;

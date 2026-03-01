@@ -5,6 +5,7 @@ namespace FilePaths {
 
 	const char* agentsFileName = "Agents.otn";
 	const char* optionsFileName = "Settings.otn";
+	const char* userFileName = "User.otn";
 
 	static SystemFilePath s_exePath;
 	static SystemFilePath s_assetsPath;

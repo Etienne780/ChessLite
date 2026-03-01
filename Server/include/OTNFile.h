@@ -534,6 +534,7 @@ namespace OTN {
 		* @param name Unique identifier for this object type
 		*/
 		explicit OTNObject(const std::string& name);
+		OTNObject() = default;
 
 		OTNObject(const OTNObject& other) noexcept;
 		OTNObject& operator=(const OTNObject& other) noexcept;

@@ -41,8 +41,19 @@ void NetServer::Run() {
 	m_running = true;
 
 	while (m_running) {
+		{
+			std::lock_guard<std::mutex> guard(m_serverMsgMutex);
+			while (!m_serverMsgQueue.empty()) {
+				auto& [serverName, msg] = m_serverMsgQueue.front();
+
+				if (m_logic)
+					m_logic->OnServerMessageExternal(serverName, msg);
+				m_serverMsgQueue.pop();
+			}
+		}
+
 		if (m_logic)
-			m_logic->OnRun();
+			m_logic->OnRunExternal();
 
 		NET_StreamSocket* client = WaitForClient();
 		if (!client) {
@@ -76,7 +87,7 @@ NetServer::NetServer(const std::string& name)
 
 void NetServer::HandleClient(NET_StreamSocket* client) const {
 	if (m_logic)
-		m_logic->OnClientConnected(client);
+		m_logic->OnClientConnectedExternal(client);
 
 	char buffer[512];
 	while (true) {
@@ -87,7 +98,7 @@ void NetServer::HandleClient(NET_StreamSocket* client) const {
 			// std::cout << "[" << m_name << "] Received: " << msg << "\n";
 
 			if (m_logic)
-				m_logic->OnMessage(client, msg);
+				m_logic->OnMessageExternal(client, msg);
 		}
 		else if (received == 0) {
 			SDL_Delay(10);
@@ -99,7 +110,7 @@ void NetServer::HandleClient(NET_StreamSocket* client) const {
 	}
 
 	if (m_logic)
-		m_logic->OnClientDisconnected(client);
+		m_logic->OnClientDisconnectedExternal(client);
 
 	NET_DestroyStreamSocket(client);
 }

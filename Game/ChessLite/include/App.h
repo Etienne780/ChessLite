@@ -69,7 +69,7 @@ public:
 	*/
 	void PopLayer(LayerID layerID);
 
-	bool LoadUserData();
+	void LoadUserData(const OTN::OTNObject& object);
 
 	void ClearLayers();
 

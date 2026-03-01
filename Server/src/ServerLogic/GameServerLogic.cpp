@@ -15,11 +15,13 @@ void GameServerLogic::OnMessage(NET_StreamSocket* client, const std::string& msg
     if (!client)
         return;
 
-    Request req = GetRequest(msg);
-    if (!req.response)
-        return;
+    auto reqs = GetRequests(msg);
+    for (auto& r : reqs) {
+        if (!r.response)
+            continue;
 
-    HandleRequest(client, req);
+        HandleRequest(client, r);
+    }
 }
 
 void GameServerLogic::OnServerMessage(
@@ -77,8 +79,10 @@ void GameServerLogic::HandleSQLServer(const std::string& msg) {
 
     if (action == "InsertAgentsResult")
         HandleReceiveSQLSyncMissingData(reader, pending);
-    else if(action == "GetAgentIDResult")
+    else if (action == "GetAgentIDResult")
         HandleReceiveSQLServerAgentIDList(reader, pending);
+    else if (action == "HandleGetMissinAgents")
+        HandleReceiveSQLServerAgentList(reader, pending);
     else
         std::cerr << "Unkown action game server '" << *action << "'\n";
 
@@ -125,6 +129,32 @@ void GameServerLogic::HandleReceiveSQLServerAgentIDList(OTN::OTNReader& reader, 
     SentRequest(pending.client, response);
 }
 
+void GameServerLogic::HandleReceiveSQLServerAgentList(OTN::OTNReader& reader, const PendingSQLRequest& pending) {
+    auto agentObj = reader.TryGetObject("agents");
+    auto boardStateObj = reader.TryGetObject("board_states");
+    auto gameMoveObj = reader.TryGetObject("game_moves");
+    if (!agentObj)
+        return;
+
+    OTN::OTNWriter writer;
+    writer.AppendObject(*agentObj);
+    if (boardStateObj)
+        writer.AppendObject(*boardStateObj);
+    if (gameMoveObj)
+        writer.AppendObject(*gameMoveObj);
+
+    std::string payload;
+    if (!writer.SaveToString(payload))
+        return;
+
+    Request response;
+    response.id = pending.clientRequestID;
+    response.response = true;
+    response.otnPayload = payload;
+
+    SentRequest(pending.client, response);
+}
+
 void GameServerLogic::HandleRequest(NET_StreamSocket* client, const Request& req) {
     OTN::OTNReader reader;
     if (!reader.ReadString(req.otnPayload)) {
@@ -155,6 +185,8 @@ void GameServerLogic::HandleRequest(NET_StreamSocket* client, const Request& req
         HandleSyncMissingData(client, req.id, *body);
     else if (*action == "GetAgentIDList")
         HandleServerAgentIDList(client, req.id);
+    else if (*action == "RequestMissingAgents")
+        HandleGetMissinAgents(client, req.id, *body);
     else
         std::cerr << "Unkown action game server '" << *action << "'\n";
 }
@@ -200,6 +232,25 @@ void GameServerLogic::HandleServerAgentIDList(NET_StreamSocket* client, uint32_t
     );
 }
 
+void GameServerLogic::HandleGetMissinAgents(NET_StreamSocket* client, uint32_t requestID, const OTN::OTNObject& body) {
+    int64_t internalID = RegisterPendingSQL(client, requestID);
+
+    OTN::OTNObject headerObj = CreateSQLRequestHeader("HandleGetMissinAgents", client, requestID);
+    
+    OTN::OTNWriter writer;
+    writer.AppendObject(headerObj);
+    writer.AppendObject(body);
+
+    std::string msg;
+    writer.SaveToString(msg);
+
+    NetServerManager::SendMessage(
+        m_server,
+        "sql_server",
+        msg
+    );
+}
+
 OTN::OTNObject GameServerLogic::CreateSQLRequestHeader(const std::string& action, NET_StreamSocket* client, uint32_t requestID) {
     int64_t internalID = RegisterPendingSQL(client, requestID);
 
@@ -211,12 +262,15 @@ OTN::OTNObject GameServerLogic::CreateSQLRequestHeader(const std::string& action
     return headerObj;
 }
 
-GameServerLogic::Request GameServerLogic::GetRequest(const std::string& msg) {
-    Request req;
-    req.response = false;
+std::vector<GameServerLogic::Request>
+GameServerLogic::GetRequests(const std::string& msg) {
+    std::vector<Request> reqs;
 
-    // packet: [size][[id][payload length][payload bytes]]
-    m_receiveBuffer.insert(m_receiveBuffer.end(), msg.begin(), msg.end());
+    m_receiveBuffer.insert(
+        m_receiveBuffer.end(),
+        msg.begin(),
+        msg.end()
+    );
 
     while (m_receiveBuffer.size() >= sizeof(uint32_t)) {
         uint32_t length = 0;
@@ -224,33 +278,37 @@ GameServerLogic::Request GameServerLogic::GetRequest(const std::string& msg) {
 
         if (length > MAX_PACKET_SIZE) {
             m_receiveBuffer.clear();
-            return req;
+            break;
         }
 
-        // return early because full data is not there
         if (m_receiveBuffer.size() < sizeof(uint32_t) + length)
-            return req;
+            break;
 
-        std::vector<uint8_t> packet(m_receiveBuffer.begin() + sizeof(uint32_t),
-            m_receiveBuffer.begin() + sizeof(uint32_t) + length);
+        std::vector<uint8_t> packet(
+            m_receiveBuffer.begin() + sizeof(uint32_t),
+            m_receiveBuffer.begin() + sizeof(uint32_t) + length
+        );
+
         BinaryDeserializer des(packet);
-
-        uint32_t id = des.Read<uint32_t>();
-        std::vector<uint8_t> payloadData = des.ReadVector<uint8_t>();
-        std::string payload(payloadData.begin(), payloadData.end());
-
-        req.id = id;
+        Request req;
         req.response = true;
-        req.otnPayload = payload;
+        req.id = des.Read<uint32_t>();
+        std::vector<uint8_t> payloadData = des.ReadVector<uint8_t>();
+
+        req.otnPayload.assign(
+            payloadData.begin(),
+            payloadData.end()
+        );
+
+        reqs.push_back(std::move(req));
 
         m_receiveBuffer.erase(
-            m_receiveBuffer.begin(), 
-            m_receiveBuffer.begin() + sizeof(uint32_t) + length);
-
-        return req;
+            m_receiveBuffer.begin(),
+            m_receiveBuffer.begin() + sizeof(uint32_t) + length
+        );
     }
 
-    return req;
+    return reqs;
 }
 
 bool GameServerLogic::SentRequest(NET_StreamSocket* client, const Request& request) {

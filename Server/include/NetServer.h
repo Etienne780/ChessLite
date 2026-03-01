@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <atomic>
+#include <queue>
 
 #include <SDL3/SDL.h>
 #include <SDL3_net/SDL_net.h>
@@ -37,6 +38,8 @@ private:
 	NET_Server* m_server = nullptr;
 	bool m_isInitialized = false;
 	std::atomic<bool> m_running = false;
+	std::mutex m_serverMsgMutex;
+	std::queue<std::pair<std::string, std::string>> m_serverMsgQueue;
 
 	IServerLogic* m_logic = nullptr;
 

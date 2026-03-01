@@ -206,6 +206,29 @@ std::vector<std::pair<AgentID, AgentID>> AgentManager::GetAgentIDAndServerIDs() 
     return result;
 }
 
+std::vector<AgentID> AgentManager::GetAgentID() const {
+    std::vector<AgentID> result;
+    result.reserve(m_agents.size());
+
+    for (const auto& [id, _] : m_agents) {
+        result.push_back(id);
+    }
+
+    return result;
+}
+
+std::vector<AgentID> AgentManager::GetAgentServerIDs() const {
+    std::vector<AgentID> result;
+    result.reserve(m_agents.size());
+
+    for (const auto& [_, agent] : m_agents) {
+        if(agent.GetServerID() != 0)
+            result.push_back(agent.GetServerID());
+    }
+
+    return result;
+}
+
 const std::unordered_map<AgentID, Agent>& AgentManager::GetAgents() const {
     return m_agents;
 }
@@ -216,6 +239,10 @@ const std::unordered_set<AgentID>& AgentManager::GetUnregisteredAgentIDs() const
 
 const std::vector<AgentID>& AgentManager::GetDeletedServerAgents() const {
     return m_deletedServerAgents;
+}
+
+void AgentManager::SetDeletedServerAgents(const std::vector<AgentID>& ids) {
+    m_deletedServerAgents = ids;
 }
 
 void AgentManager::ClearDeletedServerAgents() {

@@ -56,7 +56,7 @@ void GameClient::Disconnect() {
 
 void GameClient::Send(const std::string& payload, Callback&& cb) {
 	if (!IsConnected()) {
-		cb(false, "");
+		cb(false, "no Connection with server");
 		return;
 	}
 

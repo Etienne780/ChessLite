@@ -253,7 +253,8 @@ namespace Layers {
 
 		std::vector<ResourceRequest> requests{
 			{ ResourceType::DATA_OTN, bPath / FilePaths::agentsFileName },
-			{ ResourceType::DATA_OTN, bPath / FilePaths::optionsFileName }
+			{ ResourceType::DATA_OTN, bPath / FilePaths::optionsFileName },
+			{ ResourceType::DATA_OTN, bPath / FilePaths::userFileName }
 		};
 
 		AddLoadingSection(
@@ -311,20 +312,20 @@ namespace Layers {
 		if (assets.empty())
 			return;
 
-		const auto& mapAgnet = *(assets[0].asset);
-		for (const auto& [name, obj] : mapAgnet) {
-			if (name == "Agent") {
-				LoadAgent(ctx, obj);
-			}
-		}
-
-		if (assets.size() <= 1)
-			return;
-		
-		const auto& mapOptions = *(assets[1].asset);
-		for (const auto& [name, obj] : mapOptions) {
-			if (name == "Options") {
-				LoadOptions(ctx, obj);
+		for (const auto& assetKey : assets) {
+			for (const auto& [name, obj] : *(assetKey.asset.get())) {
+				if (name == "Agent") {
+					LoadAgent(ctx, obj);
+					break;
+				}
+				else if (name == "Options") {
+					LoadOptions(ctx, obj);
+					break;
+				}
+				else if (name == "User") {
+					ctx->app->LoadUserData(obj);
+					break;
+				}
 			}
 		}
 	}

@@ -37,8 +37,10 @@ void AgentSyncService::Init(AppContext& ctx) {
 * sync agent not on db
 * - check if server id == 0, add agent to server
 * 
-* sync agnet missing on db (delete local agent)
+* sync agent missing on db (delete local agent)
 * - retrive list of all server ids, if agent server id missing. delete local agent
+* 
+* sync agent on db but not local
 * 
 * sync agent local delete
 * - sent list to server with deleted agents
@@ -51,32 +53,15 @@ void AgentSyncService::FullSync(AppContext* ctx) {
 	if (!ctx || m_isSyncInProgress)
 		return;
 
-	OTN::OTNObject headerObj = ctx->gameClient.CreateHeaderBlock("GetAgentIDList");
-	OTN::OTNObject bodyObj{ "body" };
+	const auto& missingIDs = ctx->agentManager.GetUnregisteredAgentIDs();
+	if (!missingIDs.empty())
+		SyncMissingData(ctx, missingIDs);
 
-	std::string msg;
-	OTN::OTNWriter writer;
-	writer.AppendObject(headerObj);
-	writer.AppendObject(bodyObj);
-	if (!writer.SaveToString(msg)) {
-		Log::Error("Failed to sync agents: {}", writer.GetError());
-		return;
-	}
+	// sync agent not on db but local with db ID
+	RequestServerAgentIDList(ctx);
 
-	AddSyncAction();
-	auto self = shared_from_this();
-
-	ctx->gameClient.Send(msg,
-		[self](bool result, const std::string& payload) {
-			self->RemoveSyncAction();
-
-			if (!result) {
-				Log::Error("Failed to sync agents: {}", payload);
-				return;
-			}
-
-			self->HandleServerIDList(payload);
-		});
+	// sync agnet on db but not on local
+	RequestMissingAgentsFromServer(ctx);
 }
 
 void AgentSyncService::Sync(AppContext* ctx) {
@@ -101,8 +86,84 @@ void AgentSyncService::RemoveSyncAction() {
 	if (m_syncActionCount > 0)
 		m_syncActionCount--;
 
-	if (m_syncActionCount == 0)
+	if (m_syncActionCount == 0) {
 		m_isSyncInProgress = false;
+
+		auto* app = App::GetInstance();
+		if (!app)
+			return;
+		auto* ctx = app->GetContext();
+		if (!ctx)
+			return;
+
+		ctx->agentManager.Save(FilePaths::GetDataPath());
+	}
+}
+
+void AgentSyncService::RequestServerAgentIDList(AppContext* ctx) {
+	OTN::OTNObject headerObj = ctx->gameClient.CreateHeaderBlock("GetAgentIDList");
+	OTN::OTNObject bodyObj{ "body" };
+
+	std::string msg;
+	OTN::OTNWriter writer;
+	writer.AppendObject(headerObj);
+	writer.AppendObject(bodyObj);
+	if (!writer.SaveToString(msg)) {
+		Log::Error("Failed to sync agents: {}", writer.GetError());
+		return;
+	}
+
+	AddSyncAction();
+	auto self = shared_from_this();
+
+	ctx->gameClient.Send(msg,
+		[self](bool result, const std::string& payload) {
+			if (!result) {
+				self->RemoveSyncAction();
+				Log::Error("Failed to sync agents: {}", payload);
+				return;
+			}
+
+			self->HandleServerIDList(payload);
+			self->RemoveSyncAction();
+		});
+}
+
+void AgentSyncService::RequestMissingAgentsFromServer(AppContext* ctx) {
+	auto serverAgents = ctx->agentManager.GetAgentServerIDs();
+
+	OTN::OTNObject headerObj = ctx->gameClient.CreateHeaderBlock("RequestMissingAgents");
+	OTN::OTNObject bodyObj{ "body" };
+	bodyObj.SetNames("id");
+	bodyObj.SetTypes("int64");
+	bodyObj.ReserveDataRows(serverAgents.size());
+	for (auto& id : serverAgents) {
+		bodyObj.AddDataRow(static_cast<int64_t>(id.value));
+	}
+
+	std::string msg;
+	OTN::OTNWriter writer;
+	writer.AppendObject(headerObj);
+	writer.AppendObject(bodyObj);
+	if (!writer.SaveToString(msg)) {
+		Log::Error("Failed to sync agents: {}", writer.GetError());
+		return;
+	}
+
+	AddSyncAction();
+	auto self = shared_from_this();
+
+	ctx->gameClient.Send(msg,
+		[self](bool result, const std::string& payload) {
+			if (!result) {
+				self->RemoveSyncAction();
+				Log::Error("Failed to sync agents: {}", payload);
+				return;
+			}
+
+			self->HandleAddAgents(payload);
+			self->RemoveSyncAction();
+		});
 }
 
 void AgentSyncService::SyncMissingData(AppContext* ctx, const std::unordered_set<AgentID>& ids) {
@@ -124,14 +185,14 @@ void AgentSyncService::SyncMissingData(AppContext* ctx, const std::unordered_set
 
 	ctx->gameClient.Send(msg,
 		[self](bool result, const std::string& payload) {
-			self->RemoveSyncAction();
-
 			if (!result) {
+				self->RemoveSyncAction();
 				Log::Error("Failed to sync agents: {}", payload);
 				return;
 			}
 
 			self->RegisterAgents(payload);
+			self->RemoveSyncAction();
 		});
 }
 
@@ -170,14 +231,12 @@ void AgentSyncService::RegisterAgents(const std::string& serverIDs) {
 		serverID.value = static_cast<uint32_t>(*otnServerID);
 		ctx->agentManager.MarkAgentAsRegistered(localID, serverID);
 	}
-
-	ctx->agentManager.Save(FilePaths::GetDataPath());
 }
 
 void AgentSyncService::HandleServerIDList(const std::string& agentIDList) {
 	OTN::OTNReader reader;
 	if (!reader.ReadString(agentIDList)) {
-		Log::Error("Failed to parse server agent list: {}", reader.GetError());
+		Log::Error("Failed to parse server agent ID list: {}", reader.GetError());
 		return;
 	}
 
@@ -217,8 +276,104 @@ void AgentSyncService::HandleServerIDList(const std::string& agentIDList) {
 		if (serverIDs.find(static_cast<int64_t>(serverID.value)) == serverIDs.end())
 			agentManager.RemoveAgent(localID);
 	}
+}
 
-	agentManager.Save(FilePaths::GetDataPath());
+void AgentSyncService::HandleAddAgents(const std::string& agentList) {
+	OTN::OTNReader reader;
+	if (!reader.ReadString(agentList)) {
+		Log::Error("Failed to parse server agent list: {}", reader.GetError());
+		return;
+	}
+
+	auto agentObj = reader.TryGetObject("agents");
+	if (!agentObj)
+		return;
+
+	auto boardStatesObj = reader.TryGetObject("board_states");
+	auto gameMovesObj = reader.TryGetObject("game_moves");
+
+	auto* app = App::GetInstance();
+	if (!app)
+		return;
+	auto* ctx = app->GetContext();
+	if (!ctx)
+		return;
+
+	const auto& obj = *agentObj;
+
+	for (size_t i = 0; i < obj.GetRowCount(); i++) {
+		auto serverID = obj.TryGetValue<int64_t>(i, "id");
+		auto name = obj.TryGetValue<std::string>(i, "name");
+		auto config = obj.TryGetValue<std::string>(i, "config");
+
+		auto matchesPlayed = obj.TryGetValue<int>(i, "matches_played");
+		auto matchesWon = obj.TryGetValue<int>(i, "matches_won");
+
+		auto matchesPlayedWhite = obj.TryGetValue<int>(i, "matches_played_white");
+		auto matchesWonWhite = obj.TryGetValue<int>(i, "matches_won_white");
+
+		if (!serverID || !name || !config)
+			continue;
+
+		Agent agent{ *name, *config };
+		AgentPersistentData data;
+
+		if (matchesPlayed) 
+			data.matchesPlayed = *matchesPlayed;
+		if (matchesWon) 
+			data.matchesWon = *matchesWon;
+		if (matchesPlayedWhite) 
+			data.matchesPlayedAsWhite = *matchesPlayedWhite;
+		if (matchesWonWhite) 
+			data.matchesWonAsWhite = *matchesWonWhite;
+
+		if (boardStatesObj) {
+			std::unordered_map<std::string, BoardState> states;
+
+			for (size_t j = 0; j < boardStatesObj->GetRowCount(); j++) {
+				auto boardStateAgentID = boardStatesObj->TryGetValue<int64_t>(j, "agent_id");
+				if (!boardStateAgentID || *boardStateAgentID != *serverID)
+					continue;
+
+				auto boardStateID = boardStatesObj->TryGetValue<int64_t>(j, "id");
+				auto stateStr = boardStatesObj->TryGetValue<std::string>(j, "board_state");
+				if (!boardStateID || !stateStr)
+					continue;
+
+				std::vector<GameMove> moves;
+				if (gameMovesObj) {
+					for (size_t k = 0; k < gameMovesObj->GetRowCount(); k++) {
+						auto gameMoveBoardStateID = gameMovesObj->TryGetValue<int64_t>(k, "board_state_id");
+						if (!gameMoveBoardStateID || *gameMoveBoardStateID != *boardStateID)
+							continue;
+
+						auto evaluation = gameMovesObj->TryGetValue<float>(k, "evaluation");
+						auto fromX = gameMovesObj->TryGetValue<int>(k, "from_x");
+						auto fromY = gameMovesObj->TryGetValue<int>(k, "from_y");
+						auto toX = gameMovesObj->TryGetValue<int>(k, "to_x");
+						auto toY = gameMovesObj->TryGetValue<int>(k, "to_y");
+
+						if (!evaluation || !fromX || !fromY || !toX || !toY)
+							continue;
+
+						GameMove m{ *fromX, *fromY, *toX, *toY };
+						m.SetEvaluation(*evaluation);
+						moves.push_back(m);
+					}
+				}
+
+				BoardState b;
+				b.LoadGameMoves(moves);
+				states[*stateStr] = b;
+			}
+
+			agent.LoadBoardState(states);
+		}
+
+		agent.LoadPersistentData(data);
+		agent.SetServerID(AgentID(static_cast<uint32_t>(*serverID)));
+		ctx->agentManager.AddAgent(agent);
+	}
 }
 
 void AgentSyncService::GlobalCallback(const std::string& msg) {

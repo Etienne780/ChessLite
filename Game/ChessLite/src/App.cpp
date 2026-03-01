@@ -35,6 +35,7 @@ void App::OnStart() {
 
     InitChessContext();
     InstantiateWindow();
+
     Style::Comman_InitStyles();
 
     // push start layer on to stack
@@ -115,6 +116,8 @@ void App::OnUpdate() {
 }
 
 void App::OnQuit() {
+    Log::Info("Quit started");
+
     ClearLayers();
     SaveUserData();
     m_context.agentManager.Save(FilePaths::GetDataPath());
@@ -207,7 +210,7 @@ void App::InitChessContext() {
 
 void App::InstantiateWindow() {
     auto* win = CreateWindow(&m_winID, "ChessLite", 800, 700);
-    win->SetWindowMinSize(800, 700);
+    win->SetWindowMinSize(800, 700);    
 
     namespace RE = SDLCore::Render;
     RE::SetWindowRenderer(m_winID);
@@ -262,15 +265,35 @@ void App::WindowCleanup() {
 }
 
 bool App::SaveUserData() {
-    OTN::OTNObject{ "userData" };
+    OTN::OTNObject obj{ "userData" };
+    obj.SetNames("deleted_server_agents");
+    obj.SetTypes("int64[]");
 
-    
+    auto deletedServerAgents = m_context.agentManager.GetDeletedServerAgents();
+    std::vector<int64_t> deletedServerAgents64;
+    deletedServerAgents64.reserve(deletedServerAgents.size());
+    for (auto id : deletedServerAgents)
+        deletedServerAgents64.push_back(static_cast<int64_t>(id.value));
+
+    obj.AddDataRow(deletedServerAgents64);
+
+    OTN::OTNWriter writer;
+    writer.AppendObject(obj);
+    writer.Save(FilePaths::GetDataPath() / FilePaths::userFileName);
 
     return true;
 }
 
-bool App::LoadUserData() {
-    
+void App::LoadUserData(const OTN::OTNObject& object) {
+    if (auto deletedServerAgents = object.TryGetValue<std::vector<int64_t>>(0, "deleted_server_agents")) {
+        std::vector<AgentID> ids;
+        ids.reserve(deletedServerAgents->size());
+
+        for (auto id : *deletedServerAgents)
+            ids.emplace_back(static_cast<uint32_t>(id));
+
+        m_context.agentManager.SetDeletedServerAgents(ids);
+    }
 }
 
 void App::ProcessLayerCommands() {

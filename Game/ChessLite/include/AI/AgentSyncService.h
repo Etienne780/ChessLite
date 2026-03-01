@@ -23,11 +23,15 @@ private:
     void AddSyncAction();
     void RemoveSyncAction();
 
+    void RequestServerAgentIDList(AppContext* ctx);
+    void RequestMissingAgentsFromServer(AppContext* ctx);
+
     void SyncMissingData(AppContext* ctx, const std::unordered_set<AgentID>& ids);
     void SyncDelete(AppContext* ctx, const std::unordered_set<AgentID>& ids);
 
     void RegisterAgents(const std::string& serverIDs);
     void HandleServerIDList(const std::string& agentIDList);
+    void HandleAddAgents(const std::string& agentList);
 
     void GlobalCallback(const std::string& msg);
 };

@@ -34,7 +34,8 @@ void NetServerManager::SendMessage(const NetServer* srcServer, const std::string
 	for (auto* s : m_serverList) {
 		if (s->GetName() == dstServerName) {
 			if (s->IsInitialized()) {
-				s->m_logic->OnServerMessage(srcServer->GetName(), msg);
+				std::lock_guard<std::mutex> guard(s->m_serverMsgMutex);
+				s->m_serverMsgQueue.emplace(srcServer->GetName(), msg);
 			}
 			break;
 		}
@@ -45,7 +46,7 @@ void NetServerManager::SendMessage(const std::string& srcServer, const std::stri
 	for (auto* s : m_serverList) {
 		if (s->GetName() == dstServerName) {
 			if (s->IsInitialized()) {
-				s->m_logic->OnServerMessage(srcServer, msg);
+				s->m_logic->OnServerMessageExternal(srcServer, msg);
 			}
 			break;
 		}

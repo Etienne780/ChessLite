@@ -32,8 +32,10 @@ void SQLServerLogic::OnServerMessage(const std::string& serverName, const std::s
 
     if (*action == "InsertAgents")
         HandleInsertAgents(serverName, static_cast<uint32_t>(*requestID), reader);
-    else if(*action == "GetAgentIDs")
+    else if (*action == "GetAgentIDs")
         HandleGetAgentIDs(serverName, static_cast<uint32_t>(*requestID), reader);
+    else if (*action == "HandleGetMissinAgents")
+        HandleGetMissinAgents(serverName, static_cast<uint32_t>(*requestID), reader);
     else
         std::cerr << "Unkown action sql server '" << *action << "'\n";
 }
@@ -192,6 +194,111 @@ void SQLServerLogic::HandleGetAgentIDs(const std::string& dstServer, uint32_t re
     }
 }
 
+void SQLServerLogic::HandleGetMissinAgents(const std::string& dstServer, uint32_t requestID, OTN::OTNReader& reader) {
+    const char* actionName = "HandleGetMissinAgents";
+
+    if (!m_connection) {
+        std::cerr << "Not connected to DB\n";
+        SentError("Not connected to DB", dstServer, actionName, requestID);
+        return;
+    }
+
+    try {
+        auto obj = reader.TryGetObject("body");
+        if (!obj) {
+            SentError("Failed to Get missing agents", dstServer, actionName, requestID);
+            return;
+        }
+
+        std::vector<int64_t> list;
+        list.reserve(obj->GetRowCount());
+        for (size_t i = 0; i < obj->GetRowCount(); i++) {
+            if (auto id = obj->TryGetValue<int64_t>(i, "id"))
+                list.push_back(*id);
+        }
+
+        std::optional<OTN::OTNObject> agentObj;
+        std::optional<OTN::OTNObject> boardStateObj;
+        std::optional<OTN::OTNObject> gameMoveObj;
+
+        if (list.empty()) {
+            agentObj = FetchStatement("SELECT * FROM agents;");
+            boardStateObj = FetchStatement("SELECT * FROM board_states;");
+            gameMoveObj = FetchStatement("SELECT * FROM game_moves;");
+        }
+        else {
+            std::string agentQuery = "SELECT * FROM agents WHERE id NOT IN (";
+            for (size_t i = 0; i < list.size(); ++i) {
+                agentQuery += "?";
+                if (i + 1 < list.size()) agentQuery += ",";
+            }
+            agentQuery += ");";
+
+            agentObj = FetchStatement(agentQuery, list);
+
+            std::string boardQuery = "SELECT * FROM board_states WHERE agent_id NOT IN (";
+            for (size_t i = 0; i < list.size(); ++i) {
+                boardQuery += "?";
+                if (i + 1 < list.size()) boardQuery += ",";
+            }
+            boardQuery += ");";
+
+            boardStateObj = FetchStatement(boardQuery, list);
+
+            if (boardStateObj && boardStateObj->GetRowCount() > 0) {
+                std::vector<int64_t> boardIds;
+                boardIds.reserve(boardStateObj->GetRowCount());
+                for (size_t i = 0; i < boardStateObj->GetRowCount(); ++i) {
+                    if (auto id = boardStateObj->TryGetValue<int64_t>(i, "id"))
+                        boardIds.push_back(*id);
+                }
+
+                if (!boardIds.empty()) {
+                    std::string moveQuery = "SELECT * FROM game_moves WHERE board_state_id IN (";
+                    for (size_t i = 0; i < boardIds.size(); ++i) {
+                        moveQuery += "?";
+                        if (i + 1 < boardIds.size()) moveQuery += ",";
+                    }
+                    moveQuery += ");";
+
+                    gameMoveObj = FetchStatement(moveQuery, boardIds);
+                }
+            }
+        }
+
+        if (!agentObj) {
+            SentError("Failed to Get missing agents", dstServer, actionName, requestID);
+            return;
+        }
+
+        OTN::OTNObject header = CreateRequestHeader(actionName, requestID);
+        OTN::OTNWriter writer;
+        writer.AppendObject(header);
+        agentObj->SetName("agents");
+        writer.AppendObject(*agentObj);
+
+        if (boardStateObj) {
+            boardStateObj->SetName("board_states");
+            writer.AppendObject(*boardStateObj);
+        }
+        if (gameMoveObj) {
+            gameMoveObj->SetName("game_moves");
+            writer.AppendObject(*gameMoveObj);
+        }
+
+        std::string output;
+        if (!writer.SaveToString(output)) {
+            SentError("Failed to Get missing agents", dstServer, actionName, requestID);
+            return;
+        }
+
+        NetServerManager::SendMessage(m_server, dstServer, output);
+    }
+    catch (sql::SQLException& e) {
+        SentError(std::string("SQL Error: ") + e.what(), dstServer, actionName, requestID);
+    }
+}
+
 OTN::OTNObject SQLServerLogic::CreateRequestHeader(const std::string& action, uint32_t requestID, bool response) {
     OTN::OTNObject headerObj{ "header" };
 
@@ -278,7 +385,7 @@ void SQLServerLogic::ExecuteStatement(const std::string& query) {
 }
 
 template<typename T, typename Setter>
-static inline void BindParamHelper(
+static inline int BindParamHelper(
     sql::PreparedStatement* stmt,
     int index,
     const std::optional<T>& value,
@@ -287,48 +394,60 @@ static inline void BindParamHelper(
 {
     if (!value) {
         stmt->setNull(index, sqlType);
-        return;
     }
-
-    (stmt->*setter)(index, *value);
+    else {
+        (stmt->*setter)(index, *value);
+    }
+    
+    return index + 1;
 }
 
-void SQLServerLogic::BindParam(
+int SQLServerLogic::BindParam(
     sql::PreparedStatement* stmt,
     int index,
     const std::optional<std::string>& value)
 {
-    BindParamHelper(stmt, index, value, sql::DataType::VARCHAR, &sql::PreparedStatement::setString);
+    index = BindParamHelper(stmt, index, value, sql::DataType::VARCHAR, &sql::PreparedStatement::setString);
+    std::cout << "Bin param index '" << index << "' value '" << *value << "'\n";
+    return index;
 }
 
-void SQLServerLogic::BindParam(
+int SQLServerLogic::BindParam(
     sql::PreparedStatement* stmt,
     int index,
     const std::optional<int>& value)
 {
-    BindParamHelper(stmt, index, value, sql::DataType::INTEGER, &sql::PreparedStatement::setInt);
+    index = BindParamHelper(stmt, index, value, sql::DataType::INTEGER, &sql::PreparedStatement::setInt);
+    std::cout << "Bin param index '" << index << "' value '" << *value << "'\n";
+    return index;
 }
 
-void SQLServerLogic::BindParam(
+int SQLServerLogic::BindParam(
     sql::PreparedStatement* stmt,
     int index,
     const std::optional<int64_t>& value)
 {
-    BindParamHelper(stmt, index, value, sql::DataType::BIGINT, &sql::PreparedStatement::setInt64);
+    index = BindParamHelper(stmt, index, value, sql::DataType::BIGINT, &sql::PreparedStatement::setInt64);
+    std::cout << "Bin param index '" << index << "' value '" << *value << "'\n";
+    return index;
 }
 
-void SQLServerLogic::BindParam(
+int SQLServerLogic::BindParam(
     sql::PreparedStatement* stmt,
     int index,
-    const  std::optional<double>& value)
+    const std::optional<double>& value)
 {
-    BindParamHelper(stmt, index, value, sql::DataType::DOUBLE, &sql::PreparedStatement::setDouble);
+    index = BindParamHelper(stmt, index, value, sql::DataType::DOUBLE, &sql::PreparedStatement::setDouble);
+    std::cout << "Bin param index '" << index << "' value '" << *value << "'\n";
+    return index;
 }
 
-void SQLServerLogic::BindParam(
+int SQLServerLogic::BindParam(
     sql::PreparedStatement* stmt,
     int index,
     const std::optional<bool>& value)
 {
-    BindParamHelper(stmt, index, value, sql::DataType::BIT, &sql::PreparedStatement::setBoolean);
+    index = BindParamHelper(stmt, index, value, sql::DataType::BIT, &sql::PreparedStatement::setBoolean);
+    std::cout << "Bin param index '" << index << "' value '" << *value << "'\n";
+    return index;
 }

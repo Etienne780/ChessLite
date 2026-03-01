@@ -218,27 +218,27 @@ namespace SDLCore::Render {
         if (s_onRendererDestroyCallbacks.find(winID) == s_onRendererDestroyCallbacks.end()) {
             auto idPtr = std::make_shared<WindowCallbackID>();
 
-            SDL_Renderer* rendererPtr = win->GetSDLRenderer();
             *idPtr = win->AddOnSDLRendererDestroy(
-            [winID, idPtr, rendererPtr]() {
-                auto app = Application::GetInstance();
-                auto win = app->GetWindow(winID);
-            
-                if (win) {
-                    win->RemoveOnSDLRendererDestroy(*idPtr);
-                    ClearTextCacheForRenderer(rendererPtr);
-                }
-                
-                s_onRendererDestroyCallbacks.erase(winID);
-            });
+                [winID, idPtr]() {
+                    auto app = Application::GetInstance();
+                    auto win = app->GetWindow(winID);
+
+                    if (win) {
+                        win->RemoveOnSDLRendererDestroy(*idPtr);
+                        SDL_Renderer* renderer = win->GetSDLRenderer();
+                        if (renderer) {
+                            ClearTextCacheForRenderer(renderer);
+                        }
+                    }
+
+                    s_onRendererDestroyCallbacks.erase(winID);
+                });
 
             s_onRendererDestroyCallbacks[winID] = *idPtr;
-
             win->AddOnDestroy([winID]() {
                 s_onRendererDestroyCallbacks.erase(winID);
             });
         }
-
         s_renderer = rendererPtr;
     }
 

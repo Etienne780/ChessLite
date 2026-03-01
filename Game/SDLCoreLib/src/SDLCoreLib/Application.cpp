@@ -44,7 +44,7 @@ namespace SDLCore {
     }
 
     Application::~Application() {
-        
+        QuitInternal();
     }
 
     Application* Application::GetInstance() {
@@ -111,18 +111,25 @@ namespace SDLCore {
     }
 
     void Application::QuitInternal() {
+        std::cout << "[QuitInternal START] s_sdlQuit=" << s_sdlQuit << "\n";
+
+        if (s_sdlQuit)
+            return;
+
+        std::cout << "[QuitInternal] Calling SDL_Quit...\n";
+
+        DeleteAllWindows();
         Input::Quit();
         SoundManager::Quit();
         TextureManager::GetInstance().ClearAllTexturesEntries();
         FontManager::GetInstance().ClearAllFontEntries();
 
-        if (s_sdlQuit) {
-            NET_Quit();
-            MIX_Quit();
-            TTF_Quit();
-            SDL_Quit();
-            s_sdlQuit = true;
-        }
+        NET_Quit();
+        MIX_Quit();
+        TTF_Quit();
+        SDL_Quit();
+
+        s_sdlQuit = true;
     }
 
     int Application::Start() {
@@ -154,7 +161,6 @@ namespace SDLCore {
 
         ResetCursorLockParams();
         Render::SetWindowRenderer();
-        DeleteAllWindows();
 
         QuitInternal();
 
@@ -204,17 +210,20 @@ namespace SDLCore {
         if (it == m_windows.end())
             return false;
 
-        (*it)->DestroyWindow();
-        m_windows.erase(it);
         // invalidates the id
         id.SetInvalid();
+
+        (*it)->DestroyWindow();
+        m_windows.erase(it);
         return true;
     }
 
     void Application::DeleteAllWindows() {
+        std::cout << "[DeleteAllWindows START]\n";
         while (!m_windows.empty()) {
             DeleteWindow(m_windows.back()->GetID());
         }
+        std::cout << "[DeleteAllWindows END]\n";
     }
 
     void Application::RecreateRendererForWindow(WindowID id) {
@@ -502,8 +511,6 @@ namespace SDLCore {
 
         for (auto& id : m_windowsToClose) {
             auto* win = GetWindow(id);
-            if (win)
-                win->DestroyWindow();
             DeleteWindow(id);
         }
         m_windowsToClose.clear();
