@@ -51,7 +51,7 @@ namespace Layers {
 	void GameLayer::OnUpdate(AppContext* ctx) {
 		using namespace SDLCore;
 		
-		m_RefDisplaySize = ctx->refDisplaySize;
+		m_refDisplaySize = ctx->refDisplaySize;
 		m_displaySize = ctx->displaySize;
 		m_windowSize = ctx->windowSize;
 
@@ -272,8 +272,8 @@ namespace Layers {
 		int boardWidth = board.GetWidth();
 		int boardHeight = board.GetHeight();
 
-		float scaleX = m_displaySize.x / m_RefDisplaySize.x;
-		float scaleY = m_displaySize.y / m_RefDisplaySize.y;
+		float scaleX = m_displaySize.x / m_refDisplaySize.x;
+		float scaleY = m_displaySize.y / m_refDisplaySize.y;
 		float displayScale = std::min(scaleX, scaleY);
 
 		float boardTileSize = m_boardTileSizeFinal;
@@ -429,8 +429,8 @@ namespace Layers {
 		int boardWidth = board.GetWidth();
 		int boardHeight = board.GetHeight();
 
-		float scaleX = m_displaySize.x / m_RefDisplaySize.x;
-		float scaleY = m_displaySize.y / m_RefDisplaySize.y;
+		float scaleX = m_displaySize.x / m_refDisplaySize.x;
+		float scaleY = m_displaySize.y / m_refDisplaySize.y;
 		float displayScale = std::min(scaleX, scaleY);
 
 		float boardTileSize = m_boardTileSizeFinal;
@@ -566,8 +566,8 @@ namespace Layers {
 		int boardWidth = m_game.GetBoard().GetWidth();
 		int boardHeight = m_game.GetBoard().GetHeight();
 
-		float scaleX = m_displaySize.x / m_RefDisplaySize.x;
-		float scaleY = m_displaySize.y / m_RefDisplaySize.y;
+		float scaleX = m_displaySize.x / m_refDisplaySize.x;
+		float scaleY = m_displaySize.y / m_refDisplaySize.y;
 		float displayScale = std::min(scaleX, scaleY);
 
 		float baseTileSize = m_boardTileSize * displayScale;

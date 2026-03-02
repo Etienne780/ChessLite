@@ -6,6 +6,7 @@
 #include "Styles/Comman/Style.h"
 #include "UIComponents/Button.h"
 #include "Styles/Comman/Space.h"
+#include "Styles/Comman/Color.h"
 
 static App* g_appInstance;
 
@@ -44,6 +45,16 @@ void App::OnStart() {
 
 void App::OnUpdate() {
     ConnectClient();
+    UpdateNotifications();
+
+    if (SDLCore::Time::GetFrameCount() % 500 == 0) {
+        Log::Print("Add test notifications");
+        NotifyDefault("Test oder so");
+        NotifyDefault("Test langet test aber auch nicht zu lange");
+        NotifyWarning("Test warning oder so");
+        NotifyError("Error important");
+        NotifyError("Error important long error adsaddladslk");
+    }
 
     if (!m_winID.IsInvalid()) {
         using namespace SDLCore;
@@ -101,6 +112,13 @@ void App::OnUpdate() {
                 RE::SetWindowRenderer(m_winID);
             }
         });
+
+        if (RE::GetActiveWindowID() != m_winID) {
+            Input::SetWindow(m_winID);
+            UI::BindContext(m_UICtx);
+            RE::SetWindowRenderer(m_winID);
+        }
+        RenderNotifications();
         
         RE::Present();
 
@@ -185,6 +203,18 @@ void App::LoadUserData(const OTN::OTNObject& object) {
 
         m_context.agentManager.SetDeletedServerAgents(ids);
     }
+}
+
+void App::NotifyDefault(const std::string& message, uint64_t durationMs) {
+    CreateNotification(message, AppNotificationType::DEFAULT, durationMs);
+}
+
+void App::NotifyWarning(const std::string& message, uint64_t durationMs) {
+    CreateNotification(message, AppNotificationType::WARNING, durationMs);
+}
+
+void App::NotifyError(const std::string& message, uint64_t durationMs) {
+    CreateNotification(message, AppNotificationType::ERROR, durationMs);
 }
 
 SDLCore::WindowID App::GetWinID() const {
@@ -279,8 +309,8 @@ void App::ConnectClient() {
     if (client.IsConnected())
         return;
 
-    if (currentClientTimeOut > 0) {
-        currentClientTimeOut -= SDLCore::Time::GetDeltaTimeSecF();
+    if (m_currentClientTimeOut > 0) {
+        m_currentClientTimeOut -= SDLCore::Time::GetDeltaTimeSecF();
         return;
     }
 
@@ -292,7 +322,7 @@ void App::ConnectClient() {
     if (client.IsConnected())
         Log::Info("App: Connected to server");
 
-    currentClientTimeOut = clientTimeOut;
+    m_currentClientTimeOut = m_clientTimeOut;
 }
 
 void App::WindowCleanup() {
@@ -375,4 +405,124 @@ void App::ProcessGameClient() {
         Log::Error(client.GetError());
         client.ClearError();
     }
+}
+
+void App::CreateNotification(const std::string& message, AppNotificationType type, uint64_t displayDurationMs) {
+    m_notifications.emplace_back(
+        message, 
+        type, 
+        (displayDurationMs == 0) ? m_notificationDisplayDurationMS : displayDurationMs,
+        SDLCore::Time::GetTimeMS()
+    );
+}
+
+void App::UpdateNotifications() {
+    if (m_notifications.empty())
+        return;
+
+    uint64_t currentTimeMs = SDLCore::Time::GetTimeMS();
+
+    size_t index = 0;
+    while (index < m_notifications.size()) {
+        auto& noti = m_notifications[index];
+
+        if (currentTimeMs - noti.createdAtMs >= noti.displayDurationMs) {
+            m_notifications.erase(m_notifications.begin() + index);
+        }
+        else {
+            index++;
+        }
+    }
+}
+
+void App::RenderNotifications() {
+    if (m_notifications.empty())
+        return;
+
+    namespace RE = SDLCore::Render;
+    typedef SDLCore::UI::UIRegistry UIReg;
+
+    Vector4 baseColor;
+    Vector4 outlineColor;
+
+    Vector4 defaultColor;
+    Vector4 warnColor;
+    Vector4 errorColor;
+    UIReg::TryGetRegisteredColor(Style::commanColorUIBackgroundLight, baseColor);
+    UIReg::TryGetRegisteredColor(Style::commanColorUIBackground, outlineColor);
+
+    UIReg::TryGetRegisteredColor(Style::commanColorUIPanelLight, defaultColor);
+    UIReg::TryGetRegisteredColor(Style::commanColorAccentWarning, warnColor);
+    UIReg::TryGetRegisteredColor(Style::commanColorAccentError, errorColor);
+
+    auto GetColorForType = [&](AppNotificationType type) -> Vector4 {
+        switch (type) {
+        case AppNotificationType::DEFAULT:  return defaultColor;
+        case AppNotificationType::WARNING:  return warnColor;
+        case AppNotificationType::ERROR:    return errorColor;
+        default:                            return defaultColor;
+        }
+    };
+
+    auto& refDisplaySize = m_context.refDisplaySize;
+    auto& displaySize = m_context.displaySize;
+    auto& windowSize = m_context.windowSize;
+
+    float winHalfX = windowSize.x * 0.5f;
+    float winHalfY = windowSize.y * 0.5f;
+
+    float scaleX = displaySize.x / refDisplaySize.x;
+    float scaleY = displaySize.y / refDisplaySize.y;
+    float displayScale = std::min(scaleX, scaleY);
+
+    const float width = 250 * displayScale;
+    const float minHeight = 75 * displayScale;
+    const float maxHeight = 150 * displayScale;
+    const float padding = 5 * displayScale;
+    const float textSize = 28 * displayScale;
+    const float accentLineWidth = 3 * displayScale;
+    const float outlineWidth = 4 * displayScale;
+
+    RE::SetTextSize(textSize);
+    RE::SetTextClipWidth(width);
+    RE::SetTextAlign(SDLCore::Align::START);
+
+    float currentPositionY = windowSize.y;
+    for (auto& noti : m_notifications) {
+        float textHeight = RE::GetTextBlockHeight(noti.message);
+        float calcualtedHeight = std::min(maxHeight, std::max(textHeight + padding * 2, minHeight));
+        currentPositionY -= calcualtedHeight + padding;
+
+        Vector4 baseRect{
+            winHalfX - width * 0.5f,
+            currentPositionY,
+            width,
+            calcualtedHeight
+        };
+
+        // base
+        RE::SetColor(baseColor);
+        RE::FillRect(baseRect);
+
+        RE::SetColor(outlineColor);
+        RE::SetStrokeWidth(outlineWidth);
+        RE::SetInnerStroke(false);
+        RE::Rect(baseRect);
+
+        RE::SetClipRect(baseRect);
+
+        // accent line
+        RE::SetColor(GetColorForType(noti.type));
+        RE::FillRect(baseRect.x, baseRect.y, accentLineWidth, baseRect.w);
+
+        // text
+        RE::SetColor(255);
+        RE::CachText(true);
+        RE::Text(noti.message, baseRect.x + accentLineWidth + padding, baseRect.y + padding);
+
+        RE::ResetClipRect();
+    }
+
+    RE::ResetTextClipWidth();
+    RE::ResetClipRect();
 }

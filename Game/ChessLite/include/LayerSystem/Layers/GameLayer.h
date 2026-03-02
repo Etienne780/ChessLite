@@ -48,7 +48,7 @@ namespace Layers {
 		float m_tileScaler = 0.0f;
 		bool m_calculateBoardTileSize = true;
 		Vector4 m_boardMargin{ 128.0f };
-		Vector2 m_RefDisplaySize{ 1920.0f, 1080.0f };
+		Vector2 m_refDisplaySize{ 1920.0f, 1080.0f };
 		Vector2 m_displaySize{ 0.0f };
 		Vector2 m_windowSize{ 0.0f };
 		Vector2 m_topLeftBoard{ 0.0f };

@@ -74,6 +74,10 @@ public:
 	bool SaveUserData();
 	void LoadUserData(const OTN::OTNObject& object);
 
+	void NotifyDefault(const std::string& message, uint64_t durationMs = 0);
+	void NotifyWarning(const std::string& message, uint64_t durationMs = 0);
+	void NotifyError(const std::string& message, uint64_t durationMs = 0);
+
 	SDLCore::WindowID GetWinID() const;
 	size_t GetLayerCount() const;
 
@@ -93,8 +97,12 @@ private:
 
 	const std::string m_host = "127.0.0.1";
 	const uint16_t m_port = 5000;
-	float clientTimeOut = 0.5f;
-	float currentClientTimeOut = 0.0f;
+	float m_clientTimeOut = 0.5f;
+	float m_currentClientTimeOut = 0.0f;
+	
+	uint64_t m_notificationDisplayDurationMS = 2000;
+	std::vector<AppNotification> m_notifications;
+	Vector2 m_windwoSize;
 
 	void InitChessContext();
 	void InstantiateWindow();
@@ -103,6 +111,10 @@ private:
 
 	void ProcessLayerCommands();
 	void ProcessGameClient();
+
+	void CreateNotification(const std::string& message, AppNotificationType type, uint64_t displayDurationMs);
+	void UpdateNotifications();
+	void RenderNotifications();
 
 	template<typename Func>
 	void ForeachLayer(Func&& func) {

@@ -22,6 +22,23 @@ using NetworkMsgID = CoreAppID<NetworkMsgTag>;
 
 using NetworkCallbackID = CoreAppID<NetworkCallbackTag>;
 
+enum class AppNotificationType : uint8_t {
+	DEFAULT = 0,
+	WARNING,
+	ERROR
+};
+
+struct AppNotification {
+	std::string message;
+	AppNotificationType type = AppNotificationType::DEFAULT;
+	uint64_t displayDurationMs = 0;
+	uint64_t createdAtMs = 0;
+
+	AppNotification(const std::string& msg, AppNotificationType t, uint64_t dbMS, uint64_t caMS)
+		: message(msg), type(t), displayDurationMs(dbMS), createdAtMs(caMS) {
+	}
+};
+
 namespace SkinKeys {
 
 	inline constexpr const char* BIG_LIGHT = "skin.big.light";

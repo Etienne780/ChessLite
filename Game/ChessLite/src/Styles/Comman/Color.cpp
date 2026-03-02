@@ -31,6 +31,9 @@ namespace Style {
 	CoreUI::UIColorID commanColorAccentDark;
 	CoreUI::UIColorID commanColorAccentLight;
 
+	CoreUI::UIColorID commanColorAccentWarning;
+	CoreUI::UIColorID commanColorAccentError;
+
 	CoreUI::UIColorID commanColorHighlightMove;
 	CoreUI::UIColorID commanColorHighlightSelected;
 	CoreUI::UIColorID commanColorHighlightCheck;
@@ -65,6 +68,9 @@ namespace Style {
 		commanColorAccent = UIReg::RegisterColor(Vector4(49, 80, 173, 255));
 		commanColorAccentDark = UIReg::RegisterColor(Vector4(35, 60, 130, 255));
 		commanColorAccentLight = UIReg::RegisterColor(Vector4(100, 130, 220, 255));
+
+		commanColorAccentWarning = UIReg::RegisterColor(Vector4(255, 200, 40, 255));
+		commanColorAccentError = UIReg::RegisterColor(Vector4(220, 50, 50, 255));
 
 		commanColorHighlightMove = UIReg::RegisterColor(Vector4(148, 219, 227, 160));
 		commanColorHighlightSelected = UIReg::RegisterColor(Vector4(255, 215, 0, 160));

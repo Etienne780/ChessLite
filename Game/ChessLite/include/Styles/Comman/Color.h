@@ -33,6 +33,9 @@ namespace Style {
 	extern CoreUI::UIColorID commanColorAccent;
 	extern CoreUI::UIColorID commanColorAccentDark;
 	extern CoreUI::UIColorID commanColorAccentLight;
+	
+	extern CoreUI::UIColorID commanColorAccentWarning;
+	extern CoreUI::UIColorID commanColorAccentError;
 
 	extern CoreUI::UIColorID commanColorHighlightMove;
 	extern CoreUI::UIColorID commanColorHighlightSelected;
