@@ -40,8 +40,14 @@ private:
 		std::vector<uint8_t> data;
 	};
 
+	struct PendingReceive {
+		Callback cb;
+		size_t waitedTimeMS = 0;
+	};
+
 	std::string m_host;
 	uint16_t m_port = 0;
+	size_t m_pendingSendTimeOutMS = 2500;
 	CoreAppIDManager m_idManager{ 1 };
 	CoreAppIDManager m_callbackIDManager{ 1 };
 	
@@ -49,13 +55,14 @@ private:
 	NET_StreamSocket* m_socket = nullptr;
 
 	std::deque<PendingSend> m_msgQueue;
-	std::unordered_map<NetworkMsgID, Callback> m_pending;
+	std::unordered_map<NetworkMsgID, PendingReceive> m_pending;
 	std::vector<uint8_t> m_receiveBuffer;
 
 	std::unordered_map<NetworkCallbackID, GlobalCallback> m_globalCallbacks;
 
 	bool ProcessSendQueue();
 	bool ProcessReceiveQueue();
+	void ProcessPendingSentTimeOut();
 
 	void CallRequestCallback(NetworkMsgID id, bool result, const std::string& msg);
 	void AddError(const std::string& msg);

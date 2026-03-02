@@ -111,12 +111,8 @@ namespace SDLCore {
     }
 
     void Application::QuitInternal() {
-        std::cout << "[QuitInternal START] s_sdlQuit=" << s_sdlQuit << "\n";
-
         if (s_sdlQuit)
             return;
-
-        std::cout << "[QuitInternal] Calling SDL_Quit...\n";
 
         TextureManager::GetInstance().ClearAllTexturesEntries();
         FontManager::GetInstance().ClearAllFontEntries();
@@ -222,11 +218,9 @@ namespace SDLCore {
     }
 
     void Application::DeleteAllWindows() {
-        std::cout << "[DeleteAllWindows START]\n";
         while (!m_windows.empty()) {
             DeleteWindow(m_windows.back()->GetID());
         }
-        std::cout << "[DeleteAllWindows END]\n";
     }
 
     void Application::RecreateRendererForWindow(WindowID id) {
@@ -558,20 +552,12 @@ namespace SDLCore {
         if (m_windowsToClose.empty())
             return;
 
-        std::cout << "[ProcessWindowClosureRequests] Processing " << m_windowsToClose.size()
-            << " window(s) for closure\n";
-
         for (auto& id : m_windowsToClose) {
             auto* win = GetWindow(id);
-            if (win) {
-                std::cout << "[ProcessWindowClosureRequests] Deleting window: "
-                    << win->GetName() << "\n";
+            if (win)
                 DeleteWindow(id);
-            }
         }
         m_windowsToClose.clear();
-
-        std::cout << "[ProcessWindowClosureRequests] Complete\n";
     }
 
     void Application::FPSCapDelay(uint64_t frameStartTime) const {

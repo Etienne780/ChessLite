@@ -1,6 +1,7 @@
 ﻿#include "GameClient.h"
 #include <CoreLib/BinarySerializer.h>
 #include <CoreLib/BinaryDeserializer.h>
+#include <SDLCoreLib/SDLCoreTime.h>
 
 GameClient::GameClient() {
 }
@@ -48,8 +49,9 @@ void GameClient::Disconnect() {
 	m_socket = nullptr;
 	m_msgQueue.clear();
 
-	for (auto& [id, cb] : m_pending)
-		cb(false, "");
+	for (auto& p : m_pending)
+		if(p.second.cb)
+			p.second.cb(false, "");
 	m_pending.clear();
 	m_receiveBuffer.clear();
 }
@@ -60,8 +62,10 @@ void GameClient::Send(const std::string& payload, Callback&& cb) {
 		return;
 	}
 
+	PendingReceive receive;
+	receive.cb = std::move(cb);
 	NetworkMsgID id = NetworkMsgID(m_idManager.GetNewUniqueIdentifier());
-	m_pending[id] = std::move(cb);
+	m_pending[id] = std::move(receive);
 
 	// serialize packet: [id][payload length][payload bytes]
 	BinarySerializer ser;
@@ -161,6 +165,8 @@ bool GameClient::ProcessSendQueue() {
 }
 
 bool GameClient::ProcessReceiveQueue() {
+	ProcessPendingSentTimeOut();
+
 	if (!IsConnected()) {
 		AddError("ProcessReceiveQueue: Not connected");
 		return false;
@@ -207,10 +213,33 @@ bool GameClient::ProcessReceiveQueue() {
 	return true;
 }
 
+void GameClient::ProcessPendingSentTimeOut() {
+	std::vector<NetworkMsgID> timeOutIDs;
+	for (auto& [id, pending] : m_pending) {
+		pending.waitedTimeMS += static_cast<size_t>(SDLCore::Time::GetDeltaTimeMSF());
+		if (pending.waitedTimeMS >= m_pendingSendTimeOutMS)
+			timeOutIDs.push_back(id);
+	}
+
+	while (!timeOutIDs.empty()) {
+		auto id = timeOutIDs.back();
+		timeOutIDs.pop_back(); 
+
+		auto it = m_pending.find(id);
+		if (it != m_pending.end()) {
+			if (it->second.cb) {
+				it->second.cb(false, "Connection time out");
+			}
+			m_pending.erase(it);
+		}
+	}
+}
+
 void GameClient::CallRequestCallback(NetworkMsgID id, bool result, const std::string& msg) {
 	auto it = m_pending.find(id);
 	if (it != m_pending.end()) {
-		it->second(result, msg);
+		if(it->second.cb)
+			it->second.cb(result, msg);
 		m_pending.erase(it);
 		return;
 	}
