@@ -1,6 +1,8 @@
-# ChessLite
+<a name="top"></a>
 
 <div align="center">
+  
+# ChessLite
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![C++17](https://img.shields.io/badge/C%2B%2B-17-blue.svg)]()
@@ -10,8 +12,6 @@ School project: 3x3 chess variant with reinforcement learning AI. Supports singl
 [How to build](#how-to-build) • [Rules](#game-rules) • [AI](#ai-training) • [Architecture](#architecture)
 
 </div>
-
-<a name="top"></a>
 
 ---
 
@@ -251,7 +251,7 @@ copies or substantial portions of the Software.
 ```
 <div align="center">
 
-[Back to Top](#top) • [License](#license)
+[Back to Top](#top) • [How to build](#how-to-build) • [Rules](#game-rules) • [AI](#ai-training) • [Architecture](#architecture)
 
 Made with SDL3
 
