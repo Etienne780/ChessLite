@@ -95,7 +95,7 @@ Pawn rules:
   build vs2022
   ```
   This command will create the vs project files.
-  Now you need to open the .sln file with visual studio 2022 community
+  Now you need to open the `.sln` file with visual studio 2022 community
   
 4. **Start the Project:**
      
@@ -105,22 +105,25 @@ Pawn rules:
 
   You only need to start the `Server` Project if you want to use the server, then you would also need to started the database.
 
+  You can setup up the project so that you can start both Projects at the same time:
+   - Right click in the window called `Solution Explorer` on the item `Solution 'Project'`
+   - Click on the bottom most option called `Propertys`
+   - Open the panel Comman `Properties/Startup Project`
+   - Press on the right in the panel on `Multiple startup projects`
+   - Click on the actions for the `Server` and `ChessLite` Project
+   - And select for both of them the `Start` option
+   - Now you can save and close this menu and start the project again
+
 5. **Start the Database:**
-   You need to start docker desktop and keep it open in the background
+
+   You need to start docker desktop and keep it open in the background.
+   and write this command also in to the console
    ```bash
    build db-start
    ```
    
    This command start the MySQL container.
    Now you can just start the server and the app and everything should work.
-   You can setup up the project so that you can start both Projects at the same time:
-   - Right click in the window called `Solution Explorer` on the item Solution 'Project'
-   - Click on the bottom most option called `Propertys`
-   - Open the panel Comman Properties/Startup Project/
-   - Press on the right in the panel on Multiple startup projects
-   - Click on the actions for the `Server` and `ChessLite` Project
-   - And select for both of them the `Start` option
-   - Now you can save and close this menu and start the project again
 
    
 
@@ -129,7 +132,6 @@ Pawn rules:
 
 ```bash
 build help                 # List all commands
-build compile              # Generate projects + compile
 build vs2022               # Generate project files only
 
 # Database
