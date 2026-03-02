@@ -68,39 +68,53 @@ Pawn rules:
 
 ### Setup
 
-1. Clone repository:
-   ```bash
-   git clone https://github.com/Etienne780/ChessLite.git
-   cd ChessLite
-   ```
-  
-   To Generates Visual Studio project files. Write the command in to the cmd on the root of the project
-   ```bash
-   build vs2022
-   ```
-  This command will create the vs project files.
-  Now you need to open the .sln file with visual studio 2022 community
-  
+1. **Clone repository:**
+   
+  ```bash
+  git clone https://github.com/Etienne780/ChessLite.git
+  cd ChessLite
+  ```
+
+2. **Installe Dependencies:**
+   
+  You need to install docker if you want to try out the server [docker-desktop](https://www.docker.com/products/docker-desktop/).
+  After the installation it probley asks you to restart youre pc if you didnt have wsl already installed.
+
+  And for this explanation you need Visual Studio 2022 community
+
   Path directly to the installer:
   [Google Drive](https://drive.google.com/file/d/1Mwz90tOtZ3S6fI7wDPqc27koEc6oM9Eo/view?usp=drive_link)
   
   Microsoft:
   [Install older vs versions](https://visualstudio.microsoft.com/de/vs/older-downloads/)
-    
+
+3. **Create Project Files:**
+  
+  To Generates Visual Studio project files. Write the command in to the cmd on the root of the project
+  ```bash
+  build vs2022
+  ```
+  This command will create the vs project files.
+  Now you need to open the .sln file with visual studio 2022 community
+  
+4. **Start the Project:**
+     
   When the project is open in vs2022 you can just press the play button at the top to start the programm.
   To start the server press right click on the `Server` project and click `Set as start project` and press play again.
   You can start the application by doing the same for the `ChessLite` project. 
 
   You only need to start the `Server` Project if you want to use the server, then you would also need to started the database.
+
+5. **Start the Database:**
    
-3. Start database (optional):
+   Start database (optional):
    ```bash
    build db-start
    ```
    
-   Starts MySQL container. Application runs without it.
+   This command start the MySQL container.
+   Now you can just start the server and the app and everything should work
 
-4. Run game or execute from Visual Studio.
 
 ### Build Commands
 
