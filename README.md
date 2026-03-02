@@ -106,8 +106,7 @@ Pawn rules:
   You only need to start the `Server` Project if you want to use the server, then you would also need to started the database.
 
 5. **Start the Database:**
-   
-   Start database (optional):
+   You need to start docker desktop and keep it open in the background
    ```bash
    build db-start
    ```
