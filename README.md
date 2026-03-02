@@ -89,7 +89,9 @@ Pawn rules:
     
   When the project is open in vs2022 you can just press the play button at the top to start the programm.
   To start the server press right click on the `Server` project and click `Set as start project` and press play again.
-  You can start the application by doing the same for the `ChessLite` project
+  You can start the application by doing the same for the `ChessLite` project. 
+
+  You only need to start the `Server` Project if you want to use the server, then you would also need to started the database.
    
 3. Start database (optional):
    ```bash
