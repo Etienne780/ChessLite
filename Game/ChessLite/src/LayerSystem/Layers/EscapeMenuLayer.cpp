@@ -51,7 +51,11 @@ namespace Layers {
 
 			if (UIComp::DrawButton("btn_back_to_menu", "Back To Menu", Style::commanBTNBase)) {
 				Log::Debug("EscapeMenu: BackToMenu");
-				ctx->agentManager.Save(FilePaths::GetDataPath());
+				if (ctx->agentManager.Save(FilePaths::GetDataPath()))
+					ctx->app->NotifyDefault("Agents saved successfully");
+				else
+					ctx->app->NotifyError("Failed to save agents");
+
 				ctx->app->ClearLayers();
 				ctx->app->PushLayer<MainMenuLayer>();
 			}

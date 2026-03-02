@@ -18,7 +18,7 @@ namespace SDLCore::UI {
 		if(m_textSize > 0) {
 			RE::SetTextSize(m_textSize);
 			RE::SetColor(m_textColor);
-			RE::CachText(true);
+			RE::CacheText(true);
 			RE::Text(m_text, this->GetRenderPosition());
 		}
 	}

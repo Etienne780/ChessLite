@@ -42,12 +42,12 @@ private:
 
 	struct PendingReceive {
 		Callback cb;
-		size_t waitedTimeMS = 0;
+		float waitedTimeMS = 0.0f;
 	};
 
 	std::string m_host;
 	uint16_t m_port = 0;
-	size_t m_pendingSendTimeOutMS = 2500;
+	float m_pendingSendTimeOutMS = 2500.0f;
 	CoreAppIDManager m_idManager{ 1 };
 	CoreAppIDManager m_callbackIDManager{ 1 };
 	

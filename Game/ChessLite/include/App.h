@@ -95,10 +95,11 @@ private:
 	std::vector<LayerCommand> m_layerCommands;
 	SDLCore::UI::UIContext* m_UICtx = nullptr;
 
-	const std::string m_host = "127.0.0.1";
-	const uint16_t m_port = 5000;
+	const std::string m_host = "127.0.0.1";// server address
+	const uint16_t m_port = 5000;// server port
 	float m_clientTimeOut = 0.5f;
 	float m_currentClientTimeOut = 0.0f;
+	bool m_connectionLostMsgSent = false;
 	
 	uint64_t m_notificationDisplayDurationMS = 2000;
 	std::vector<AppNotification> m_notifications;

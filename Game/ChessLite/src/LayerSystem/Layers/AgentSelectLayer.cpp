@@ -89,7 +89,10 @@ namespace Layers {
     }
 
     void AgentSelect::OnQuit(AppContext* ctx) {
-        ctx->agentManager.Save(FilePaths::GetDataPath());
+        if (ctx->agentManager.Save(FilePaths::GetDataPath()))
+            ctx->app->NotifyDefault("Agents saved successfully");
+        else
+            ctx->app->NotifyError("Failed to save agents");
     }
     LayerID AgentSelect::GetLayerID() const {
         return LayerID::AGENT_SELECT;
@@ -423,6 +426,7 @@ namespace Layers {
                 if (ctx->selectedAgentID2 == agentID) ctx->selectedAgentID2 = AgentID{};
                 ctx->agentManager.RemoveAgent(agentID);
                 ctx->app->SaveUserData();
+
                 RE::ResetClipRect();
                 return;
             }

@@ -1175,7 +1175,7 @@ namespace SDLCore::Render {
         Text(text, pos.x, pos.y);
     }
 
-    void CachText(bool value) {
+    void CacheText(bool value) {
         s_textCacheEnabled = value;
     }
 

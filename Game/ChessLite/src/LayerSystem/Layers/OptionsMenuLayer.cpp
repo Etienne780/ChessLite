@@ -123,13 +123,19 @@ namespace Layers {
 				if (UIComp::DrawButton("btn_save", "Save", Style::commanBTNBase, !optionsDiff)) {
 					Log::Debug("OptinsMenu: Save");
 					ctx->options = m_localOptions;
-					ctx->options.SaveOptions();
+					if (ctx->options.SaveOptions())
+						ctx->app->NotifyDefault("Options saved successfully");
+					else
+						ctx->app->NotifyError("Failed to save options");
 				}
 
 				if (UIComp::DrawButton("btn_save_back", "Save and back", Style::commanBTNBase, !optionsDiff)) {
 					Log::Debug("OptinsMenu: Save and back");
 					ctx->options = m_localOptions;
-					ctx->options.SaveOptions();
+					if (ctx->options.SaveOptions())
+						ctx->app->NotifyDefault("Options saved successfully");
+					else
+						ctx->app->NotifyError("Failed to save options");
 					ctx->app->PopLayer();
 				}
 			}

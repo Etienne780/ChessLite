@@ -156,7 +156,7 @@ namespace Layers {
 		RE::SetTextSize(36.0f);
 
 		std::string agentNameStr = "Agent: " + agent->GetName();
-		RE::CachText(true);
+		RE::CacheText(true);
 		RE::Text(agentNameStr, horHeaderOffset, reservedTop + localHeaderHeight * 0.5f);
 		RE::SetColor(200);
 

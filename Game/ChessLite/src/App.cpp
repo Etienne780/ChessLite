@@ -47,15 +47,6 @@ void App::OnUpdate() {
     ConnectClient();
     UpdateNotifications();
 
-    if (SDLCore::Time::GetFrameCount() % 500 == 0) {
-        Log::Print("Add test notifications");
-        NotifyDefault("Test oder so");
-        NotifyDefault("Test langet test aber auch nicht zu lange");
-        NotifyWarning("Test warning oder so");
-        NotifyError("Error important");
-        NotifyError("Error important long error adsaddladslk");
-    }
-
     if (!m_winID.IsInvalid()) {
         using namespace SDLCore;
 
@@ -188,8 +179,9 @@ bool App::SaveUserData() {
 
     OTN::OTNWriter writer;
     writer.AppendObject(obj);
-    writer.Save(FilePaths::GetDataPath() / FilePaths::userFileName);
-
+    if(!writer.Save(FilePaths::GetDataPath() / FilePaths::userFileName))
+        NotifyError("Failed to save user data");
+    
     return true;
 }
 
@@ -315,12 +307,19 @@ void App::ConnectClient() {
     }
 
     if (!client.Connect(m_host, m_port)) {
+        if (!m_connectionLostMsgSent) {
+            NotifyError(client.GetError());
+            m_connectionLostMsgSent = true;
+        }
+
         Log::Error(client.GetError());
         client.ClearError();
     }
 
-    if (client.IsConnected())
-        Log::Info("App: Connected to server");
+    if (client.IsConnected()) {
+        m_connectionLostMsgSent = false;
+        NotifyDefault("Connected to server");
+    }
 
     m_currentClientTimeOut = m_clientTimeOut;
 }
@@ -451,7 +450,7 @@ void App::RenderNotifications() {
     UIReg::TryGetRegisteredColor(Style::commanColorUIBackgroundLight, baseColor);
     UIReg::TryGetRegisteredColor(Style::commanColorUIBackground, outlineColor);
 
-    UIReg::TryGetRegisteredColor(Style::commanColorUIPanelLight, defaultColor);
+    UIReg::TryGetRegisteredColor(Style::commanColorAccentDefault, defaultColor);
     UIReg::TryGetRegisteredColor(Style::commanColorAccentWarning, warnColor);
     UIReg::TryGetRegisteredColor(Style::commanColorAccentError, errorColor);
 
@@ -475,10 +474,11 @@ void App::RenderNotifications() {
     float scaleY = displaySize.y / refDisplaySize.y;
     float displayScale = std::min(scaleX, scaleY);
 
-    const float width = 250 * displayScale;
-    const float minHeight = 75 * displayScale;
+    const float width = 300 * displayScale;
+    const float minHeight = 30 * displayScale;
     const float maxHeight = 150 * displayScale;
     const float padding = 5 * displayScale;
+    const float elementPadding = 15 * displayScale;
     const float textSize = 28 * displayScale;
     const float accentLineWidth = 3 * displayScale;
     const float outlineWidth = 4 * displayScale;
@@ -491,7 +491,7 @@ void App::RenderNotifications() {
     for (auto& noti : m_notifications) {
         float textHeight = RE::GetTextBlockHeight(noti.message);
         float calcualtedHeight = std::min(maxHeight, std::max(textHeight + padding * 2, minHeight));
-        currentPositionY -= calcualtedHeight + padding;
+        currentPositionY -= calcualtedHeight + elementPadding;
 
         Vector4 baseRect{
             winHalfX - width * 0.5f,
@@ -517,7 +517,7 @@ void App::RenderNotifications() {
 
         // text
         RE::SetColor(255);
-        RE::CachText(true);
+        RE::CacheText(true);
         RE::Text(noti.message, baseRect.x + accentLineWidth + padding, baseRect.y + padding);
 
         RE::ResetClipRect();

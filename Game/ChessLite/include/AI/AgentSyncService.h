@@ -22,6 +22,7 @@ private:
 
     void AddSyncAction();
     void RemoveSyncAction();
+    void SendErrorNotification(const std::string& msg);
 
     void RequestServerAgentIDList(AppContext* ctx);
     void RequestMissingAgentsFromServer(AppContext* ctx);

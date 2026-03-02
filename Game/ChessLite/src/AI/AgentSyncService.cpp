@@ -122,6 +122,14 @@ void AgentSyncService::RemoveSyncAction() {
 	}
 }
 
+void AgentSyncService::SendErrorNotification(const std::string& msg) {
+	auto* app = App::GetInstance();
+	if (!app)
+		return;
+	
+	app->NotifyError(msg);
+}
+
 void AgentSyncService::RequestServerAgentIDList(AppContext* ctx) {
 	OTN::OTNObject headerObj = ctx->gameClient.CreateHeaderBlock("GetAgentIDList");
 	OTN::OTNObject bodyObj{ "body" };
@@ -143,6 +151,7 @@ void AgentSyncService::RequestServerAgentIDList(AppContext* ctx) {
 			if (!result) {
 				self->RemoveSyncAction();
 				Log::Error("Failed to sync agents: {}", payload);
+				self->SendErrorNotification("Failed to sync agents: " + payload);
 				return;
 			}
 
@@ -180,6 +189,7 @@ void AgentSyncService::RequestMissingAgentsFromServer(AppContext* ctx) {
 			if (!result) {
 				self->RemoveSyncAction();
 				Log::Error("Failed to sync agents: {}", payload);
+				self->SendErrorNotification("Failed to sync agents: " + payload);
 				return;
 			}
 
@@ -210,6 +220,7 @@ void AgentSyncService::SyncMissingData(AppContext* ctx, const std::unordered_set
 			if (!result) {
 				self->RemoveSyncAction();
 				Log::Error("Failed to sync agents: {}", payload);
+				self->SendErrorNotification("Failed to sync agents: " + payload);
 				return;
 			}
 
@@ -243,6 +254,7 @@ void AgentSyncService::SyncDelete(AppContext* ctx, const std::unordered_set<Agen
 			if (!result) {
 				self->RemoveSyncAction();
 				Log::Error("Failed to sync agents: {}", payload);
+				self->SendErrorNotification("Failed to sync agents: " + payload);
 				return;
 			}
 			self->HandleDeletedAgents();
@@ -272,6 +284,7 @@ void AgentSyncService::SyncDirty(AppContext* ctx, const std::unordered_set<Agent
 			if (!result) {
 				self->RemoveSyncAction();
 				Log::Error("Failed to sync agents: {}", payload);
+				self->SendErrorNotification("Failed to sync agents: " + payload);
 				return;
 			}
 			self->HandleDirtyAgents(payload);

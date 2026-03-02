@@ -623,7 +623,7 @@ namespace SDLCore::Render {
 	*
 	* @param value True to enable caching, false to disable.
 	*/
-	void CachText(bool value);
+	void CacheText(bool value);
 
 	/**
 	* @brief Clears all cached text entries and frees their textures.

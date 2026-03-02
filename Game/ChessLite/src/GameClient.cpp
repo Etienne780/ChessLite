@@ -2,6 +2,7 @@
 #include <CoreLib/BinarySerializer.h>
 #include <CoreLib/BinaryDeserializer.h>
 #include <SDLCoreLib/SDLCoreTime.h>
+#include "App.h"
 
 GameClient::GameClient() {
 }
@@ -44,6 +45,11 @@ bool GameClient::Connect(const std::string& host, uint16_t port) {
 void GameClient::Disconnect() {
 	if (!IsConnected())
 		return;
+
+	auto* app = App::GetInstance();
+	if (app) {
+		app->NotifyError("Connection lost to server");
+	}
 
 	NET_DestroyStreamSocket(m_socket);
 	m_socket = nullptr;
@@ -216,7 +222,7 @@ bool GameClient::ProcessReceiveQueue() {
 void GameClient::ProcessPendingSentTimeOut() {
 	std::vector<NetworkMsgID> timeOutIDs;
 	for (auto& [id, pending] : m_pending) {
-		pending.waitedTimeMS += static_cast<size_t>(SDLCore::Time::GetDeltaTimeMSF());
+		pending.waitedTimeMS += SDLCore::Time::GetDeltaTimeMSF();
 		if (pending.waitedTimeMS >= m_pendingSendTimeOutMS)
 			timeOutIDs.push_back(id);
 	}
