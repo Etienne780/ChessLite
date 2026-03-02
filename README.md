@@ -11,6 +11,8 @@ School project: 3x3 chess variant with reinforcement learning AI. Supports singl
 
 </div>
 
+<a name="top"></a>
+
 ---
 
 ## Overview
@@ -247,3 +249,10 @@ furnished to do so, subject to the following conditions:
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
 ```
+<div align="center">
+
+[Back to Top](#top) • [License](#license)
+
+Made with SDL3
+
+</div>
