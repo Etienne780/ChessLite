@@ -112,7 +112,17 @@ Pawn rules:
    ```
    
    This command start the MySQL container.
-   Now you can just start the server and the app and everything should work
+   Now you can just start the server and the app and everything should work.
+   You can setup up the project so that you can start both Projects at the same time:
+   - Right click in the window called `Solution Explorer` on the item Solution 'Project'
+   - Click on the bottom most option called `Propertys`
+   - Open the panel Comman Properties/Startup Project/
+   - Press on the right in the panel on Multiple startup projects
+   - Click on the actions for the `Server` and `ChessLite` Project
+   - And select for both of them the `Start` option
+   - Now you can save and close this menu and start the project again
+
+   
 
 
 ### Build Commands
