@@ -58,6 +58,9 @@ void AgentSyncService::FullSync(AppContext* ctx) {
 	if (!ctx || m_isSyncInProgress)
 		return;
 
+	if (!ctx->gameClient.IsConnected())
+		return;
+
 	auto dirtyIDs = ctx->agentManager.GetDirtyAgents();
 	if (!dirtyIDs.empty())
 		SyncDirty(ctx, dirtyIDs);
@@ -79,6 +82,9 @@ void AgentSyncService::FullSync(AppContext* ctx) {
 
 void AgentSyncService::Sync(AppContext* ctx) {
 	if (!ctx || m_isSyncInProgress)
+		return;
+
+	if (!ctx->gameClient.IsConnected())
 		return;
 
 	const auto& missingIDs = ctx->agentManager.GetUnregisteredAgentIDs();

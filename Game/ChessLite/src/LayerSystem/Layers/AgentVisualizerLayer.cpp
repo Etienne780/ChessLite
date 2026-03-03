@@ -59,7 +59,7 @@ namespace Layers {
 
 		AgentID id = (m_isAgent1Shown) ? m_agentID1 : m_agentID2;
 		Agent* agent = ctx->agentManager.GetAgent(id);
-		RenderUIBody(agent);
+		RenderUIBody(ctx, agent);
 	}
 
 	void AgentVisualizerLayer::OnUIRender(AppContext* ctx) {
@@ -129,7 +129,7 @@ namespace Layers {
 		});
 	}
 
-	void AgentVisualizerLayer::RenderUIBody(const Agent* agent) {
+	void AgentVisualizerLayer::RenderUIBody(AppContext* ctx, const Agent* agent) {
 		namespace RE = SDLCore::Render;
 		if (!agent)
 			return;
@@ -146,6 +146,9 @@ namespace Layers {
 
 		RE::SetColor(25);
 		RE::FillRect(0, reservedTop, width, usableHeight);
+
+		int boardWidth = ctx->currentChessContext.GetBoardWidth();
+		int boardHeight = ctx->currentChessContext.GetBoardHeight();
 
 		float textPadding = 5;
 		float horHeaderOffset = 20;
@@ -215,14 +218,14 @@ namespace Layers {
 			RE::SetColor(45);
 			RE::FillRect(10, y, leftWidth - 20, entryHeight - 10);
 
-			DrawBoard(entry.first, 20, y + 10, entryHeight - 40);
+			DrawBoard(entry.first, 20, y + 10, entryHeight - 40, boardWidth, boardHeight);
 
 			auto it = states.find(entry.first);
 			if (it != states.end()) {
 				const GameMove& gameMove = it->second.GetMove(entry.second);
-				std::string moveText = ToChessNotation(gameMove.GetFrom())
+				std::string moveText = ToChessNotation(boardHeight, gameMove.GetFrom())
 					+ " -> "
-					+ ToChessNotation(gameMove.GetTo());
+					+ ToChessNotation(boardHeight, gameMove.GetTo());
 				float textWidth = RE::GetTextWidth(moveText);
 				RE::SetColor(255);
 				RE::Text(moveText, std::min(130.0f, leftWidth - textWidth - 10.0f), y + 50);
@@ -287,15 +290,16 @@ namespace Layers {
 			RE::Text("State: " + stateStr, panelX, detailY);
 			detailY += RE::GetTextHeight();
 
-			DrawBoard(stateStr, panelX, detailY, miniBoardSize);
+			DrawBoard(stateStr, panelX, detailY, miniBoardSize, boardWidth, boardHeight);
 			detailY += miniBoardSize + sectionPad;
 
 			RE::SetColor(255);
 			RE::Text("Grid View", panelX, detailY);
 			detailY += RE::GetTextHeight() + 2.0f;
 
-			float cellW = moveBoxW + 5.0f;
-			float cellH = moveBoxH + 5.0f;
+			float gridCellW = moveBoxW + 5.0f;
+			float gridCellH = moveBoxH + 5.0f;
+
 			float boardSz = moveBoxW * 0.65f;
 			float labelH = moveBoxH - boardSz - 4.0f;
 
@@ -305,8 +309,10 @@ namespace Layers {
 
 				int col = i % gridCols;
 				int row = i / gridCols;
-				float bx = panelX + col * cellW;
-				float by = detailY + row * cellH;
+				float bx = panelX + col * gridCellW;
+				float by = detailY + row * gridCellH;
+				float boardCellW = boardSz / static_cast<float>(boardWidth);
+				float boardCellH = boardSz / static_cast<float>(boardHeight);
 
 				if (eval > 0.0f) RE::SetColor(30, 55, 30);
 				else if (eval < 0.0f) 
@@ -320,23 +326,23 @@ namespace Layers {
 				RE::Rect(bx, by, moveBoxW, moveBoxH);
 
 				float boardOffX = (moveBoxW - boardSz) * 0.5f;
-				DrawBoard(stateStr, bx + boardOffX, by + 2.0f, boardSz);
+				DrawBoard(stateStr, bx + boardOffX, by + 2.0f, boardSz, boardWidth, boardHeight);
 
 				Vector2 from = move.GetFrom();
 				float cellSize = boardSz / 3.0f;
 				RE::SetColor(255, 220, 0, 120);
-				RE::FillRect(bx + boardOffX + from.x * cellSize,
-					by + 2.0f + from.y * cellSize,
-					cellSize, cellSize);
+				RE::FillRect(bx + boardOffX + from.x * boardCellW,
+					by + 2.0f + from.y * boardCellH,
+					boardCellW, boardCellH);
 
 				Vector2 to = move.GetTo();
 				RE::SetColor(255, 255, 255, 80);
-				RE::FillRect(bx + boardOffX + to.x * cellSize,
-					by + 2.0f + to.y * cellSize,
-					cellSize, cellSize);
+				RE::FillRect(bx + boardOffX + to.x * boardCellW,
+					by + 2.0f + to.y * boardCellH,
+					boardCellW, boardCellH);
 
 				RE::SetTextSize(18.0f);
-				std::string label = ToChessNotation(from) + "->" + ToChessNotation(to);
+				std::string label = ToChessNotation(boardHeight, from) + "->" + ToChessNotation(boardHeight, to);
 				float lw = RE::GetTextWidth(label);
 				float lx = bx + (moveBoxW - lw) * 0.5f;
 				RE::SetColor(220);
@@ -346,7 +352,7 @@ namespace Layers {
 			RE::SetTextSize(36.0f);
 
 			int gridRows = (moveCount + gridCols - 1) / gridCols;
-			detailY += gridRows * cellH + sectionPad;
+			detailY += gridRows * gridCellH + sectionPad;
 
 			RE::SetColor(255);
 			RE::Text("List View", panelX, detailY);
@@ -363,7 +369,7 @@ namespace Layers {
 
 				Vector2 from = move.GetFrom();
 				Vector2 to = move.GetTo();
-				std::string moveStr = ToChessNotation(from) + " -> " + ToChessNotation(to);
+				std::string moveStr = ToChessNotation(boardHeight, from) + " -> " + ToChessNotation(boardHeight, to);
 				RE::SetColor(220);
 				RE::Text(moveStr, panelX + 5.0f, rowCenterY - RE::GetTextHeight() * 0.5f);
 
@@ -455,36 +461,32 @@ namespace Layers {
 		return leftPressed && inside;
 	}
 
-	void AgentVisualizerLayer::DrawBoard(const std::string& state, float x, float y, float size) {
+	void AgentVisualizerLayer::DrawBoard(const std::string& state, float x, float y, float size, int boardWidth, int boardHeight) {
 		namespace RE = SDLCore::Render;
-		float cell = size / 3.0f;
-
-		for (int i = 0; i < 9; ++i) {
-			int row = i / 3;
-			int col = i % 3;
-			float cx = x + col * cell;
-			float cy = y + row * cell;
-
+		float cellW = size / static_cast<float>(boardWidth);
+		float cellH = size / static_cast<float>(boardHeight);
+		for (int i = 0; i < boardWidth * boardHeight; ++i) {
+			int row = i / boardWidth;
+			int col = i % boardWidth;
+			float cx = x + col * cellW;
+			float cy = y + row * cellH;
 			int value = state[i] - '0';
-			if (value == 0) 
+			if (value == 0)
 				RE::SetColor(50);
-			else if (value == 1) 
+			else if (value == 1)
 				RE::SetColor(200, 80, 80);
-			else if (value == 2) 
+			else if (value == 2)
 				RE::SetColor(80, 80, 200);
-
-			RE::FillRect(cx, cy, cell, cell);
-
-			// Board grid lines
+			RE::FillRect(cx, cy, cellW, cellH);
 			RE::SetColor(20);
 			RE::SetStrokeWidth(2);
-			RE::Rect(cx, cy, cell, cell);
+			RE::Rect(cx, cy, cellW, cellH);
 		}
 	}
 
-	std::string AgentVisualizerLayer::ToChessNotation(const Vector2& pos) {
+	std::string AgentVisualizerLayer::ToChessNotation(int height, const Vector2& pos) {
 		char col = 'A' + static_cast<int>(pos.x);
-		char row = '1' + (2 - static_cast<int>(pos.y));// flip y axis
+		char row = '0' + height - static_cast<int>(pos.y) - 1;
 		return std::string(1, col) + row;
 	}
 

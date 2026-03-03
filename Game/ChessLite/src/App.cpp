@@ -231,8 +231,8 @@ void App::InitChessContext() {
     pawn->AddMoveRule(-1, 1);
 
     // --- Chess Board Setup ---
-    ChessContext& chessCTX = m_context.currentContext;
-    chessCTX.SetBoardSize(3, 3);
+    ChessContext& chessCTX = m_context.currentChessContext;
+    chessCTX.SetBoardSize(1024, 1024);
     chessCTX.BoardCmdFillRow(0, m_context.pieceID);
 
     //--- Win Condition Setup

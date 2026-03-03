@@ -55,13 +55,13 @@ namespace Layers {
 		float m_currentClipBoardCopyTimer = 0.0f;
 
 		void SetupWindow(AppContext* ctx);
-		void RenderUIBody(const Agent* agent);
+		void RenderUIBody(AppContext* ctx, const Agent* agent);
 
 		void UpdateScroll(float& offset, float& velocity, float maxScroll);
 		bool DrawButton(const std::string& text, float x, float y, float w, float h);
-		void DrawBoard(const std::string& state, float x, float y, float size);
+		void DrawBoard(const std::string& state, float x, float y, float size, int boardWidth, int boardHeight);
 
-		static std::string ToChessNotation(const Vector2& pos);
+		static std::string ToChessNotation(int height, const Vector2& pos);
 		static bool IsPointInRect(const Vector2& mPos, float x, float y, float w, float h);
 	};
 

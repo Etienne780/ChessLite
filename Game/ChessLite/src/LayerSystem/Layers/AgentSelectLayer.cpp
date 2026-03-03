@@ -215,7 +215,7 @@ namespace Layers {
 
             if (SDLCore::Input::KeyJustPressed(SDLCore::KeyCode::RETURN)) {
                 if(canConfirm)
-                    ctx->agentManager.AddAgent(Agent(m_inputBarText, ctx->currentContext.GetConfigString()));
+                    ctx->agentManager.AddAgent(Agent(m_inputBarText, ctx->currentChessContext.GetConfigString()));
                 m_isAddingAgent = false;
                 m_isInputBarActive = false;
                 m_inputBarText.clear();
@@ -254,7 +254,7 @@ namespace Layers {
         if (SDLCore::Input::MouseJustPressed(SDLCore::MouseButton::LEFT) 
             && isHoverCreateBTN) {
             if (m_isAddingAgent && canConfirm) {
-                ctx->agentManager.AddAgent(Agent(m_inputBarText, ctx->currentContext.GetConfigString()));
+                ctx->agentManager.AddAgent(Agent(m_inputBarText, ctx->currentChessContext.GetConfigString()));
                 m_isAddingAgent = false;
                 m_inputBarText.clear();
                 m_cursorBlinkTimer = 0.0f;
@@ -354,6 +354,8 @@ namespace Layers {
 
             AgentID agentID = agent.GetID();
 
+            bool isSelectable = agent.GetChessConfig() == ctx->currentChessContext.GetConfigString();
+
             bool isHovered = IsPointInRect(mPos, x, rowY, listW, rowH - 2.0f);
             bool isAgent1 = (ctx->selectedAgentID1 == agentID);
             bool isAgent2 = (ctx->selectedAgentID2 == agentID);
@@ -362,7 +364,7 @@ namespace Layers {
 
             if (isAssigned) 
                 RE::SetColor(28, 45, 28);
-            else if (isHovered) 
+            else if (isHovered && isSelectable)
                 RE::SetColor(35, 35, 42);
             else 
                 RE::SetColor(index % 2 == 0 ? 24 : 28);
@@ -451,7 +453,7 @@ namespace Layers {
                 drawBadge("Agent 1", 90, 150, 255);
 
             // Click to assign
-            if (clicked && isHovered && !delHovered) {
+            if (isSelectable && clicked && isHovered && !delHovered) {
                 if (m_selectMode == AgentSelectMode::AGENT_1_ONLY) {
                     ctx->selectedAgentID1 = agentID;
                 }
@@ -467,6 +469,12 @@ namespace Layers {
                         ctx->selectedAgentID2 = agentID;
                     }
                 }
+            }
+
+            // draw darker overlay if not selectabel
+            if (!isSelectable) {
+                RE::SetColor(0, 0, 0, 60);
+                RE::FillRect(x, rowY, listW, rowH - 2.0f);
             }
 
             rowY += rowH;

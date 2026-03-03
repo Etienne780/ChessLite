@@ -220,7 +220,21 @@ namespace Layers {
 	}
 
 	void StartLoadLayer::RenderSyncDatabase() {
-		
+		namespace RE = SDLCore::Render;
+
+
+		float scaleX = m_displaySize.x / m_RefDisplaySize.x;
+		float scaleY = m_displaySize.y / m_RefDisplaySize.y;
+		float displayScale = std::min(scaleX, scaleY);
+
+		float heightYOffset = 25.0f * displayScale;
+		float winXHalf = m_windowSize.x * 0.5f;
+		float winYHalf = m_windowSize.y * 0.5f;
+
+		RE::SetColor(255);
+		RE::SetTextAlign(SDLCore::Align::CENTER);
+		RE::SetTextSize(32.0f * displayScale);
+		RE::Text("Sync Data", winXHalf, winYHalf + heightYOffset);
 	}
 
 	void StartLoadLayer::AddLoadingSectionAssets() {

@@ -139,7 +139,7 @@ namespace Layers {
 	}
 
 	void GameLayer::SetupGame(AppContext* ctx) {
-		m_game.SetGameContext(ctx->currentContext);
+		m_game.SetGameContext(ctx->currentChessContext);
 		
 		m_pawnLightTexture = std::make_shared<SDLCore::Texture>(SDLCore::TEXTURE_FALLBACK_TEXTURE);
 		m_pawnDarkTexture = std::make_shared<SDLCore::Texture>(SDLCore::TEXTURE_FALLBACK_TEXTURE);
@@ -486,7 +486,7 @@ namespace Layers {
 			float x = topLeftBoard.x + m_boardOutlineWidth * tileScaler + m_boardNotationMargin * tileScaler + boardTileSize * boardWidth;
 			float y = topLeftBoard.y + static_cast<float>(i) * boardTileSize + boardTileSize * 0.5f;
 
-			std::string symbol = ToChessNotationRow(i);
+			std::string symbol = ToChessNotationRow(boardHeight - i - 1);
 			RE::Text(symbol, x, y);
 		}
 
@@ -615,7 +615,7 @@ namespace Layers {
 	}
 
 	std::string GameLayer::ToChessNotationRow(int row) {
-		char r = '1' + (2 - row);
+		char r = '0' + (row);
 		return std::string(1, r);
 	}
 

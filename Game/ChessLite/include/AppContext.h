@@ -24,7 +24,7 @@ public:
 	ChessOptions options;
 	AgentManager agentManager;
 	CoreChess::ChessPieceID pieceID;
-	CoreChess::ChessContext currentContext;
+	CoreChess::ChessContext currentChessContext;
 	
 	AgentID selectedAgentID1;
 	AgentID selectedAgentID2;
