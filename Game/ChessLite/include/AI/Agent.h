@@ -3,6 +3,7 @@
 #include <unordered_map>
 
 #include <CoreChessLib/ChessGame.h>
+#include <CoreChessLib/ChessContext.h>
 
 #include "BoardState.h"
 #include "Type.h"
@@ -21,7 +22,8 @@ friend class AgentSyncService;
 friend class AgentManager;
 public:
 	Agent() = default;
-	Agent(const std::string& name, const std::string& config);
+	Agent(const std::string& name, CoreChess::ChessContext& chessContext);
+	Agent(const std::string& name, std::string& chessConfig);
 	~Agent() = default;
 
 	void GameFinished(bool won);
@@ -63,6 +65,8 @@ private:
 	int m_matchesPlayedAsWhite = 0;
 	int m_matchesWonAsWhite = 0;
 	bool m_isWhite = false;
+	int m_boardWidth = 0;
+	int m_boardHeight = 0;
 	std::string m_chessConfigString;
 	std::unordered_map<std::string, BoardState> m_boardStates;/* < normalized board position to board state*/
 

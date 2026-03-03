@@ -1,8 +1,18 @@
 #include <cmath>
 #include "AI/Agent.h"
 
-Agent::Agent(const std::string& name, const std::string& config)
-	: m_name(name), m_chessConfigString(config) {
+Agent::Agent(const std::string& name, CoreChess::ChessContext& chessContext)
+	: m_name(name), 
+	m_chessConfigString(chessContext.GetConfigString()), 
+	m_boardWidth(chessContext.GetBoardWidth()),
+	m_boardHeight(chessContext.GetBoardHeight()) {
+}
+
+Agent::Agent(const std::string& name, std::string& chessConfig) 
+	: m_name(name), m_chessConfigString(chessConfig) {
+	CoreChess::ChessContext ctx{ chessConfig };
+	m_boardWidth = ctx.GetBoardWidth();
+	m_boardHeight = ctx.GetBoardHeight();
 }
 
 void Agent::GameFinished(bool won) {
@@ -144,8 +154,13 @@ bool Agent::IsAgentDirty() const {
 }
 
 float Agent::GetExplorationChance() const {
-	// hits null at ca 15 games played
-	double y = -0.005 * std::pow(m_matchesPlayed, 2) + 1;
+	// hits 0 at ca 25 games played with size 3x3
+	double boardArea = static_cast<double>(m_boardWidth) * static_cast<double>(m_boardHeight);
+	
+	double referenceArea = 15.0;
+	double sizeFactor = boardArea / referenceArea;
+
+	double y = -0.005 * std::pow(m_matchesPlayed / sizeFactor, 2) + 1;
 	return static_cast<float>(std::max(0.0, y));
 }
 

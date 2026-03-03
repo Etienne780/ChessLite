@@ -216,7 +216,7 @@ namespace Layers {
 
             if (SDLCore::Input::KeyJustPressed(SDLCore::KeyCode::RETURN)) {
                 if(canConfirm)
-                    ctx->agentManager.AddAgent(Agent(m_inputBarText, ctx->currentChessContext.GetConfigString()));
+                    ctx->agentManager.AddAgent(Agent(m_inputBarText, ctx->currentChessContext));
                 m_isAddingAgent = false;
                 m_isInputBarActive = false;
                 m_inputBarText.clear();
@@ -255,7 +255,7 @@ namespace Layers {
         if (SDLCore::Input::MouseJustPressed(SDLCore::MouseButton::LEFT) 
             && isHoverCreateBTN) {
             if (m_isAddingAgent && canConfirm) {
-                ctx->agentManager.AddAgent(Agent(m_inputBarText, ctx->currentChessContext.GetConfigString()));
+                ctx->agentManager.AddAgent(Agent(m_inputBarText, ctx->currentChessContext));
                 m_isAddingAgent = false;
                 m_inputBarText.clear();
             }
