@@ -74,6 +74,7 @@ namespace Layers {
 			RenderSyncDatabase();
 			break;
 		case LoadState::FINISHED:
+			RenderLoadFinished();
 		default:
 			break;
 		}
@@ -172,7 +173,7 @@ namespace Layers {
 		}
 	}
 
-	void StartLoadLayer::RenderLoadAssets() {
+	void StartLoadLayer::RenderLoadAssets() const {
 		namespace RE = SDLCore::Render;
 
 		Vector4 colorAccent;
@@ -181,7 +182,7 @@ namespace Layers {
 		float scaleX = m_displaySize.x / m_RefDisplaySize.x;
 		float scaleY = m_displaySize.y / m_RefDisplaySize.y;
 		float displayScale = std::min(scaleX, scaleY);
-
+		
 		float loadingBarYOffset = 25.0f * displayScale;
 		float winXHalf = m_windowSize.x * 0.5f;
 		float winYHalf = m_windowSize.y * 0.5f;
@@ -219,9 +220,8 @@ namespace Layers {
 		}
 	}
 
-	void StartLoadLayer::RenderSyncDatabase() {
+	void StartLoadLayer::RenderSyncDatabase() const {
 		namespace RE = SDLCore::Render;
-
 
 		float scaleX = m_displaySize.x / m_RefDisplaySize.x;
 		float scaleY = m_displaySize.y / m_RefDisplaySize.y;
@@ -235,6 +235,23 @@ namespace Layers {
 		RE::SetTextAlign(SDLCore::Align::CENTER);
 		RE::SetTextSize(32.0f * displayScale);
 		RE::Text("Sync Data", winXHalf, winYHalf + heightYOffset);
+	}
+
+	void StartLoadLayer::RenderLoadFinished() const {
+		namespace RE = SDLCore::Render;
+
+		float scaleX = m_displaySize.x / m_RefDisplaySize.x;
+		float scaleY = m_displaySize.y / m_RefDisplaySize.y;
+		float displayScale = std::min(scaleX, scaleY);
+
+		float heightYOffset = 25.0f * displayScale;
+		float winXHalf = m_windowSize.x * 0.5f;
+		float winYHalf = m_windowSize.y * 0.5f;
+
+		RE::SetColor(255);
+		RE::SetTextAlign(SDLCore::Align::CENTER);
+		RE::SetTextSize(32.0f * displayScale);
+		RE::Text("Load complete", winXHalf, winYHalf + heightYOffset);
 	}
 
 	void StartLoadLayer::AddLoadingSectionAssets() {
@@ -328,38 +345,9 @@ namespace Layers {
 
 		for (const auto& assetKey : assets) {
 			for (const auto& [name, obj] : *(assetKey.asset.get())) {
-				if (name == "Agent") {
-					LoadAgent(ctx, obj);
-					break;
-				}
-				else if (name == "Options") {
-					LoadOptions(ctx, obj);
-					break;
-				}
-				else if (name == "userData") {
-					ctx->app->LoadUserData(obj);
-					break;
-				}
+				if (ctx->app->LoadAppData(name, obj))
+					break;// skip to next object
 			}
-		}
-	}
-
-	void StartLoadLayer::LoadAgent(AppContext* ctx, const OTN::OTNObject& agentOTN) {
-		ctx->agentManager.Load(agentOTN);
-	}
-
-	void StartLoadLayer::LoadOptions(AppContext* ctx, const OTN::OTNObject& optionsOTN) {
-		if (auto obj = optionsOTN.TryGetValue<bool>(0, "showPossibleMoves")) {
-			ctx->options.showPossibleMoves = *obj;
-		}
-
-		if (auto obj = optionsOTN.TryGetValue<bool>(0, "autoRetryGame")) {
-			ctx->options.autoRetryGame = *obj;
-		}
-
-		if (auto obj = optionsOTN.TryGetValue<float>(0, "sfxVolume")) {
-			ctx->options.sfxVolume = *obj;
-			SDLCore::SoundManager::SetTagVolume(SDLCore::SoundTags::SFX, *obj);
 		}
 	}
 

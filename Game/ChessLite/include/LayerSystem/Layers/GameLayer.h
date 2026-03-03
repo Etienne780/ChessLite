@@ -35,6 +35,7 @@ namespace Layers {
 		std::shared_ptr<SDLCore::SoundClip> m_moveSound = nullptr;
 		std::shared_ptr<SDLCore::SoundClip> m_captureSound = nullptr;
 
+		bool m_isMoveDelayEnabled = true;
 		float m_currentAgnetMoveDelayMin = 0.3f;
 		float m_currentAgnetMoveDelayMax = 1.0f;
 		float m_currentAgentMoveDelay = 0.0f;// gets set by m_currentAgnetMoveDelayMin/m_currentAgnetMoveDelayMax

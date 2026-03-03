@@ -70,8 +70,9 @@ namespace Layers {
 		{
 			UI::Text(Key("title"), "Options", m_styleTitle);
 
-			DrawToggleOption("Show Possible Moves", m_localOptions.showPossibleMoves);
+			DrawToggleOption("Show possible moves", m_localOptions.showPossibleMoves);
 			DrawToggleOption("Auto retry game", m_localOptions.autoRetryGame);
+			DrawToggleOption("Agent move delay", m_localOptions.agentMoveDelay);
 
 			UI::BeginFrame(Key("volume_btn_container"), m_styleRowBTNContainer);
 			{

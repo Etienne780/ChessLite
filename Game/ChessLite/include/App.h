@@ -73,6 +73,7 @@ public:
 
 	bool SaveUserData();
 	void LoadUserData(const OTN::OTNObject& object);
+	bool LoadAppData(const std::string name, const OTN::OTNObject& object);
 
 	void NotifyDefault(const std::string& message, uint64_t durationMs = 0);
 	void NotifyWarning(const std::string& message, uint64_t durationMs = 0);

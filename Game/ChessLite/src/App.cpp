@@ -169,7 +169,7 @@ bool App::SaveUserData() {
     obj.SetNames("deleted_server_agents");
     obj.SetTypes("int64[]");
 
-    auto deletedServerAgents = m_context.agentManager.GetDeletedServerAgents();
+    const auto& deletedServerAgents = m_context.agentManager.GetDeletedServerAgents();
     std::vector<int64_t> deletedServerAgents64;
     deletedServerAgents64.reserve(deletedServerAgents.size());
     for (auto id : deletedServerAgents)
@@ -195,6 +195,23 @@ void App::LoadUserData(const OTN::OTNObject& object) {
 
         m_context.agentManager.SetDeletedServerAgents(ids);
     }
+}
+
+bool App::LoadAppData(const std::string name, const OTN::OTNObject& obj) {
+    bool result = false;
+    if (name == "Agent") {
+        m_context.agentManager.Load(obj);
+        result = true;
+    }
+    else if (name == "Options") {
+        m_context.options.LoadOptions(obj);
+        result = true;
+    }
+    else if (name == "userData") {
+        LoadUserData(obj);
+        result = true;
+    }
+    return result;
 }
 
 void App::NotifyDefault(const std::string& message, uint64_t durationMs) {
@@ -232,7 +249,7 @@ void App::InitChessContext() {
 
     // --- Chess Board Setup ---
     ChessContext& chessCTX = m_context.currentChessContext;
-    chessCTX.SetBoardSize(1024, 1024);
+    chessCTX.SetBoardSize(3, 3);
     chessCTX.BoardCmdFillRow(0, m_context.pieceID);
 
     //--- Win Condition Setup

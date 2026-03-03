@@ -182,7 +182,8 @@ namespace Layers {
         if (m_isInputBarActive) {
             m_cursorBlinkTimer += SDLCore::Time::GetDeltaTimeSecF();
             std::string display = m_inputBarText;
-            if (std::fmod(m_cursorBlinkTimer, 1.0f) < 0.5f) display += "|";
+            if (std::fmod(m_cursorBlinkTimer, 1.0f) < 0.5f) 
+                display += "|";
 
             RE::SetColor(220);
             RE::Text(display.empty() ? "|" : display, x + 10, textY);
@@ -257,8 +258,6 @@ namespace Layers {
                 ctx->agentManager.AddAgent(Agent(m_inputBarText, ctx->currentChessContext.GetConfigString()));
                 m_isAddingAgent = false;
                 m_inputBarText.clear();
-                m_cursorBlinkTimer = 0.0f;
-                SDLCore::Input::StopTextInput();
             }
             else if (!m_isAddingAgent) {
                 if (!m_isInputBarActive) {

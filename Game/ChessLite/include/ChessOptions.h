@@ -1,9 +1,15 @@
 #pragma once
 
+namespace OTN {
+	class OTNObject;
+}
+
+class AppContext;
 class ChessOptions {
 public:
 	bool showPossibleMoves = true;
 	bool autoRetryGame = false;
+	bool agentMoveDelay = true;
 	float sfxVolume = 1.0f;
 
 	ChessOptions() = default;
@@ -16,4 +22,5 @@ public:
 	void IncreaseSFXVolume(float amount = 0.1f);
 
 	bool SaveOptions();
+	void LoadOptions(const OTN::OTNObject& optionsOTN);
 };

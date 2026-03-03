@@ -73,10 +73,12 @@ namespace Layers {
 		void MoveToNextState();
 
 		void LoadAssets(AppContext* ctx);
-		void RenderLoadAssets();
+		void RenderLoadAssets() const;
 
 		void SyncDatabase(AppContext* ctx);
-		void RenderSyncDatabase();
+		void RenderSyncDatabase() const;
+
+		void RenderLoadFinished() const;
 
 		void AddLoadingSectionAssets();
 		void AddLoadingSectionData();
@@ -88,8 +90,6 @@ namespace Layers {
 		void RegistSkins(AppContext* ctx);
 
 		void RegisterData(AppContext* ctx, ResourceLoader& loader);
-		void LoadAgent(AppContext* ctx, const OTN::OTNObject& agentOTN);
-		void LoadOptions(AppContext* ctx, const OTN::OTNObject& optionsOTN);
 	};
 
 }

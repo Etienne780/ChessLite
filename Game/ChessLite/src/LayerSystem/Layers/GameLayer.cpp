@@ -54,6 +54,7 @@ namespace Layers {
 		m_refDisplaySize = ctx->refDisplaySize;
 		m_displaySize = ctx->displaySize;
 		m_windowSize = ctx->windowSize;
+		m_isMoveDelayEnabled = ctx->options.agentMoveDelay;
 
 		// update skin
 		if (m_skinType != ctx->skinManager.GetCurrentSkin()) {
@@ -340,15 +341,17 @@ namespace Layers {
 	}
 
 	bool GameLayer::AILogic() {
-		if (m_currentAgentMoveDelay == 0.0f) {
-			m_currentAgentMoveDelay = Random::GetRangeNumber(
-				m_currentAgnetMoveDelayMin, m_currentAgnetMoveDelayMax);
-			m_currentAgnetMovetime = 0.0f;
-		}
+		if (m_isMoveDelayEnabled) {
+			if (m_currentAgentMoveDelay == 0.0f) {
+				m_currentAgentMoveDelay = Random::GetRangeNumber(
+					m_currentAgnetMoveDelayMin, m_currentAgnetMoveDelayMax);
+				m_currentAgnetMovetime = 0.0f;
+			}
 
-		m_currentAgnetMovetime += SDLCore::Time::GetDeltaTimeSecF();
-		if (m_currentAgnetMovetime < m_currentAgentMoveDelay) {
-			return false;
+			m_currentAgnetMovetime += SDLCore::Time::GetDeltaTimeSecF();
+			if (m_currentAgnetMovetime < m_currentAgentMoveDelay) {
+				return false;
+			}
 		}
 
 		m_currentAgentMoveDelay = 0.0f;
