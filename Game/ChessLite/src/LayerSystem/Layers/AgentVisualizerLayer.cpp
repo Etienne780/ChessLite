@@ -202,6 +202,8 @@ namespace Layers {
 		RE::SetColor(30);
 		RE::FillRect(0, contentTop, leftWidth, contentHeight);
 		bool insideLeftPanel = IsPointInRect(mousePos,
+			0, contentTop, leftWidth, contentHeight);
+		bool insideRightPanel = IsPointInRect(mousePos,
 			leftWidth, contentTop, rightWidth, contentHeight);
 
 		const auto& history = agent->GetMoveHistory();
@@ -237,8 +239,6 @@ namespace Layers {
 		// Right panel (States & Moves)
 		RE::SetColor(28);
 		RE::FillRect(leftWidth, contentTop, rightWidth, contentHeight);
-		bool insideRightPanel = IsPointInRect(mousePos, 
-			leftWidth, contentTop, rightWidth, contentHeight);
 
 		// Layout constants
 		float miniBoardSize = 60.0f;
@@ -251,25 +251,28 @@ namespace Layers {
 		float panelX = leftWidth + 20.0f;
 		float panelW = rightWidth - 40.0f;
 
+		float stateLineH = RE::GetTextHeight();
+
 		float estimatedH = 0.0f;
 		for (const auto& [stateStr, boardState] : states) {
 			int moveCount = static_cast<int>(boardState.GetPossibleMoves().size());
 			int gridCols = std::max(1, static_cast<int>(panelW / (moveBoxW + 5.0f)));
 			int gridRows = (moveCount + gridCols - 1) / gridCols;
-
-			float stateLineH = RE::GetTextHeight();     
+    
 			float gridViewH = RE::GetTextHeight() + 2.0f
 				+ gridRows * (moveBoxH + 5.0f);
 			float listViewH = RE::GetTextHeight()
 				+ moveCount * listLineH;
 			float dividerH = 1.0f + sectionPad;
 
-			estimatedH += m_padding
+			float height = m_padding
 				+ stateLineH
 				+ miniBoardSize + sectionPad
 				+ gridViewH + sectionPad
 				+ listViewH + sectionPad * 2
 				+ dividerH;
+
+			estimatedH += height;
 		}
 
 		m_detailScrollMax = std::max(0.0f, estimatedH - contentHeight);
@@ -284,84 +287,126 @@ namespace Layers {
 		for (const auto& [stateStr, boardState] : states) {
 			const auto& moves = boardState.GetPossibleMoves();
 			int moveCount = static_cast<int>(moves.size());
+
 			int gridCols = std::max(1, static_cast<int>(panelW / (moveBoxW + 5.0f)));
+			int gridRows = (moveCount + gridCols - 1) / gridCols;
+
+			float textH = RE::GetTextHeight();
+
+			float gridViewH =
+				textH + 2.0f +
+				gridRows * (moveBoxH + 5.0f);
+
+			float listViewH =
+				textH +
+				moveCount * listLineH;
+
+			float dividerH = 1.0f + sectionPad;
+
+			float calculatedStateHeight =
+				m_padding +
+				textH + 
+				miniBoardSize + sectionPad +
+				gridViewH + sectionPad +
+				listViewH + sectionPad * 2 +
+				dividerH;
+
+			float stateTop = detailY;
+			float stateBottom = stateTop + calculatedStateHeight;
+
+			if (stateBottom < contentTop) {
+				detailY += calculatedStateHeight;
+				continue;
+			}
+
+			if (stateTop > contentTop + contentHeight) {
+				break;
+			}
+
+			float renderY = stateTop;
 
 			RE::SetColor(255);
-			RE::Text("State: " + stateStr, panelX, detailY);
-			detailY += RE::GetTextHeight();
+			RE::Text("State: " + stateStr, panelX, renderY);
+			renderY += textH;
 
-			DrawBoard(stateStr, panelX, detailY, miniBoardSize, boardWidth, boardHeight);
-			detailY += miniBoardSize + sectionPad;
+			DrawBoard(stateStr, panelX, renderY, miniBoardSize, boardWidth, boardHeight);
+			renderY += miniBoardSize + sectionPad;
 
 			RE::SetColor(255);
-			RE::Text("Grid View", panelX, detailY);
-			detailY += RE::GetTextHeight() + 2.0f;
+			RE::Text("Grid View", panelX, renderY);
+			renderY += textH + 2.0f;
 
 			float gridCellW = moveBoxW + 5.0f;
 			float gridCellH = moveBoxH + 5.0f;
-
 			float boardSz = moveBoxW * 0.65f;
-			float labelH = moveBoxH - boardSz - 4.0f;
 
 			for (int i = 0; i < moveCount; ++i) {
+
 				const GameMove& move = boardState.GetMove(i);
 				float eval = move.GetEvaluation();
 
 				int col = i % gridCols;
 				int row = i / gridCols;
+
 				float bx = panelX + col * gridCellW;
-				float by = detailY + row * gridCellH;
+				float by = renderY + row * gridCellH;
+
+				float boardOffX = (moveBoxW - boardSz) * 0.5f;
 				float boardCellW = boardSz / static_cast<float>(boardWidth);
 				float boardCellH = boardSz / static_cast<float>(boardHeight);
 
-				if (eval > 0.0f) RE::SetColor(30, 55, 30);
-				else if (eval < 0.0f) 
-					RE::SetColor(55, 30, 30);
-				else                  
-					RE::SetColor(40, 40, 40);
+				if (eval > 0.0f)      RE::SetColor(30, 55, 30);
+				else if (eval < 0.0f) RE::SetColor(55, 30, 30);
+				else                  RE::SetColor(40, 40, 40);
+
 				RE::FillRect(bx, by, moveBoxW, moveBoxH);
 
 				RE::SetColor(60);
-				RE::SetStrokeWidth(1);
 				RE::Rect(bx, by, moveBoxW, moveBoxH);
 
-				float boardOffX = (moveBoxW - boardSz) * 0.5f;
-				DrawBoard(stateStr, bx + boardOffX, by + 2.0f, boardSz, boardWidth, boardHeight);
+				DrawBoard(stateStr, bx + boardOffX, by + 2.0f,
+					boardSz, boardWidth, boardHeight);
 
 				Vector2 from = move.GetFrom();
-				float cellSize = boardSz / 3.0f;
+				Vector2 to = move.GetTo();
+
 				RE::SetColor(255, 220, 0, 120);
 				RE::FillRect(bx + boardOffX + from.x * boardCellW,
 					by + 2.0f + from.y * boardCellH,
 					boardCellW, boardCellH);
 
-				Vector2 to = move.GetTo();
 				RE::SetColor(255, 255, 255, 80);
 				RE::FillRect(bx + boardOffX + to.x * boardCellW,
 					by + 2.0f + to.y * boardCellH,
 					boardCellW, boardCellH);
 
 				RE::SetTextSize(18.0f);
-				std::string label = ToChessNotation(boardHeight, from) + "->" + ToChessNotation(boardHeight, to);
+
+				std::string label =
+					ToChessNotation(boardHeight, from) + "->" +
+					ToChessNotation(boardHeight, to);
+
 				float lw = RE::GetTextWidth(label);
 				float lx = bx + (moveBoxW - lw) * 0.5f;
+
 				RE::SetColor(220);
 				RE::Text(label, lx, by + boardSz + 4.0f);
 			}
 
 			RE::SetTextSize(36.0f);
 
-			int gridRows = (moveCount + gridCols - 1) / gridCols;
-			detailY += gridRows * gridCellH + sectionPad;
+			renderY += gridRows * gridCellH + sectionPad;
 
 			RE::SetColor(255);
-			RE::Text("List View", panelX, detailY);
-			detailY += RE::GetTextHeight();
+			RE::Text("List View", panelX, renderY);
+			renderY += textH;
 
 			for (int i = 0; i < moveCount; ++i) {
+
 				const GameMove& move = boardState.GetMove(i);
 				float eval = move.GetEvaluation();
-				float rowY = detailY + i * listLineH;
+
+				float rowY = renderY + i * listLineH;
 				float rowCenterY = rowY + listLineH * 0.5f;
 
 				RE::SetColor(i % 2 == 0 ? 33 : 38);
@@ -369,23 +414,34 @@ namespace Layers {
 
 				Vector2 from = move.GetFrom();
 				Vector2 to = move.GetTo();
-				std::string moveStr = ToChessNotation(boardHeight, from) + " -> " + ToChessNotation(boardHeight, to);
+
+				std::string moveStr =
+					ToChessNotation(boardHeight, from) + " -> " +
+					ToChessNotation(boardHeight, to);
+
 				RE::SetColor(220);
-				RE::Text(moveStr, panelX + 5.0f, rowCenterY - RE::GetTextHeight() * 0.5f);
+				RE::Text(moveStr,
+					panelX + 5.0f,
+					rowCenterY - textH * 0.5f);
 
 				float barX = panelX + 200.0f;
 				float barY = rowCenterY - evalBarH * 0.5f;
-				float clampEval = std::max(-1.0f, std::min(1.0f, eval * 0.5f));
+
+				float clampEval =
+					std::max(-1.0f, std::min(1.0f, eval * 0.5f));
 
 				RE::SetColor(25);
 				RE::FillRect(barX, barY, evalBarMaxW, evalBarH);
 
 				float midX = barX + evalBarMaxW * 0.5f;
-				float halfW = std::abs(clampEval) * (evalBarMaxW * 0.5f);
+				float halfW =
+					std::abs(clampEval) * (evalBarMaxW * 0.5f);
+
 				if (eval > 0.0f) {
 					RE::SetColor(60, 180, 60);
 					RE::FillRect(midX, barY, halfW, evalBarH);
-				} else if(eval < 0.0f) {
+				}
+				else if (eval < 0.0f) {
 					RE::SetColor(180, 60, 60);
 					RE::FillRect(midX - halfW, barY, halfW, evalBarH);
 				}
@@ -393,26 +449,26 @@ namespace Layers {
 				RE::SetColor(80);
 				RE::FillRect(midX - 1.0f, barY, 2.0f, evalBarH);
 
-				std::string evalStr = (eval >= 0 ? "+" : "") +
-					FormatUtils::toString(std::round(eval * 100.0f) / 100.0f);
-		
-				if (eval > 0.0f)
-					RE::SetColor(60, 180, 60);
-				else if (eval < 0.0f)
-					RE::SetColor(180, 60, 60);
-				else
-					RE::SetColor(40, 40, 40);
+				std::string evalStr =
+					(eval >= 0 ? "+" : "") +
+					FormatUtils::toString(
+						std::round(eval * 100.0f) / 100.0f);
 
+				if (eval > 0.0f)      RE::SetColor(60, 180, 60);
+				else if (eval < 0.0f) RE::SetColor(180, 60, 60);
+				else                  RE::SetColor(40, 40, 40);
 
-				RE::Text(evalStr, barX + evalBarMaxW + 6.0f, rowCenterY - RE::GetTextHeight() * 0.5f);
+				RE::Text(evalStr,
+					barX + evalBarMaxW + 6.0f,
+					rowCenterY - textH * 0.5f);
 			}
 
-			detailY += moveCount * listLineH + sectionPad * 2;
+			renderY += moveCount * listLineH + sectionPad * 2;
 
-			// Divider between states
 			RE::SetColor(50);
-			RE::FillRect(panelX, detailY, panelW, 1.0f);
-			detailY += sectionPad;
+			RE::FillRect(panelX, renderY, panelW, 1.0f);
+
+			detailY += calculatedStateHeight;
 		}
 
 		RE::ResetClipRect();
