@@ -31,28 +31,28 @@ void AgentSyncService::Init(AppContext& ctx) {
 }
 
 /*
- * Synchronization cases
- *
- * Local agent not registered on server
- *	- server_id == 0
- *	- send insert request to server
- *
- * Agent exists locally but no longer on server
- *	- fetch all server_ids from server
- *	- if a local agents server_id is missing from the server, remove it locally
- *
- * Agent exists on server but not locally
- *	- retrieve missing agents from server
- *	- create them locally
- *
- * Local agent deleted
- *	- send list of deleted agents (server_ids) to server to delete them
- *
- * Local agent modified
- *	- send agents marked as dirty
- *	- server compares versions and updates if newer
- *	- server sends back the modified ids with ther version to mark them locally as clean
- */
+* Synchronization cases
+*
+* Local agent not registered on server
+*	- server_id == 0
+*	- send insert request to server
+*
+* Agent exists locally but no longer on server
+*	- fetch all server_ids from server
+*	- if a local agents server_id is missing from the server, remove it locally
+*
+* Agent exists on server but not locally
+*	- retrieve missing agents from server
+*	- create them locally
+*
+* Local agent deleted
+*	- send list of deleted agents (server_ids) to server to delete them
+*
+* Local agent modified
+*	- send agents marked as dirty
+*	- server compares versions and updates if newer
+*	- server sends back the modified ids with ther version to mark them locally as clean
+*/
 
 void AgentSyncService::FullSync(AppContext* ctx) {
 	if (!ctx || m_isSyncInProgress)
