@@ -19,7 +19,7 @@ public:
 private:
 	Vector2 m_from{ 0.0f };
 	Vector2 m_to{ 0.0f };
-	float m_evaluation = 1;
+	float m_evaluation = 0.0f;
 };
 
 template<>

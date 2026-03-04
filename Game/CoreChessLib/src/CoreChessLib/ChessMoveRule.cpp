@@ -169,7 +169,7 @@ namespace CoreChess {
 			result.push_back(current);
 		}
 
-		// Remove the target field; capture logic is handled elsewhere
+		// Remove the target field capture logic is handled elsewhere
 		result.pop_back();
 		return result;
 	}
@@ -204,7 +204,7 @@ namespace CoreChess {
 			advance(absX, 0);
 		}
 
-		// Remove the target field; capture logic is handled elsewhere
+		// Remove the target field capture logic is handled elsewhere
 		result.pop_back();
 		return result;
 	}
