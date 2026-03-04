@@ -13,9 +13,11 @@ public:
     void Sync(AppContext* ctx);
 
     bool IsSyncInProgress() const;
+    bool FullSyncCalled() const;
 
 private:
     bool m_initCalled = false;
+    bool m_fullSyncCalled = false;
     int m_syncActionCount = 0;
     bool m_isSyncInProgress = false;
     NetworkCallbackID m_globalNetworkCB;

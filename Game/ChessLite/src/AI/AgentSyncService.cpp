@@ -78,6 +78,8 @@ void AgentSyncService::FullSync(AppContext* ctx) {
 	const auto& deletedIDs = ctx->agentManager.GetDeletedServerAgents();
 	if (!deletedIDs.empty())
 		SyncDelete(ctx, deletedIDs);
+
+	m_fullSyncCalled = true;
 }
 
 void AgentSyncService::Sync(AppContext* ctx) {
@@ -86,6 +88,11 @@ void AgentSyncService::Sync(AppContext* ctx) {
 
 	if (!ctx->gameClient.IsConnected())
 		return;
+
+	if (!FullSyncCalled()) {
+		FullSync(ctx);
+		return;
+	}
 
 	const auto& missingIDs = ctx->agentManager.GetUnregisteredAgentIDs();
 	if (!missingIDs.empty())
@@ -102,6 +109,10 @@ void AgentSyncService::Sync(AppContext* ctx) {
 
 bool AgentSyncService::IsSyncInProgress() const {
 	return m_isSyncInProgress;
+}
+
+bool AgentSyncService::FullSyncCalled() const {
+	return m_fullSyncCalled;
 }
 
 void AgentSyncService::AddSyncAction() {
